@@ -3902,6 +3902,27 @@ With this below we can use org capture workflow to capture an email message from
 But when follow the link in org mode, we will need to run ~M-x wl~ beforehand
 otherwise there will be error.
 * json
+** packages
+#+begin_src emacs-lisp :tangle modules/lang/json/packages.el
+(package! json-snatcher)
+(package! json-mode :pin "0e819e519a")
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/lang/json/config.el
+(use-package! json-mode
+  :mode "\\.js\\(?:on\\|[hl]int\\(?:rc\\)?\\)\\'"
+  :init
+  (when (featurep! +lsp)
+    (add-hook 'json-mode-local-vars-hook #'lsp!))
+  :config
+  (set-electric! 'json-mode :chars '(?\n ?: ?{ ?}))
+
+  (map! :after json-mode
+        :map json-mode-map
+        :localleader
+        "s" #'jsons-print-path))
+#+END_SRC
+** print json path
 This somehow does not work..
 #+begin_src emacs-lisp :tangle no
 (defvar json/printer-alist '(
@@ -3927,10 +3948,6 @@ Need to use this one:
       :action '(1
        ("o" (lambda (x) (setq jsons-path-printer (intern (cdr x))) "choose")))))
 #+END_SRC
-
-#+begin_src emacs-lisp :tangle modules/lang/json/packages.el
-(package! json-snatcher)
-#+end_src
 
 I want to override printer to print json path in the way I want:
 #+begin_src emacs-lisp :tangle modules/lang/json/config.el
@@ -4076,7 +4093,7 @@ path. from http://www.emacswiki.org/emacs/NxmlMode"
                 (kill-new (format "/%s" (mapconcat 'identity path "/"))))
           (format "/%s" (mapconcat 'identity path "/")))))))
 #+end_src
-** editing
+** helper functions
 Here are few functions I created to help editing xml file:
 #+begin_src emacs-lisp :tangle modules/lang/xml/autoload.el
 ;;;###autoload
@@ -4125,11 +4142,22 @@ then this will create:
 Tried ~hs-minor-mode~, still not happy with it.
 
 Turned out ~web-mode~ does a much better job, so use it instead of ~nxml-mode~
-for xml/xsd file.
-#+begin_src emacs-lisp :tangle modules/lang/xml/autoload.el
-(setq auto-mode-alist (delete '("\\.x[ms]l\\'" . xml-mode) auto-mode-alist))
-(add-to-list 'auto-mode-alist '("\\.xml\\'" . web-mode))
-(add-to-list 'auto-mode-alist '("\\.xsd\\'" . web-mode))
+for xml/xsd file so let's first stop Emacs using nxml-mode for xml file:
+#+begin_src emacs-lisp :tangle modules/lang/xml/config.el
+;; Built in plugins
+(add-to-list 'auto-mode-alist '("/sxhkdrc\\'" . conf-mode))
+(add-to-list 'auto-mode-alist '("\\.\\(?:hex\\|nes\\)\\'" . hexl-mode))
+
+(use-package! nxml-mode
+  :mode "\\.p\\(?:list\\|om\\)\\'" ; plist, pom
+  ;; :mode "\\.xs\\(?:d\\|lt\\)\\'"   ; xslt, xsd
+  :mode "\\.rss\\'"
+  ;; :magic "<\\?xml"
+  :config
+  (setq nxml-slash-auto-complete-flag t
+        nxml-auto-insert-xml-declaration-flag t)
+  (set-company-backend! 'nxml-mode '(company-nxml company-yasnippet))
+  (setq-hook! 'nxml-mode-hook tab-width nxml-child-indent))
 #+END_SRC
 ** keybinding
 #+begin_src emacs-lisp :tangle keybinds.el
@@ -4137,6 +4165,22 @@ for xml/xsd file.
   :desc "fold"  :n "TAB" #'hs-toggle-hiding
   :desc "xpath" :n ",xp" #'nxml-where)
 #+end_src
+* csv
+#+begin_src emacs-lisp :tangle modules/lang/csv/packages.el
+(package! csv-mode :pin "635337407c")
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/lang/csv/config.el
+(map! :after csv-mode
+      :localleader
+      :map csv-mode-map
+      "a" #'csv-align-fields
+      "u" #'csv-unalign-fields
+      "s" #'csv-sort-fields
+      "S" #'csv-sort-numeric-fields
+      "k" #'csv-kill-fields
+      "t" #'csv-transpose)
+#+END_SRC
 * diff
 ** emacs vdiff
 [[https://github.com/justbur/emacs-vdiff][emacs-vdiff]] behaves similarly to vimdiff and I found it more intuitive than ediff.
