@@ -1,0 +1,4924 @@
+#+TITLE: Doom Emacs Configuration
+#+AUTHOR: emacsbliss
+#+BLOG: https://emacsbliss.com
+#+PROPERTY: header-args:emacs-lisp :tangle yes :cache yes :results silent :comments link :mkdirp yes
+#+PROPERTY: header-args :tangle no :results silent
+#+HTML_HEAD: <link rel='shortcut icon' type='image/png' href='https://www.gnu.org/software/emacs/favicon.png'>
+
+#+BEGIN_QUOTE
+Let us change our traditional attitude to the construction of programs:
+Instead of imagining that our main task is to instruct a computer what to do,
+let us concentrate rather on explaining to human beings what we want a
+computer to do. --- Donald Knuth
+#+END_QUOTE
+
+This is my DOOM Emacs configuration file, it's written in [[http://www.howardism.org/Technical/Emacs/literate-programming-tutorial.html][literate programming style]] using [[https://orgmode.org/][org-mode]].
+
+It is *heavily* inspired by following Emacs configurations:
+- [[https://tecosaur.github.io/emacs-config/config.html][tecosaur DOOM Emacs configuration]]
+- [[https://github.com/fuxialexander/doom-emacs-private-xfu][doom-emacs-private-xfu]]
+- [[https://www.gtrun.org/post/init/][GTruN emacs config (DOOM Emacs)]]
+
+* Basic configuration
+#+BEGIN_SRC emacs-lisp :comments no
+;;; config.el -*- lexical-binding: t; -*-
+#+END_SRC
+** Personal Information
+First basic personal information:
+#+BEGIN_SRC emacs-lisp
+(setq user-full-name "emacsbliss"
+      user-mail-address "emacsbliss@gmail.com")
+#+END_SRC
+It's used by ~GPG~ and some others.
+** key binding
+I have heavily customized my keybindings and put them into a separate file:
+#+BEGIN_SRC emacs-lisp
+(load! "keybinds")
+#+END_SRC
+* Visual Settings
+** font
+I like use ~SF Mono~ font from MacOS. However In order to make certain symbols
+displayed properly, we need powerline patched SF Mono font.
+
+#+BEGIN_SRC emacs-lisp
+(setq doom-font (font-spec :family "SF Mono Powerline" :size 16)
+      doom-variable-pitch-font (font-spec :family "SF Mono Powerline")
+      doom-unicode-font (font-spec :family "SF Mono Powerline")
+      doom-big-font (font-spec :family "SF Mono Powerline" :size 20))
+#+END_SRC
+
+Intestingly we can adjust font either on per buffer basis or frame basis.
+#+begin_src emacs-lisp :tangle keybinds.el
+(map!
+  :n "C-;"    #'doom/reset-font-size
+  ;; Buffer-local font resizing
+  :n "C-="    #'text-scale-increase
+  :n "C--"    #'text-scale-decrease
+  ;; Frame-local font resizing
+  :n "M-C-="  #'doom/increase-font-size
+  :n "M-C--"  #'doom/decrease-font-size)
+#+END_SRC
+
+Quickest way to increase font size for frame is to make use of
+~doom-big-font-mode~ which is bound to ~SPC t b~.
+** theme
+Other than default theme ~doom-one~, I also found ~doom-acario-light~ nice as a
+light theme.
+#+begin_src emacs-lisp :tangle no
+(setq doom-theme 'doom-acario-light)
+#+end_src
+
+Now I also found that ~leuven~ theme is pleasant to use.
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq doom-theme 'leuven)
+#+END_SRC
+
+Since ~leuven~ is not customized specially for DOOM Emacs, sometimes it seems
+have a bit of performance issue (not sure if that's the reason), now I have
+switched to ~doom-dracular~:
+#+BEGIN_SRC emacs-lisp
+(setq doom-theme 'doom-dracula)
+#+END_SRC
+** fill column indicator
+DOOM Emacs has ~hl-fill-column-mode~ but I dislike it since with my theme
+(Leuven) fill indicator makes it not be able to see that character.
+
+It's actually from package ~hl-fill-column~.
+https://github.com/laishulu/hl-fill-column
+* Package loading
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle packages.el :comments link
+:END:
+This file shouldn't be byte compiled.
+#+BEGIN_SRC emacs-lisp :tangle packages.el :comments no
+;; -*- no-byte-compile: t; -*-
+#+END_SRC
+** Loading instructions
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle no
+:END:
+
+WARNING: Don't disable core packages listed in ~~/.emacs.d/core/packages.el~.
+Doom requires these, and disabling them may have terrible side effects.
+
+*** Packages in MELPA/ELPA/emacsmirror
+To install ~some-package~ from MELPA, ELPA or emacsmirror:
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! some-package)
+#+END_SRC
+
+*** Packages from git repositories
+To install a package directly from a particular repo, you'll need to specify
+a ~:recipe~. You'll find documentation on what ~:recipe~ accepts [[https://github.com/raxod502/straight.el#the-recipe-format][here]]:
+#+BEGIN_SRC emacs-lisp
+(package! another-package :tangle no
+  :recipe (:host github :repo "username/repo"))
+#+END_SRC
+
+If the package you are trying to install does not contain a ~PACKAGENAME.el~
+file, or is located in a subdirectory of the repo, you'll need to specify
+~:files~ in the ~:recipe~:
+#+BEGIN_SRC emacs-lisp
+(package! this-package :tangle no
+  :recipe (:host github :repo "username/repo"
+           :files ("some-file.el" "src/lisp/*.el")))
+#+END_SRC
+
+*** Disabling built-in packages
+If you'd like to disable a package included with Doom, for whatever reason,
+you can do so here with the ~:disable~ property:
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! builtin-package :disable t)
+#+END_SRC
+You can override the recipe of a built in package without having to specify
+all the properties for ~:recipe~. These will inherit the rest of its recipe
+from Doom or MELPA/ELPA/Emacsmirror:
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! builtin-package :recipe (:nonrecursive t))
+(package! builtin-package-2 :recipe (:repo "myfork/package"))
+#+END_SRC
+
+Specify a ~:branch~ to install a package from a particular branch or tag.
+This is required for some packages whose default branch isn't 'master' (which
+our package manager can't deal with; see [[https://github.com/raxod502/straight.el/issues/279][raxod502/straight.el#279]])
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! builtin-package :recipe (:branch "develop"))
+#+END_SRC
+* Navigation
+** open links
+I use [[https://github.com/abo-abo/ace-link][ace-link]] to quickly open links in the buffer.
+
+#+begin_src emacs-lisp :tangle packages.el
+(package! ace-link)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! ace-link
+  :commands (ace-link))
+(after! avy
+  (setq avy-keys '(?a ?s ?d ?f ?j ?k ?l ?\;)))
+(after! ace-window
+  (setq aw-keys '(?f ?d ?s ?r ?e ?w)
+        aw-scope 'frame
+        aw-ignore-current t
+        aw-background nil))
+#+end_src
+** switch buffer
+Given it's very frequent for me to switch between current and previous buffer,
+so it makes sense to give it a short keystroke:
+
+#+begin_src emacs-lisp :tangle keybinds.el
+(map!
+  :desc "switch to previous buffer" :nv "gT" #'evil-switch-to-windows-last-buffer)
+#+END_SRC
+* ivy
+** basic setup
+In =~/.doom.d/init.el=, under ~:completion~, I have:
+#+begin_example :tangle no
+(ivy               ; a search engine for love and life
++childframe
++icons
++prescient)
+#+end_example
+
+Now we just config some basic ivy settings:
+#+begin_src emacs-lisp
+(after! ivy
+  (setq ivy-count-format "(%d/%d) "
+        ;; http://oremacs.com/2017/11/30/ivy-0.10.0/
+        ivy-use-selectable-prompt t)
+
+  ;; http://oremacs.com/2017/04/09/ivy-0.9.0/
+  (setq counsel-yank-pop-separator "\n-------------------------------------------------------\n")
+)
+#+end_src
+** fzf/rg integration
+#+begin_src emacs-lisp
+(after! ivy
+  (ivy-add-actions
+   'counsel-fzf
+   '(("r" prot/counsel-fzf-dir "change root directory")
+     ("g" prot/counsel-rg-dir "use ripgrep in root directory")
+     ("a" prot/counsel-fzf-ace-window "ace-window switch")))
+
+  (ivy-add-actions
+   'counsel-rg
+   '(("r" prot/counsel-rg-dir "change root directory")
+     ("z" prot/counsel-fzf-dir "find file with fzf in root directory")))
+
+  (ivy-add-actions
+   'counsel-find-file
+   '(("g" prot/counsel-rg-dir "use ripgrep in root directory")
+     ("z" prot/counsel-fzf-dir "find file with fzf in root directory")))
+)
+#+end_src
+
+#+begin_src emacs-lisp
+;; https://protesilaos.com/dotemacs/
+;;;###autoload
+(defun prot/counsel-fzf-rg-files (&optional input dir)
+  "Run `fzf' in tandem with `ripgrep' to find files in the
+present directory.  If invoked from inside a version-controlled
+repository, then the corresponding root is used instead."
+  (interactive)
+  (let* ((process-environment
+          (cons (concat "FZF_DEFAULT_COMMAND=rg -Sn --color never --files --no-follow --hidden")
+                process-environment))
+          (vc (vc-root-dir)))
+    (if dir
+        (counsel-fzf input dir)
+      (if (eq vc nil)
+          (counsel-fzf input default-directory)
+        (counsel-fzf input vc)))))
+
+;;;###autoload
+(defun prot/counsel-fzf-dir (arg)
+  "Specify root directory for `counsel-fzf'."
+  (prot/counsel-fzf-rg-files ivy-text
+                              (read-directory-name
+                              (concat (car (split-string counsel-fzf-cmd))
+                                      " in directory: "))))
+
+;;;###autoload
+(defun prot/counsel-rg-dir (arg)
+  "Specify root directory for `counsel-rg'."
+  (let ((current-prefix-arg '(4)))
+    (counsel-rg ivy-text nil "")))
+
+;;;###autoload
+;; TODO generalise for all relevant file/buffer counsel-*?
+(defun prot/counsel-fzf-ace-window (arg)
+  "Use `ace-window' on `prot/counsel-fzf-rg-files' candidate."
+  (ace-window t)
+  (let ((default-directory (if (eq (vc-root-dir) nil)
+                                counsel--fzf-dir
+                              (vc-root-dir))))
+    (if (> (length (aw-window-list)) 1)
+        (progn
+          (find-file arg))
+      (find-file-other-window arg))
+    (balance-windows)))
+#+end_src
+
+** ivy posframe
+#+begin_src emacs-lisp
+(after! ivy-posframe
+  (setq ivy-posframe-parameters
+   '((left-fringe . 2)
+     (right-fringe . 2)
+     (internal-border-width . 2)))
+
+(setq ivy-posframe-height-alist
+   '((swiper . 15)
+     (swiper-isearch . 15)
+     (t . 10))
+
+  ivy-posframe-display-functions-alist
+   '((complete-symbol . ivy-posframe-display-at-point)
+     (swiper . nil)
+     (swiper-isearch . nil)
+     (t . ivy-posframe-display-at-frame-center))))
+#+end_src
+
+** ivy menu
+#+begin_src emacs-lisp
+;;;###autoload
+(defun me/get-key (x separator)
+  (kill-new (string-trim (car (split-string x separator t))))
+)
+
+;;;###autoload
+(defun me/get-value (x separator)
+  (kill-new (string-trim (cadr (split-string x separator t))))
+)
+
+;;;###autoload
+(defun me/ivy-transform-with-separator (s)
+  (replace-regexp-in-string me/ivy-separator "   " s)
+)
+
+;;;###autoload
+(defun me/ivy-from-file (file)
+  "read lines from file and display two column list by using me/ivy-separator"
+  (interactive)
+  (ivy-read "options: " (me/read-lines file)
+            :action '(1
+                      ("o" (lambda (x) (me/get-key x me/ivy-separator)) "get key")
+                      ("j" (lambda (x) (me/get-value x me/ivy-separator)) "get value"))))
+
+;; for eg, below is an example for using this me/ivy-from-file
+;; (defvar me/ivy-separator "\\$\\$\\$")
+
+;; (defun me/test-ivy ()
+;;   (interactive)
+;;   (ivy-set-display-transformer 'me/test-ivy 'me/ivy-transform-with-separator)
+;;   (me/ivy-from-file "~/.doom.d/test.txt"))
+
+;;;###autoload
+(defun me/ivy-menu (file)
+  "nested ivy case. the file would act as menu where key is menu entry name and value is the target file.
+  Then upon select one entry from menu, it will call `me/ivy-from-file' to read that file and present all choices"
+  (interactive)
+  (ivy-read "options: " (me/read-lines file)
+            :action '(1
+                      ("o" (lambda (x) (me/ivy-from-file (me/get-value x me/ivy-separator)) "open file")))))
+#+end_src
+
+By default I use three consecutive ~$~ as separator in the files used by
+~me/ivy-menu~ function:
+#+begin_src emacs-lisp
+(defvar me/ivy-separator "\\$\\$\\$")
+#+end_src
+** keybinding
+#+begin_src emacs-lisp :tangle keybinds.el
+(map!
+  (:when (featurep! :completion ivy)
+    (:after ivy
+      :map ivy-minibuffer-map
+      "C-SPC" #'ivy-call-and-recenter  ; preview file
+      "C-l"   #'ivy-alt-done
+      "C-v"   #'yank)
+    (:after counsel
+      :map counsel-ag-map
+      "C-SPC"    #'ivy-call-and-recenter ; preview
+      "C-l"      #'ivy-done
+      [C-return] #'+ivy/git-grep-other-window-action)))
+#+END_SRC
+* auto complete
+** company
+~company~ is perfect for this.
+
+#+BEGIN_SRC emacs-lisp
+(after! company
+    (setq company-idle-delay 0.4
+        company-minimum-prefix-length 3))
+#+END_SRC
+
+Do not use ~company-ispell~ as backend, too much noise most of the time.
+#+BEGIN_SRC emacs-lisp :tangle no
+(set-company-backend! '(org-mode org-journal-mode)
+  '(:separate company-english-helper-search
+              company-tabnine
+              company-files
+              company-yasnippet
+              ))
+(set-company-backend! '(c-mode
+                        c++-mode
+                        ess-mode
+                        haskell-mode
+                        ;;emacs-lisp-mode
+                        lisp-mode
+                        sh-mode
+                        php-mode
+                        python-mode
+                        go-mode
+                        ruby-mode
+                        rust-mode
+                        js-mode
+                        js2-mode
+                        rjsx-mode
+                        css-mode
+                        web-mode
+                        )
+  '(:separate company-tabnine
+              company-files
+              company-yasnippet))
+
+(setq +lsp-company-backend '(company-lsp :with company-tabnine :separate))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle keybinds.el
+;;; :completion
+(map! (:when (featurep! :completion company)
+  :i "C-@"      #'+company/complete
+  :i "C-SPC"    #'+company/complete
+  (:after company
+    (:map company-active-map
+      "C-w"     nil  ; don't interfere with `evil-delete-backward-word'
+      "C-n"     #'company-select-next
+      "C-p"     #'company-select-previous
+      "C-j"     #'company-select-next
+      "C-k"     #'company-select-previous
+      "C-h"     #'company-show-doc-buffer
+      "C-u"     #'company-previous-page
+      "C-d"     #'company-next-page
+      "C-s"     #'company-filter-candidates
+      "C-S-s"   (cond ((featurep! :completion helm) #'helm-company)
+                      ((featurep! :completion ivy)  #'counsel-company))
+      "C-SPC"   #'company-complete-common
+      "TAB"     #'company-complete-common-or-cycle
+      [tab]     #'company-complete-common-or-cycle
+      [backtab] #'company-select-previous)
+    (:map company-search-map  ; applies to `company-filter-map' too
+      "C-n"     #'company-select-next-or-abort
+      "C-p"     #'company-select-previous-or-abort
+      "C-j"     #'company-select-next-or-abort
+      "C-k"     #'company-select-previous-or-abort
+      "C-s"     (λ! (company-search-abort) (company-filter-candidates))
+      "ESC"     #'company-search-abort))
+  ;; TAB auto-completion in term buffers
+  (:after comint :map comint-mode-map
+    "TAB" #'company-complete
+    [tab] #'company-complete)))
+#+END_SRC
+** eacl - disable
+update on <2020-03-23 Mon>:
+
+Now with TabNine and company-tabnine, I felt I don't really use this package
+much, disable for now.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! eacl)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package! eacl
+  :defer t)
+#+END_SRC
+** tabnine
+#+begin_src emacs-lisp :tangle packages.el
+(package! company-tabnine)
+#+end_src
+
+The config for tabnine is taken from [[https://www.gtrun.org/custom/init.html][here]].
+#+BEGIN_SRC emacs-lisp
+(use-package! company-tabnine
+  :when (featurep! :completion company)
+  :config
+  (setq company-tabnine--disable-next-transform nil)
+  (defun my-company--transform-candidates (func &rest args)
+    (if (not company-tabnine--disable-next-transform)
+        (apply func args)
+      (setq company-tabnine--disable-next-transform nil)
+      (car args)))
+
+  (defun my-company-tabnine (func &rest args)
+    (when (eq (car args) 'candidates)
+      (setq company-tabnine--disable-next-transform t))
+    (apply func args))
+
+  (advice-add #'company--transform-candidates :around #'my-company--transform-candidates)
+  (advice-add #'company-tabnine :around #'my-company-tabnine)
+  ;; Trigger completion immediately.
+  ;; (setq company-idle-delay 0)
+
+  ;; Number the candidates (use M-1, M-2 etc to select completions).
+  (setq company-show-numbers t)
+)
+#+END_SRC
+
+For now I want to disable this since tab doesn't behave to my liking.
+#+BEGIN_SRC emacs-lisp :tangle no
+  ;; Use the tab-and-go frontend.
+  ;; Allows TAB to select and complete at the same time.
+  (company-tng-configure-default)
+  (setq company-frontends
+        '(company-tng-frontend
+          company-pseudo-tooltip-frontend
+          company-echo-metadata-frontend))
+#+END_SRC
+
+** english chinese translation
+[[https://github.com/manateelazycat/company-english-helper][company-english-helper]] will show the completion candidates as well as Chinese
+translation to help the writing.
+
+#+begin_src emacs-lisp :tangle packages.el
+(package! company-english-helper :recipe (:host github :repo "manateelazycat/company-english-helper"))
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(use-package! company-english-helper
+  :defer t)
+#+END_SRC
+
+Run ~toggle-company-english-helper~ to enable it.
+
+* keybinding
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle keybinds.el :comments link
+:END:
+
+Need to disable this otherwise will cause problem:
+#+BEGIN_SRC elisp :tangle no
+(setq doom-localleader-key ",")
+#+END_SRC
+** most frequent
+I think shortest keystroke I can get in Emacs is about 2, so I try to assign
+them to most frequently used things in Emacs.
+#+begin_src emacs-lisp
+(map!
+  ;; seems I like to use :a<RET> more, so give this away to org-roam
+  ;; :desc  "toggle between h/cpp" :nv "ga" #'projectile-find-other-file
+  :desc  "org roam find file" :nv "ga" #'org-roam-find-file
+  :desc  "org roam" :nv "gA" #'org-roam
+  ;; :desc  "toggle between h/cpp" :nv "gA" #'projectile-find-other-file-other-window
+  ;; what is differences between persp-switch-to-buffer and +ivy/switch-workspace-buffer ?
+  :desc  "switch workspace buffer" :nv "gb" #'+ivy/switch-workspace-buffer
+  :desc  "switch all buffer" :nv "gB" #'ivy-switch-buffer
+  :desc  "hyperbole" :niv "M-RET" #'hkey-either
+
+  :nv "gc" #'evilnc-comment-or-uncomment-lines
+  :nv "gC" #'evilnc-copy-and-comment-lines
+
+  :nv "gd" #'+lookup/definition
+  :nv "gD" #'+lookup/references
+  :nv "ge" #'+eval:region
+  :nv "gE" #'+eval/buffer
+  :nv "gf" #'counsel-find-file
+  :nv "gF" #'counsel-projectile-find-file
+  ;; gg - evil-goto-first-line
+  ;; dash-at-point is not used so frequently
+  :nv "gh" #'+lookup/online
+
+  :nv "gi" #'counsel-imenu
+  :nv "gI" #'lsp-ui-imenu
+  ;; gj - evil-next-visual-line
+  ;; gk - evil-previous-visual-line
+  :nv "gl" #'ace-link
+  :desc "maximize current buffer" :nv "gm" #'delete-other-windows
+  :desc "restore previous window layout" :nv "gM" #'winner-undo
+  ;; gn - evil-next-match
+
+  :nv "go" #'save-buffer
+  ;; gp - +evil/reselect-paste
+  ;; gq - evil-fill-and-move
+  ;; :nv "gr" #'org-roam-find-file
+  :nv "gr" #'evil-replace-with-register
+  ;; :nv "gR" #'org-roam
+  :desc "switch org-roam" :nv "gT" #'me/switch-org-roam
+
+  :desc "split vertically" :nv "gs" #'evil-window-vsplit
+  :desc "split horizontally" :nv "gS" #'evil-window-split
+
+  :desc "toggle workspace" :nv "gt" #'doom/jump-to-last-workspace
+
+  ;; gu - evil-downcase
+  ;; gU - evil-upcase
+  ;; gv - evil-visual-restore
+  ;; gV - evil-visual-restore
+
+  :nv "gw" #'ace-window
+  :desc "transpose two windows" :nv "gW" #'window-split-toggle
+
+  :nv "gx" #'+workspace/switch-to
+  :nv "gy" #'tldr
+  ;; gz - evil multi-cursor
+
+  ;; evil-exchange is used no so frequently
+  ;; :nv "gx" #'evil-exchange
+
+  ;"C-h" #'evil-window-left
+  "C-j" #'evil-window-down
+  "C-k" #'evil-window-up
+  "C-l" #'evil-window-right
+
+  :ni "C-y" #'yank
+  "C-s" #'counsel-grep-or-swiper
+  "M-y" #'counsel-yank-pop
+
+  "M-/" #'dabbrev-expand
+  "C-c <left>" #'winner-undo
+  "C-c <right>" #'winner-redo
+  "C-c c" #'org-capture
+
+  "<f2>" #'org-clock-goto
+  "<f3>" #'org-clock-in
+  "<f4>" #'org-clock-out
+  "<f5> a" #'org-archive-subtree
+  "<f5> c" #'calendar
+  "<f5> r" #'org-refile
+  "<f6>" #'forge-browse-remote
+  "<f7>" #'org-roam
+  ;; "<f8> c" #'counsel-git-grep-complete-line
+  "<f9>" #'org-attach
+  "<f10>" #'region-to-clocked-task
+  "<f11>" #'org-agenda
+  "<f12>" #'org-todo
+
+  :v  "v"   #'er/expand-region
+  :v  "V"   #'er/contract-region
+)
+#+END_SRC
+** leader keybinding
+#+begin_src emacs-lisp
+(map! :leader
+      :desc "Eval expression"       ";"    #'pp-eval-expression
+      :desc "M-x"                   ":"    #'execute-extended-command
+      ;; :desc "Pop up scratch buffer" "x"    #'doom/open-scratch-buffer
+      :desc "Pop up scratch buffer" "x"    #'me/open-scratch-buffer
+
+      :desc "Org Capture"           ","    #'org-capture
+      :desc "magit status"          "."    #'magit-status
+
+      ;; C-u is used by evil
+      :desc "Universal argument"    "u"    #'universal-argument
+      :desc "window"                "w"    evil-window-map
+      :desc "help"                  "h"    help-map
+
+      :desc "rg"                    "/"    #'counsel-rg
+      :desc "M-x"                   "SPC"  #'counsel-M-x
+      :desc "jump char 2"           "k"    #'evil-avy-goto-char-2
+
+      (:when (featurep! :ui popup)
+        :desc "Toggle last popup"     "~"    #'+popup/toggle)
+
+      :desc "Resume last search"    "'"
+      (cond ((featurep! :completion ivy)   #'ivy-resume)
+            ((featurep! :completion helm)  #'helm-resume))
+
+      :desc "Search for symbol in project" "*" #'+default/search-project-for-symbol-at-point
+      :desc "Switch to last buffer" "TAB"    #'evil-switch-to-windows-last-buffer
+      :desc "Jump to bookmark"      "RET"  #'bookmark-jump)
+#+END_SRC
+** keybinding - minibuffer
+#+begin_src emacs-lisp
+(when (featurep! :editor evil +everywhere)
+  ;; Have C-u behave similarly to `doom/backward-to-bol-or-indent'.
+  ;; NOTE SPC u replaces C-u as the universal argument.
+  (map! :i "C-u" #'doom/backward-kill-to-bol-and-indent
+        :i "C-w" #'backward-kill-word
+        ;; Vimmish ex motion keys
+        :i "C-b" #'backward-word
+        :i "C-f" #'forward-word)
+
+  ;; Minibuffer
+  (define-key! evil-ex-completion-map
+    "C-a" #'move-beginning-of-line
+    "C-b" #'backward-word
+    "C-s" (if (featurep! :completion ivy)
+              #'counsel-minibuffer-history
+            #'helm-minibuffer-history))
+
+  (define-key! :keymaps +default-minibuffer-maps
+    [escape] #'abort-recursive-edit
+    "C-a"    #'move-beginning-of-line
+    "C-b"    #'backward-word
+    "C-f"    #'forward-word
+    "C-r"    #'evil-paste-from-register
+    "C-u"    #'doom/backward-kill-to-bol-and-indent
+    "C-v"    #'yank
+    "C-w"    #'backward-kill-word
+    "C-z"    (λ! (ignore-errors (call-interactively #'undo)))
+    ;; Scrolling lines
+    "C-j"    #'next-line
+    "C-k"    #'previous-line
+    "C-S-j"  #'scroll-up-command
+    "C-S-k"  #'scroll-down-command)
+
+  (define-key! read-expression-map
+    "C-j" #'next-line-or-history-element
+    "C-k" #'previous-line-or-history-element))
+#+END_SRC
+** keybinding - application
+#+begin_src emacs-lisp
+(map! :leader
+      (:prefix-map ("a" . "applications")
+        :desc "avy-copy-line"              "c" #'avy-copy-line
+        :desc "bookmark Dired buffer"      "d" #'bookmark-set
+        :desc "bookmark a file"            "f" #'bmkp-file-target-set
+        :desc "new org journal entry"      "j" #'org-journal-new-entry
+        :desc "bookmark current buffer"    "k" #'bmkp-bookmark-set-confirm-overwrite
+        :desc "list all bookmarks"         "l" #'bookmark-bmenu-list
+        :desc "align-regexp"               "r" #'align-regexp
+        :desc "bookmark a snippet"         "s" #'bmkp-set-snippet-bookmark
+        :desc "bookmark a URL"             "u" #'bmkp-url-target-set
+        :desc "avy-copy-region"            "v" #'avy-copy-region))
+#+END_SRC
+** keybinding - buffer
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> b --- buffer
+  (:prefix-map ("b" . "buffer")
+    :desc "Toggle narrowing"            "-"   #'doom/toggle-narrow-buffer
+    :desc "Previous buffer"             "["   #'previous-buffer
+    :desc "Next buffer"                 "]"   #'next-buffer
+    (:when (featurep! :ui workspaces)
+      :desc "Switch workspace buffer" "b" #'persp-switch-to-buffer
+      :desc "Switch buffer"           "B" #'switch-to-buffer)
+    (:unless (featurep! :ui workspaces)
+      :desc "Switch buffer"           "b" #'switch-to-buffer)
+    :desc "Kill buffer"                 "d"   #'kill-current-buffer
+    :desc "ibuffer"                     "i"   #'ibuffer
+    :desc "Kill buffer"                 "k"   #'doom/kill-this-buffer-in-all-windows
+    :desc "Kill all buffers"            "K"   #'doom/kill-all-buffers
+    :desc "Switch to last buffer"       "l"   #'evil-switch-to-windows-last-buffer
+    :desc "open message buffer"         "m"   #'me/open-message-buffer
+    :desc "show visual bookmarks"       "n"   #'bm-show
+    :desc "show all visual bookmarks"   "N"   #'bm-show-all
+    :desc "Kill other buffers"          "O"   #'doom/kill-other-buffers
+    :desc "Previous buffer"             "p"   #'previous-buffer
+    :desc "Rename buffer"               "r"   #'rename-buffer
+    :desc "switch to workspace term"    "t"   #'me/switch-to-workspace-term
+    :desc "Save buffer"                 "s"   #'basic-save-buffer
+    :desc "Save all buffers"            "S"   #'evil-write-all
+    :desc "Pop up scratch buffer"       "x"   #'me/open-scratch-buffer
+    :desc "Switch to scratch buffer"    "X"   #'doom/switch-to-scratch-buffer
+    :desc "Bury buffer"                 "z"   #'bury-buffer
+    :desc "Kill buried buffers"         "Z"   #'doom/kill-buried-buffers))
+#+END_SRC
+** keybinding - code
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> c --- code
+  (:prefix-map ("c" . "code")
+    :desc "Compile"                     "c"   #'compile
+    :desc "Recompile"                   "C"   #'recompile
+    :desc "Jump to definition"          "d"   #'+lookup/definition
+    :desc "Jump to references"          "D"   #'+lookup/references
+    :desc "Evaluate buffer/region"      "e"   #'+eval/buffer-or-region
+    :desc "Evaluate & replace region"   "E"   #'+eval:replace-region
+    :desc "Format buffer/region"        "f"   #'+format/region-or-buffer
+    :desc "LSP Format buffer/region"    "F"   #'+default/lsp-format-region-or-buffer
+    :desc "LSP Organize imports"        "i"   #'lsp-organize-imports
+    :desc "Jump to documentation"       "k"   #'+lookup/documentation
+    :desc "LSP Rename"                  "r"   #'lsp-rename
+    :desc "Send to repl"                "s"   #'+eval/send-region-to-repl
+    :desc "Delete trailing whitespace"  "w"   #'delete-trailing-whitespace
+    :desc "Delete trailing newlines"    "W"   #'doom/delete-trailing-newlines
+    :desc "List errors"                 "x"   #'flymake-show-diagnostics-buffer
+    (:when (featurep! :tools flycheck)
+      :desc "List errors"               "x"   #'flycheck-list-errors)))
+#+END_SRC
+** keybidning - diff
+#+begin_src emacs-lisp
+(map! :leader
+  (:prefix-map ("d" . "diff")
+    "b" #'ud/diff-buffers
+    "j" #'ud/json-diff-last-two-kills
+    "s" #'ud/select-backend
+    "x" #'ud/xml-diff-last-two-kills))
+#+END_SRC
+** keybinding - errors
+#+begin_src emacs-lisp
+(map! :leader
+  (:prefix-map ("e" . "errors")
+    "l" #'flycheck-list-errors
+    "n" #'next-error
+    "p" #'previous-error))
+#+END_SRC
+** keybinding - file
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> f --- file
+  (:prefix-map ("f" . "file")
+    :desc "Open project editorconfig"   "c"   #'editorconfig-find-current-editorconfig
+    :desc "Copy this file"              "C"   #'doom/copy-this-file
+    :desc "Find directory"              "d"   #'dired
+    :desc "Delete this file"            "D"   #'doom/delete-this-file
+    :desc "Find file in emacs.d"        "e"   #'+default/find-in-emacsd
+    :desc "Browse emacs.d"              "E"   #'+default/browse-emacsd
+    :desc "Find file"                   "f"   #'find-file
+    :desc "Find file from here"         "F"   #'+default/find-file-under-here
+    :desc "Locate file"                 "l"   #'locate
+    :desc "Move/rename file"            "m"   #'doom/move-this-file
+    :desc "Find file in private config" "p"   #'doom/find-file-in-private-config
+    :desc "open my private config"      "P"   #'me/open-module-init
+    :desc "Recent files"                "r"   #'recentf-open-files
+    :desc "Recent project files"        "R"   #'projectile-recentf
+    :desc "Save file"                   "s"   #'save-buffer
+    :desc "Save file as..."             "S"   #'write-file
+    :desc "Sudo find file"              "u"   #'doom/sudo-find-file
+    :desc "Sudo this file"              "U"   #'doom/sudo-this-file
+    :desc "Yank file name"              "y"   #'copy-file-name-to-clipboard
+    :desc "Yank file full path"         "Y"   #'+default/yank-buffer-filename
+    :desc "find file with fzf"          "z"   #'prot/counsel-fzf-rg-files))
+#+END_SRC
+** keybinding - git
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> g --- git
+  (:prefix-map ("g" . "git")
+    :desc "Git revert file"             "R"   #'vc-revert
+    :desc "Copy git link"               "y"   #'git-link
+    :desc "Copy git link to homepage"   "Y"   #'git-link-homepage
+    :desc "diff buffer"                 "d"   #'magit-diff-buffer-file
+    :desc "Git push"                    "p"   #'magit-push-current
+
+      ;"gc" '(magit-commit :which-key "Git commit")
+
+    (:when (featurep! :ui vc-gutter)
+      :desc "Git revert hunk"           "r"   #'git-gutter:revert-hunk
+      :desc "Git stage hunk"            "s"   #'git-gutter:stage-hunk
+      :desc "git gutter"                "u"   #'my-goto-git-gutter
+
+      ; my-git-timemachine
+      :desc "Git time machine"          "t"   #'git-timemachine-toggle
+      :desc "Jump to next hunk"         "]"   #'git-gutter:next-hunk
+      :desc "Jump to previous hunk"     "["   #'git-gutter:previous-hunk)
+
+    (:when (featurep! :tools magit)
+      :desc "Magit dispatch"            "/"   #'magit-dispatch
+      :desc "Forge dispatch"            "'"   #'forge-dispatch
+      :desc "Magit switch branch"       "b"   #'magit-branch-checkout
+      :desc "Magit status"              "g"   #'magit-status
+      :desc "Magit file delete"         "D"   #'magit-file-delete
+      :desc "Magit blame"               "B"   #'magit-blame-addition
+      :desc "Magit clone"               "C"   #'magit-clone
+      :desc "Magit fetch"               "F"   #'magit-fetch
+      :desc "Magit buffer log"          "L"   #'magit-log
+      :desc "Git stage file"            "S"   #'magit-stage-file
+      :desc "Git unstage file"          "U"   #'magit-unstage-file
+      (:prefix ("f" . "find")
+        :desc "Find file"                 "f"   #'magit-find-file
+        :desc "Find gitconfig file"       "g"   #'magit-find-git-config-file
+        :desc "Find commit"               "c"   #'magit-show-commit
+        :desc "Find issue"                "i"   #'forge-visit-issue
+        :desc "Find pull request"         "p"   #'forge-visit-pullreq)
+      (:prefix ("o" . "open in browser")
+        :desc "Browse region or line"     "o"   #'+vc/git-browse-region-or-line
+        :desc "Browse remote"             "r"   #'forge-browse-remote
+        :desc "Browse commit"             "c"   #'forge-browse-commit
+        :desc "Browse an issue"           "i"   #'forge-browse-issue
+        :desc "Browse a pull request"     "p"   #'forge-browse-pullreq
+        :desc "Browse issues"             "I"   #'forge-browse-issues
+        :desc "Browse pull requests"      "P"   #'forge-browse-pullreqs)
+      (:prefix ("l" . "list")
+        (:when (featurep! :tools gist)
+          :desc "List gists"              "g"   #'+gist:list)
+        :desc "List repositories"         "r"   #'magit-list-repositories
+        :desc "List submodules"           "s"   #'magit-list-submodules
+        :desc "List issues"               "i"   #'forge-list-issues
+        :desc "List pull requests"        "p"   #'forge-list-pullreqs
+        :desc "List notifications"        "n"   #'forge-list-notifications)
+
+      (:prefix ("i" . "inspect")
+        ;; list commits affect current function
+        :desc "show commits for function" "d"   #'magit-log-trace-definition
+        ;; list commits affect current file
+        :desc "show commits for file"     "f"   #'magit-log-buffer-file)
+
+      (:prefix ("c" . "create")
+        :desc "Initialize repo"           "r"   #'magit-init
+        :desc "Clone repo"                "R"   #'magit-clone
+        :desc "Commit"                    "c"   #'magit-commit-create
+        :desc "Fixup"                     "f"   #'magit-commit-fixup
+        :desc "Branch"                    "b"   #'magit-branch-and-checkout
+        :desc "Issue"                     "i"   #'forge-create-issue
+        :desc "Pull request"              "p"   #'forge-create-pullreq))))
+#+END_SRC
+** keybinding - insert
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> i --- insert
+  (:prefix-map ("i" . "insert")
+    :desc "Current file name"             "f"   #'+default/insert-file-path
+    :desc "Current file path"             "F"   (λ!! #'+default/insert-file-path t)
+    :desc "Evil ex path"                  "p"   (λ! (evil-ex "R!echo "))
+    :desc "From evil register"            "r"   #'evil-ex-registers
+    :desc "Snippet"                       "s"   #'yas-insert-snippet
+    :desc "Unicode"                       "u"   #'unicode-chars-list-chars
+    :desc "From clipboard"                "y"   #'+default/yank-pop))
+#+END_SRC
+** keybinding - jump
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> j --- jump
+  (:prefix-map ("j" . "jump/highlight")
+    :desc "toggle highlight symbol at point"     "t"   #'symbol-overlay-mode
+    :desc "toggle symbol overlay minor mode"     "h"   #'symbol-overlay-put
+    :desc "remove all highlights"                "H"   #'symbol-overlay-remove-all
+    :desc "Switch to the closest symbol highlighted nearby forward"     "n"   #'symbol-overlay-switch-forward
+    :desc "Switch to the closest symbol highlighted nearby backward"     "p"   #'symbol-overlay-switch-backward
+    :desc "jump back"                            "b"   #'avy-pop-mark
+    :desc "dumb-jump-go"                         "d"   #'dumb-jump-go))
+#+END_SRC
+** keybinding - workspace
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> l --- workspace/layout
+  (:prefix-map ("l" . "workspace/layout")
+    :desc "delete workspace"                     "d"   #'+workspace/delete
+    :desc "switch workspace"                     "l"   #'+workspace/switch-to
+    :desc "New workspace"                        "n"   #'+workspace/me/new
+    :desc "rename workspace"                     "r"   #'+workspace/rename))
+#+END_SRC
+** keybinding - note
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> n --- notes
+  (:prefix-map ("n" . "notes")
+    :desc "Search notes for symbol"      "*" #'+default/search-notes-for-symbol-at-point
+    :desc "Org agenda"                   "a" #'org-agenda
+    :desc "Org capture"                  "c" #'org-capture
+    :desc "Open notdeft"                 "d" #'notdeft
+    :desc "toggle narrow"                "r" #'me/toggle-narrow
+    :desc "Search org agenda headlines"  "h" #'+default/org-notes-headlines
+    :desc "Org store link"               "l" #'org-store-link
+    :desc "Tags search"                  "m" #'org-tags-view
+    :desc "Find file in notes"           "n" #'me/find-in-notes
+    :desc "Browse notes"                 "N" #'me/browse-notes
+    :desc "Todo list"                    "t" #'org-todo-list
+    :desc "Search notes"                 "s" #'+default/org-notes-search
+    :desc "View search"                  "v" #'org-search-view
+    :desc "Org export to clipboard"        "y" #'+org/export-to-clipboard
+    :desc "Org export to clipboard as RTF" "Y" #'+org/export-to-clipboard-as-rich-text
+
+    (:when (featurep! :lang org +journal)
+      (:prefix ("j" . "journal")
+        :desc "New Entry"      "j" #'org-journal-new-entry
+        :desc "Search Forever" "s" #'org-journal-search-forever))))
+#+END_SRC
+** keybinding - open
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> o --- open
+  (:prefix-map ("o" . "open")
+    :desc "Org agenda"       "A"  #'org-agenda
+    (:prefix ("a" . "org agenda")
+      :desc "Agenda"         "a"  #'org-agenda
+      :desc "Todo list"      "t"  #'org-todo-list
+      :desc "Tags search"    "m"  #'org-tags-view
+      :desc "View search"    "v"  #'org-search-view)
+    :desc "Default browser"    "b"  #'browse-url-of-file
+    :desc "Start debugger"     "d"  #'+debugger/start
+    :desc "New frame"          "f"  #'make-frame
+    :desc "REPL"               "r"  #'+eval/open-repl-other-window
+    :desc "REPL (same window)" "R"  #'+eval/open-repl-same-window
+    :desc "Dired"              "-"  #'dired-jump
+    (:when (featurep! :ui neotree)
+      :desc "Project sidebar"              "p" #'+neotree/open
+      :desc "Find file in project sidebar" "P" #'+neotree/find-this-file)
+    (:when (featurep! :ui treemacs)
+      :desc "Project sidebar" "p" #'+treemacs/toggle
+      :desc "Find file in project sidebar" "P" #'+treemacs/find-file)
+    (:when (featurep! :term shell)
+      :desc "Toggle shell popup"    "t" #'+shell/toggle
+      :desc "Open shell here"       "T" #'+shell/here)
+    (:when (featurep! :term term)
+      :desc "Toggle terminal popup" "t" #'+term/toggle
+      :desc "Open terminal here"    "T" #'+term/here)
+    (:when (featurep! :term vterm)
+      :desc "Toggle vterm popup"    "t" #'+vterm/toggle
+      :desc "Open vterm here"       "T" #'+vterm/here)
+    (:when (featurep! :term eshell)
+      :desc "Toggle eshell popup"   "e" #'+eshell/toggle
+      :desc "Open eshell here"      "E" #'+eshell/here)
+    (:when (featurep! :tools macos)
+      :desc "Reveal in Finder"           "o" #'+macos/reveal-in-finder
+      :desc "Reveal project in Finder"   "O" #'+macos/reveal-project-in-finder
+      :desc "Send to Transmit"           "u" #'+macos/send-to-transmit
+      :desc "Send project to Transmit"   "U" #'+macos/send-project-to-transmit
+      :desc "Send to Launchbar"          "l" #'+macos/send-to-launchbar
+      :desc "Send project to Launchbar"  "L" #'+macos/send-project-to-launchbar)
+    (:when (featurep! :tools docker)
+      :desc "Docker" "D" #'docker)))
+#+END_SRC
+** keybinding - project
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> p --- project
+  (:prefix-map ("p" . "project")
+    :desc "Browse project"               "." #'+default/browse-project
+    :desc "Browse other project"         ">" #'doom/browse-in-other-project
+    :desc "Run cmd in project root"      "!" #'projectile-run-shell-command-in-root
+    :desc "Add new project"              "a" #'projectile-add-known-project
+    :desc "Switch to project buffer"     "b" #'projectile-switch-to-buffer
+    :desc "Compile in project"           "c" #'projectile-compile-project
+    :desc "Repeat last command"          "C" #'projectile-repeat-last-command
+    :desc "Remove known project"         "d" #'projectile-remove-known-project
+    :desc "Edit project .dir-locals"     "e" #'projectile-edit-dir-locals
+    :desc "Find file in project"         "f" #'projectile-find-file
+    :desc "Find file in other project"   "F" #'doom/find-file-in-other-project
+    :desc "Configure project"            "g" #'projectile-configure-project
+    :desc "Invalidate project cache"     "i" #'projectile-invalidate-cache
+    :desc "Kill project buffers"         "k" #'projectile-kill-buffers
+    ;; "po" '(+term/open-popup-in-project :which-key "+term/open-popup-in-project")
+    :desc "Find other file"              "o" #'projectile-find-other-file
+    :desc "Switch project"               "p" #'projectile-switch-project
+    :desc "Find recent project files"    "r" #'projectile-recentf
+    :desc "Run project"                  "R" #'projectile-run-project
+    :desc "Save project files"           "s" #'projectile-save-project-buffers
+    :desc "Pop up scratch buffer"        "x" #'doom/open-project-scratch-buffer
+    :desc "Switch to scratch buffer"     "X" #'doom/switch-to-project-scratch-buffer
+    ;; "pt" '(+ivy/tasks :which-key "+ivy/tasks")
+    :desc "List project tasks"           "t" #'magit-todos-list
+    :desc "Test project"                 "T" #'projectile-test-project))
+#+END_SRC
+** keybinding - quit/session
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> q --- quit/session
+  (:prefix-map ("q" . "quit/session")
+    :desc "Restart emacs server"         "d" #'+default/restart-server
+    :desc "Delete frame"                 "f" #'delete-frame
+    :desc "Clear current frame"          "F" #'doom/kill-all-buffers
+    :desc "Kill Emacs (and daemon)"      "K" #'save-buffers-kill-emacs
+    :desc "Quit Emacs"                   "q" #'save-buffers-kill-terminal
+    :desc "Quit Emacs without saving"    "Q" #'evil-quit-all-with-error-code
+    :desc "Quick save current session"   "s" #'doom/quicksave-session
+    :desc "Restore last session"         "l" #'doom/quickload-session
+    :desc "Save session to file"         "S" #'doom/save-session
+    :desc "Restore session from file"    "L" #'doom/load-session
+    :desc "Restart & restore Emacs"      "r" #'doom/restart-and-restore
+    :desc "Restart Emacs"                "R" #'doom/restart))
+#+END_SRC
+** keybinding - remote
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> r --- remote
+  (:when (featurep! :tools upload)
+    (:prefix-map ("r" . "remote")
+      :desc "Upload local"               "u" #'ssh-deploy-upload-handler
+      :desc "Upload local (force)"       "U" #'ssh-deploy-upload-handler-forced
+      :desc "Download remote"            "d" #'ssh-deploy-download-handler
+      :desc "Diff local & remote"        "D" #'ssh-deploy-diff-handler
+      :desc "Browse remote files"        "." #'ssh-deploy-browse-remote-handler
+      :desc "org roam today"             "t" #'org-roam-today
+      :desc "org roam yesterday"         "T" #'org-roam-yesterday
+      :desc "Detect remote changes"      ">" #'ssh-deploy-remote-changes-handler)))
+#+END_SRC
+** keybinding - search
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> s --- search
+  (:prefix-map ("s" . "search")
+    :desc "Search buffer"                       "b" #'swiper
+    :desc "Search current directory"            "d" #'+default/search-cwd
+    :desc "Search other directory"              "D" #'+default/search-other-cwd
+    :desc "Locate file"                         "f" #'locate
+    :desc "Jump to symbol"                      "i" #'imenu
+    :desc "Imenu all buffers"                   "I" #'imenu-anywhere
+    :desc "Jump to link"                        "l" #'ace-link
+    :desc "Jump list"                           "j" #'evil-show-jumps
+    :desc "Jump to mark"                        "m" #'evil-show-marks
+    :desc "Look up online"                      "o" #'+lookup/online
+    :desc "Look up online (w/ prompt)"          "O" #'+lookup/online-select
+    :desc "Look up in local docsets"            "k" #'+lookup/in-docsets
+    :desc "Look up in all docsets"              "K" #'+lookup/in-all-docsets
+    :desc "Search project"                      "p" #'+default/search-project
+    :desc "Search other project"                "P" #'+default/search-other-project
+    :desc "search registers"                    "r" #'counsel-evil-registers
+    :desc "Search buffer"                       "s" #'swiper-isearch
+    :desc "Search buffer for thing at point"    "S" #'swiper-isearch-thing-at-point
+    :desc "counsel etags"                       "t" #'counsel-etags-find-tag-at-point))
+#+END_SRC
+** keybinding - toggle
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> t --- toggle
+  (:prefix-map ("t" . "toggle")
+    :desc "Big mode"                     "b" #'doom-big-font-mode
+    ;; :desc "visual-fill-column-mode"      "c" #'visual-fill-column-mode
+    :desc "visual line mode"             "v" #'visual-line-mode
+
+    :desc "Flymake"                      "f" #'flymake-mode
+    (:when (featurep! :tools flycheck)
+      :desc "Flycheck"                   "f" #'flycheck-mode)
+    :desc "Frame fullscreen"             "F" #'toggle-frame-fullscreen
+    :desc "Evil goggles"                 "g" #'evil-goggles-mode
+    (:when (featurep! :ui indent-guides)
+      :desc "Indent guides"              "i" #'highlight-indent-guides-mode)
+    :desc "Indent style"                 "I" #'doom/toggle-indent-style
+    :desc "Line numbers"                 "l" #'doom/toggle-line-numbers
+    (:when (featurep! :lang org +present)
+      :desc "org-tree-slide mode"        "p" #'+org-present/start)
+    :desc "Read-only mode"               "r" #'read-only-mode
+    (:when (featurep! :tools flyspell)
+      :desc "Flyspell"                   "s" #'flyspell-mode)
+    (:when (featurep! :lang org +pomodoro)
+      :desc "Pomodoro timer"             "t" #'org-pomodoro)
+    :desc "Word-wrap mode"               "w" #'+word-wrap-mode))
+#+END_SRC
+** keybinding - vimish
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> v --- vimish fold
+  (:prefix-map ("v" . "vimish fold")
+    :desc "fold delete"                     "d" #'vimish-fold-delete
+    :desc "fold delete all"                     "D" #'vimish-fold-delete-all
+    :desc "fold"                     "D" #'vimish-fold
+    :desc "next fold"                     "n" #'vimish-fold-next-fold
+    :desc "previous fold"                     "p" #'vimish-fold-previous-fold
+    :desc "fold toggle"                     "v" #'vimish-fold-toggle
+    :desc "fold toggle all"                     "v" #'vimish-fold-toggle-all
+    :desc "unfold"                     "u" #'vimish-fold-unfold
+    :desc "unfold all"                     "U" #'vimish-fold-unfold-all))
+#+END_SRC
+** keybinding - window
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> w --- window
+  (:prefix-map ("w" . "window")
+    :desc  "delete window"                     "d" #'delete-window
+    :desc  "ace delete window"                     "D" #'ace-delete-window
+    :desc  "other frame"                     "f" #'other-frame
+    :desc  "make frame"                     "F" #'make-frame
+    :desc  "swap window"                     "s" #'ace-swap-window
+    :desc  "balance window"                     "=" #'balance-windows
+    :desc  "winner undo"                     "u" #'winner-undo
+    :desc  "window split toggle"              "u" #'window-split-toggle
+    :desc  "maximize window"                     "m" #'delete-other-windows))
+#+END_SRC
+** global keybinding - editor
+#+begin_src emacs-lisp
+(map!
+  (:when (featurep! :editor format)
+    :n "gQ" #'+format:region)
+
+  (:when (featurep! :editor rotate-text)
+    :n "!"  #'rotate-text)
+
+  (:when (featurep! :editor multiple-cursors)
+    ;; evil-multiedit
+    :v  "R"     #'evil-multiedit-match-all
+    :n  "M-d"   #'evil-multiedit-match-symbol-and-next
+    :n  "M-D"   #'evil-multiedit-match-symbol-and-prev
+    :v  "M-d"   #'evil-multiedit-match-and-next
+    :v  "M-D"   #'evil-multiedit-match-and-prev
+    :nv "C-M-d" #'evil-multiedit-restore
+    (:after evil-multiedit
+      (:map evil-multiedit-state-map
+        "M-d"    #'evil-multiedit-match-and-next
+        "M-D"    #'evil-multiedit-match-and-prev
+        "RET"    #'evil-multiedit-toggle-or-restrict-region
+        [return] #'evil-multiedit-toggle-or-restrict-region)))
+
+  (:when (featurep! :editor snippets)
+    ;; auto-yasnippet
+    :i  [C-tab] #'aya-expand
+    :nv [C-tab] #'aya-create))
+#+END_SRC
+** global keybinding - Tab
+#+begin_src emacs-lisp
+;; Smart tab, these will only work in GUI Emacs
+(map!
+  :i [tab] (general-predicate-dispatch nil ; fall back to nearest keymap
+                 (and (featurep! :editor snippets)
+                      (bound-and-true-p yas-minor-mode)
+                      (yas-maybe-expand-abbrev-key-filter 'yas-expand))
+                 #'yas-expand
+                 (and (featurep! :completion company +tng)
+                      (+company-has-completion-p))
+                 #'+company/complete)
+  :n [tab] (general-predicate-dispatch nil
+              (and (featurep! :editor fold)
+                  (save-excursion (end-of-line) (invisible-p (point))))
+              #'+fold/toggle
+              (fboundp 'evil-jump-item)
+              #'evil-jump-item)
+
+  :v [tab] (general-predicate-dispatch nil
+              (and (bound-and-true-p yas-minor-mode)
+                  (or (eq evil-visual-selection 'line)
+                      (not (memq (char-after) (list ?\( ?\[ ?\{ ?\} ?\] ?\))))))
+              #'yas-insert-snippet
+              (fboundp 'evil-jump-item)
+              #'evil-jump-item)
+
+  ;; Smarter newlines
+  :i [remap newline] #'newline-and-indent  ; auto-indent on newline
+  :i "C-j"           #'+default/newline    ; default behavior
+
+  (:after help :map help-mode-map
+    :n "o"       #'ace-link-help)
+  (:after helpful :map helpful-mode-map
+    :n "o"       #'ace-link-help)
+  (:after info :map Info-mode-map
+    :n "o"       #'ace-link-info)
+  (:after apropos :map apropos-mode-map
+    :n "o"       #'ace-link-help
+    :n "TAB"     #'forward-button
+    :n [tab]     #'forward-button
+    :n [backtab] #'backward-button)
+  (:after view :map view-mode-map
+    [escape]  #'View-quit-all)
+  (:after man :map Man-mode-map
+    :n "q"    #'kill-current-buffer)
+  ;; :m "gs"     #'+evil/easymotion  ; lazy-load `evil-easymotion'
+)
+#+END_SRC
+
+* bookmark
+I use ~bookmark+~ to manage the bookmark:
+#+BEGIN_SRC emacs-lisp :tangle packages.el
+(package! bookmark-plus :recipe (:host github :repo "emacsmirror/bookmark-plus"))
+#+END_SRC
+
+#+begin_src emacs-lisp
+(require 'bookmark+)
+#+end_src
+** bookmark keybindings
+[[https://www.emacswiki.org/emacs/BookmarkPlus][emacswiki]] has a page describes bookmark+ functionality in detail.
+
+| operation                      | key binding | function                            |
+|--------------------------------+-------------+-------------------------------------|
+| Jump to a bookmark             | =SPC RET=   | counsel-bookmark                    |
+| List all bookmarks             | =SPC a l=   | bookmark-bmenu-list                 |
+| bookmark current buffer        | =SPC a k=   | bmkp-bookmark-set-confirm-overwrite |
+| Bookmark a URL                 | =SPC a u=   | bmkp-url-target-set                 |
+| Bookmark a file                | =SPC a f=   | bmkp-file-target-set                |
+| Bookmark the Dired buffer      | =SPC a d=   | bookmark-set                        |
+| Bookmark a snippet to killring | =SPC a s=   | bmkp-set-snippet-bookmark           |
+
+** visual bookmark
+#+BEGIN_SRC emacs-lisp :tangle packages.el
+(package! bm)
+#+END_SRC
+
+The config is taken from [[https://www.gtrun.org/custom/init.html][here]].
+#+begin_src emacs-lisp
+(use-package! bm
+  :demand t
+  :init
+  (setq bm-restore-repository-on-load t)
+  :config
+  (setq bm-cycle-all-buffers t
+        bm-repository-size 5000)
+  (setq-default bm-buffer-persistence t)
+
+  (defun adq/bm-save ()
+    "Save bookmarks to persistent repository."
+    (interactive)
+    (bm-buffer-save-all)
+    (bm-repository-save))
+
+  (advice-add 'bm-bookmark-add
+              :after (lambda (&rest args)
+                        (adq/bm-save)))
+  (advice-add 'bm-bookmark-remove
+              :after (lambda (&rest args)
+                        (adq/bm-save)))
+  (add-hook 'after-init-hook #'bm-repository-load)
+  (add-hook 'find-file-hooks #'bm-buffer-restore)
+  (add-hook 'after-rever-hook #'bm-buffer-restore)
+  (add-hook 'kill-buffer-hook #'bm-buffer-save)
+  (add-hook 'after-save-hook #'bm-buffer-save)
+  (add-hook 'kill-emacs-hook
+            (lambda ()
+              (bm-buffer-save-all)
+              (bm-repository-save)))
+
+  (defun adq/bm-list-all-bookmarks ()
+    "Generate a list of all bookmarks from all files."
+    (let ((bookmarks '()))
+      (cl-loop for entry in bm-repository
+                when (and (listp entry) (f-readable-p (car entry)))
+                do
+                (with-temp-buffer
+                  (insert-file-contents-literally (car entry))
+                  (cl-letf (((symbol-function 'bm-bookmark-add)
+                            (lambda (&optional annotation time temporary)
+                              (!cons (list (car entry)
+                                            (point)
+                                            (line-number-at-pos)
+                                            (string-trim (thing-at-point 'line t)))
+                                      bookmarks)))
+                            ((symbol-function 'message)
+                            (lambda (&rest _))))
+                    (bm-buffer-restore-2 (cdr entry)))))
+      bookmarks))
+
+    ;; (defun adq/helm-bm-all-format-bookmark (bookmark)
+    ;;   "Format bookmark for display."
+    ;;   (let ((file (f-filename (car bookmark)))
+    ;;         (line (caddr bookmark))
+    ;;         (contents (cadddr bookmark)))
+    ;;     (cons
+    ;;      (format "%s:%s: %s"
+    ;;              (propertize file 'face compilation-info-face)
+    ;;              (propertize (format "%d" line) 'face compilation-line-face)
+    ;;              contents)
+    ;;      bookmark)))
+
+    ;; (defvar adq/helm-bm-all-source
+    ;;   (helm-build-sync-source "Helm All Bookmarks"
+    ;;     :candidates
+    ;;     (lambda ()
+    ;;       (mapcar #'adq/helm-bm-all-format-bookmark
+    ;;               (adq/bm-list-all-bookmarks)))
+    ;;     :action
+    ;;     '(("Switch to buffer" .
+    ;;        (lambda (bookmark)
+    ;;          (find-file (car bookmark))
+    ;;          (goto-char (cadr bookmark))))))
+    ;;   "Helm source with all the bookmarks.")
+
+    ;; (defun adq/helm-bm-list-all ()
+    ;;   "List all bookmarks usin Helm."
+    ;;   (interactive)
+    ;;   (helm :sources 'adq/helm-bm-all-source
+    ;;         :buffer "*helm bm all*"))
+
+  (defhydra adq/hydra-bm nil
+    "
+Bookmarks
+^^^^------------------------------------------------
+_m_: Toggle      _l_: Bookmarks from Buffers
+_n_: Next
+_p_: Previous    _L_: List
+"
+    ("m" bm-toggle)
+    ("n" bm-next)
+    ("p" bm-previous)
+    ;; ("a" adq/helm-bm-list-all :exit t)
+    ("l" helm-bm :exit t)
+    ("L" bm-show-all :exit t))
+  (bind-key "C-c m" #'adq/hydra-bm/body))
+#+end_src
+
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map bm-show-mode-map
+  :desc "goto bookmark" :n "RET" #'bm-show-goto-bookmark
+  :desc "show bookmkar" :n "SPC" #'bm-show-bookmark
+  :desc "show next"     :n "j" #'bm-show-next
+  :desc "show previous" :n "k" #'bm-show-prev
+  :desc "quit"          :n "q" #'bm-show-quit-window)
+#+end_src
+
+* search
+** counsel-rg
+https://oremacs.com/2017/08/04/ripgrep/
+#+begin_src emacs-lisp
+(setq counsel-grep-base-command
+ "rg -i -M 120 --no-heading --line-number --color never '%s' %s")
+#+end_src
+** deadgrep
+#+begin_src emacs-lisp :tangle packages.el
+(package! deadgrep)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(use-package! deadgrep
+  :defer t)
+#+END_SRC
+* lookup
+** dictionary
+DOOM Emacs uses ~osx-dictionary~ package to look up word by interacting with
+MacOS Dict app, but there is a [[https://github.com/xuchunyang/osx-dictionary.el/issues/21][deal breaker]] for me: ~osx-dictionary~ can only
+show the result from one dictionary, but that limitation comes from MacOS dict
+app itself.
+
+I found that ~sdcv~ program works better, but we need to install it first:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install sdcv
+#+END_SRC
+
+Then ~sdcv.el~ package will make use of the binary ~sdcv~ to do the translation:
+#+begin_src emacs-lisp :tangle no
+(package! sdcv :recipe (:host github :repo "manateelazycat/sdcv"))
+#+end_src
+
+We need to add dictionaries so ~sdcv~ will use, you can put it anywhere but we
+need to let ~sdcv.el~ know by setting this:
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq sdcv-dictionary-data-dir "~/dict")
+#+END_SRC
+
+Note the directory for dictionary needs to be fully expanded path, something like =~/dict=
+will not work.
+
+You can find out what are the dictionaries sdcv has found by using command:
+#+BEGIN_SRC sh :tangle no
+sdcv --list-dicts --data-dir=~/dict
+#+END_SRC
+
+~sdcv.el~ can also pronunciate  the word if we set this:
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq sdcv-say-word-p t)
+#+END_SRC
+
+** dash-at-point
+#+begin_src emacs-lisp :tangle packages.el
+(package! dash-at-point)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! dash-at-point
+  :defer t
+  :commands dash-at-point
+)
+#+end_src
+** tldr
+#+begin_src emacs-lisp :tangle packages.el
+(package! tldr)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! tldr
+  :defer t
+  :commands (tldr)
+  :config
+  (setq tldr-directory-path "~/tldr"
+        tldr-enabled-categories (append '("bb" "personal") tldr-enabled-categories))
+)
+#+end_src
+** elisp demos
+This package injects some demos when we do help on a function.
+#+begin_src emacs-lisp :tangle packages.el
+(package! elisp-demos :recipe (:host github :repo "xuchunyang/elisp-demos"))
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(after! helpful
+    (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
+#+END_SRC
+* code formatting
+[[https://github.com/lassik/emacs-format-all-the-code][format-all]] seems to be a good choice, DOOM Emacs already intergrates it so just
+need add this in =~./.doom.d/init.el= under ~:editor~ section:
+#+BEGIN_SRC org :tangle no
+(format +onsave)  ; automated prettiness
+#+END_SRC
+
+** disable format for certain directories
+It turned out if there is a ~.dir-locals.el~ under the directory, then only
+languages listed in that file will get formatting behavior:
+
+#+begin_src emacs-lisp :tangle no
+((nil . (
+
+  (format-all-formatters
+   ("C++" clang-format)
+   ("C" clang-format)
+   ("JavaScript" standard)
+   ("Python" (black "--skip-string-normalization"))
+   ("SQL" (sqlformat "-a" "--keywords" "capitalize")))
+
+)))
+#+end_src
+So for any language not listed in this file, formatting won't kick in.
+
+Currently this feature only existed on ~multi-formatter~ branch, so we have to
+install package like this:
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! format-all :recipe (:host github :repo "lassik/emacs-format-all-the-code" :branch "multi-formatter"))
+#+END_SRC
+* symbol highlight
+This package [[https://github.com/wolray/symbol-overlay][symbol-overlay]] is perfect for this purpose.
+
+#+BEGIN_SRC emacs-lisp :tangle packages.el
+(package! symbol-overlay)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package! symbol-overlay
+  :defer t)
+#+END_SRC
+
+** keybinding
+| operation                                                | key binding | function                       |
+|----------------------------------------------------------+-------------+--------------------------------|
+| toggle symbol overlay minor mode                         | =SPC j t=   | symbol-overlay-mode            |
+| toggle highlight symbol at point                         | =SPC j h=   | symbol-overlay-put             |
+| remove all highlight                                     | =SPC j H=   | symbol-overlay-remove-all      |
+| Switch to the closest symbol highlighted nearby forward  | =SPC j n=   | symbol-overlay-switch-forward  |
+| Switch to the closest symbol highlighted nearby backward | =SPC j p=   | symbol-overlay-switch-backward |
+
+When we in ~symbol overlay mode~, below key bindings are available:
+| operation                                      | key binding | function                       |
+|------------------------------------------------+-------------+--------------------------------|
+| jump to first highlight of symbol at point     | =<=         | symbol-overlay-jump-first      |
+| jump to LAST highlight of symbol at point      | =>=         | symbol-overlay-jump-last       |
+| jump to next highlight of symbol at point      | =n=         | symbol-overlay-jump-next       |
+| jump to previous highlight of symbol at point  | =p=         | symbol-overlay-jump-prev       |
+| Toggle current symbol overlay scope            | =t=         | symbol-overlay-toggle-in-scope |
+| Rename symbol at point on all its occurrences  | =r=         | symbol-overlay-rename          |
+| Query replace symbol at point                  | =q=         | symbol-overlay-query-replace   |
+| copy symbol at point                           | =w=         | symbol-overlay-save-symbol     |
+| Jump back to the position before a recent jump | =e=         | symbol-overlay-echo-mark       |
+** workflow
+So typical workflow would be:
+- first turn on the minor mode by =SPC j t=
+- Highlight the symbol by =SPC j h=
+- At certain time to find the any highlight, I would move to begin of file, then
+  do =SPC j n= to find first highlighted symbol
+- When cursor is on the highlighted symbol, use =<= or =>= to find first/last
+  occurrence or =n= or =p= to traverse all highlighted
+- Also use =t= to change the highlight scope
+* BDD
+#+begin_src emacs-lisp :tangle packages.el
+(package! feature-mode)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+;; can not put :defer t for this one
+(use-package! feature-mode
+  :defer t
+  :config
+  (add-to-list 'auto-mode-alist '("\.feature$" . feature-mode))
+)
+#+END_SRC
+* snippet
+#+begin_src emacs-lisp :tangle packages.el
+(package! tiny)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(use-package! tiny
+  :defer t
+  :config
+  (tiny-setup-default)
+)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(defvar my-snippets-dir (expand-file-name "snippets/" doom-private-dir))
+(defvar my-templates-dir (expand-file-name "templates/" doom-private-dir))
+
+(after! yasnippet
+  (setq yas-snippet-dirs
+        (append (list 'my-snippets-dir 'my-templates-dir)
+                (delq 'yas-installed-snippets-dir yas-snippet-dirs)))
+)
+#+END_SRC
+
+** template file
+this is =template file system= ~DOOM~ supports:
+
+#+BEGIN_SRC emacs-lisp
+(mapc (lambda (x) (push x +file-templates-alist))
+    '(
+        ("\\.feature$" :trigger "__" :mode feature-mode)
+        ("\\reveal.org$" :trigger "__reveal.org" :mode org-mode)
+        ;; ("\\.org$" :trigger "__" :mode org-mode)
+     )
+)
+#+END_SRC
+
+* dired
+#+BEGIN_SRC emacs-lisp
+(setq dired-recursive-deletes 'always)
+#+END_SRC
+
+This setting will try suggesting dired targets:
+#+BEGIN_SRC emacs-lisp
+(setq dired-dwim-target t)
+#+END_SRC
+
+do NOT put =--group-directories-first= otherwise will trigger error:
+#+BEGIN_QUOTE
+Listing directory failed but 'access-file' worked
+#+END_QUOTE
+
+#+BEGIN_SRC emacs-lisp
+(setq dired-listing-switches "-aBhl")
+#+END_SRC
+
+* Do NOT use
+** auto revert tail mode
+disable it since it seems caused some undesired side effect
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq auto-revert-tail-mode nil)
+#+END_SRC
+
+** global visual line mode
+Have to disable it because it causes issue for magit
+#+BEGIN_SRC emacs-lisp :tangle no
+(global-visual-line-mode 1)
+#+END_SRC
+
+* evil
+https://emacsbliss.com/annoyance-with-paste-in-evil-visual-mode/
+#+BEGIN_SRC emacs-lisp
+(setq evil-kill-on-visual-paste nil)
+#+END_SRC
+
+** escape
+I like ~jf~ better than default option since it's not distributed on one hand only.
+#+begin_src emacs-lisp
+(setq evil-escape-key-sequence "jf")
+#+end_src
+
+** evil-matchit
+[[https://github.com/redguardtoo/evil-matchit][evil-matchit]]
+
+#+begin_src emacs-lisp :tangle packages.el
+(package! evil-matchit)
+#+end_src
+
+Use ~:ensure t~ caused error in Doom Emacs, so change to use ~:defer t~.
+#+begin_src emacs-lisp
+(use-package! evil-matchit
+:defer t
+:init
+(global-evil-matchit-mode 1))
+#+end_src
+** replace with register
+#+begin_src emacs-lisp :tangle packages.el
+(package! evil-replace-with-register)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package! evil-replace-with-register)
+#+END_SRC
+
+I keep the same keybinding as Vim which is ~gr~.
+
+With it we can quickly replace a line with the top of kill-ring by just ~grr~.
+Emacs register ~0~ is equivalent to Vim's unamed register(~_~).
+
+first copy something into register ~a~ by ~"ayiw~,
+then move cursor to a word and replace it with register ~a~ by ~"agriw~.
+
+#+begin_example
+[count]["x]gr{motion}   Replace {motion} text with the contents of register x.
+                        Especially when using the unnamed register, this is
+                        quicker than "_d{motion}P or "_c{motion}<C-R>"
+[count]["x]grr          Replace [count] lines with the contents of register x.
+                        To replace from the cursor position to the end of the
+                        line use ["x]gr$
+{Visual}["x]gr          Replace the selection with the contents of register x.
+#+end_example
+* large file handling
+#+begin_src emacs-lisp :tangle packages.el
+(package! vlf)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(use-package! vlf
+  :defer t
+  :config
+  (require 'vlf-setup)
+)
+#+END_SRC
+* editing
+** super save
+#+begin_src emacs-lisp :tangle packages.el
+(package! super-save)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(use-package! super-save
+  :defer t
+  :config
+  (super-save-mode +1)
+  (setq super-save-remote-files nil)
+)
+#+END_SRC
+
+** duplicate line
+quickly dupliate a line without changing the kill-ring.
+
+credit: http://stackoverflow.com/questions/88399/how-do-i-duplicate-a-whole-line-in-emacs
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun duplicate-line()
+"quckly duplicate a line without changing the kill-ring"
+  (interactive)
+  (move-beginning-of-line 1)
+  (kill-line)
+  (yank)
+  (open-line 1)
+  (next-line 1)
+  (yank)
+  (pop kill-ring)
+)
+#+END_SRC
+** multiple cursor
+#+begin_src emacs-lisp :tangle keybinds.el
+(map!
+  (:when (featurep! :editor multiple-cursors)
+    :prefix "gz"
+    :nv "d" #'evil-mc-make-and-goto-next-match
+    :nv "D" #'evil-mc-make-and-goto-prev-match
+    :nv "j" #'evil-mc-make-cursor-move-next-line
+    :nv "k" #'evil-mc-make-cursor-move-prev-line
+    :nv "m" #'evil-mc-make-all-cursors
+    :nv "n" #'evil-mc-make-and-goto-next-cursor
+    :nv "N" #'evil-mc-make-and-goto-last-cursor
+    :nv "p" #'evil-mc-make-and-goto-prev-cursor
+    :nv "P" #'evil-mc-make-and-goto-first-cursor
+    :nv "q" #'evil-mc-undo-all-cursors
+    :nv "t" #'+multiple-cursors/evil-mc-toggle-cursors
+    :nv "u" #'evil-mc-undo-last-added-cursor
+    :nv "z" #'+multiple-cursors/evil-mc-make-cursor-here
+    :v  "I" #'evil-mc-make-cursor-in-visual-selection-beg
+    :v  "A" #'evil-mc-make-cursor-in-visual-selection-end))
+#+END_SRC
+* web development
+** restclient
+#+begin_src emacs-lisp :tangle packages.el
+(package! restclient)
+#+end_src
+
+** web mode
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map web-mode-map
+  :desc "fold" :n "<tab>" #'web-mode-fold-or-unfold
+  :desc "fold child" :n "<backtab>" #'web-mode-element-children-fold-or-unfold
+  :desc "mark element content" :n ",e" #'web-mode-element-content-select)
+#+end_src
+
+Sometimes web-mode will perform auto-indent which screws up the existing file
+and caused problem:
+#+BEGIN_SRC elisp :tangle no
+(after! web-mode
+    (setq web-mode-enable-auto-indentation t))
+#+END_SRC
+* terminal/shell
+** vterm
+Here I define a bunch of commands for vterm so I can use them on the command
+line to interact with emacs:
+#+begin_src emacs-lisp
+(after! vterm
+  (add-to-list 'vterm-eval-cmds '("ediff-files" ediff-files))
+  (add-to-list 'vterm-eval-cmds '("magit-diff" magit-diff-dwim))
+  (add-to-list 'vterm-eval-cmds '("magit-diff-staged" magit-diff-staged))
+  (add-to-list 'vterm-eval-cmds '("magit-status-here" magit-status-here))
+  (add-to-list 'vterm-eval-cmds '("magit-status" magit-status))
+  (add-to-list 'vterm-eval-cmds '("counsel-find-file" counsel-find-file))
+)
+#+end_src
+
+When running vim in vterm, we need to be able to escape to normal mode, but
+since I'm using evil mode, esc button will be intercepted by Emacs so vterm will
+not be able to pass it to vim, so I use ~C-c C-e~ for ~Esc~ and ~C-c C-q~ for ex
+mode.
+#+begin_src emacs-lisp :tangle keybinds.el
+(map!
+  (:map vterm-mode-map
+
+    [remap whole-line-or-region-yank] #'vterm-yank
+    "C-;"                        #'evil-normal-state
+    "C-k"                        #'vterm-send-up
+    "C-j"                        #'vterm-send-down
+    "C-c C-k"                    #'evil-window-up
+    "C-c C-j"                    #'evil-window-down
+    "C-c C-e"                        (lambda ()
+                                        (interactive)
+                                        (vterm-send-key "<escape>" nil t nil))
+    "C-c C-q"                        (lambda ()
+                                        (interactive)
+                                        (vterm-send-key ":" nil t nil))
+    ))
+#+end_src
+
+* LSP
+** lsp-mode
+TODO: this need review:
+#+begin_src emacs-lisp :tangle no
+(add-hook! 'lsp-mode-hook
+  (defun me/lsp-keybinding()
+    (map!
+      :n ",c" #'flycheck-list-errors
+      :n ",C" #'lsp-ui-flycheck-list
+      :n ",d" #'lsp-find-definition
+      :n ",r" #'lsp-find-references
+      :n ",R" #'lsp-rename
+      :n ",f" #'lsp-format-buffer
+      :n ",D" #'lsp-describe-thing-at-point
+      :v ",f" #'lsp-format-region)
+  ))
+#+end_src
+** lsp-ui
+#+begin_src emacs-lisp :tangle no
+(setq lsp-ui-doc-use-webkit t)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(setq lsp-ui-doc-max-height 80)
+(setq lsp-ui-doc-max-width 150)
+#+end_src
+
+** Nox
+A lightweight alternative to lsp-mode.
+https://github.com/manateelazycat/nox
+#+begin_src emacs-lisp :tangle packages.el
+(package! nox :recipe (:host github :repo "manateelazycat/nox"))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(require 'nox)
+
+(dolist (hook (list
+               'python-mode-hook
+               'c-mode-common-hook
+               'c-mode-hook
+               'c++-mode-hook
+               ))
+(add-hook hook '(lambda () (nox-ensure))))
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle no
+(setq nox-python-path "/usr/local/Cellar/python@3.8/3.8.2/bin/python3")
+#+END_SRC
+
+Tried so far but somehow doesn't seem to work for me at all, not sure why..
+Find definition or references not give me any result..
+* org mode
+** basic setup
+#+begin_src emacs-lisp
+(setq +org-dir (concat (substitute-in-file-name "$HOME/") "org"))
+(setq +notes-dir (concat (substitute-in-file-name "$HOME/") "notes"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! ox-gfm)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    ; Targets include this file and any file contributing to the agenda
+    ; - up to 9 levels deep
+    (setq org-refile-targets (quote ((nil :maxlevel . 9)
+                                (org-agenda-files :maxlevel . 9))))
+    (evil-add-command-properties #'org-open-at-point :jump t))
+#+end_src
+
+To improve the code editing experience for org-babel:
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (setq org-src-window-setup 'current-window))
+#+END_SRC
+** look and feel
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    ;; https://emacs.stackexchange.com/questions/5889/how-to-highlight-text-permanently-in-org-mode
+    (add-to-list 'org-emphasis-alist
+        '("*" (:emphasis t :foreground "red")))
+
+    ;; prettify the exported table in HTML, add border and column divider etc
+    (setq org-html-table-default-attributes '(:border "2" :rules "all" :frame "border")))
+#+end_src
+
+Following is taken from [[https://tecosaur.github.io/emacs-config/config.html][Here]]:
+#+BEGIN_SRC elisp
+(after! org
+  (appendq! +pretty-code-symbols
+            `(:checkbox      "☐"
+              :pending       "◼"
+              :checkedbox    "☑"
+              :list_property "∷"
+              :results       "🠶"
+              :property      "☸"
+              :properties    "⚙"
+              :end           "∎"
+              :options       "⌥"
+              :title         "𝙏"
+              :author        "𝘼"
+              :date          "𝘿"
+              :latex_header  "⇥"
+              :latex_class   "🄲"
+              :begin_quote   "❮"
+              :end_quote     "❯"
+              :begin_export  "⯮"
+              :end_export    "⯬"
+              :priority_a   ,(propertize "⚑" 'face 'all-the-icons-red)
+              :priority_b   ,(propertize "⬆" 'face 'all-the-icons-orange)
+              :priority_c   ,(propertize "■" 'face 'all-the-icons-yellow)
+              :priority_d   ,(propertize "⬇" 'face 'all-the-icons-green)
+              :priority_e   ,(propertize "❓" 'face 'all-the-icons-blue)
+              :em_dash       "—"))
+  (set-pretty-symbols! 'org-mode
+    :merge t
+    :checkbox      "[ ]"
+    :pending       "[-]"
+    :checkedbox    "[X]"
+    :list_property "::"
+    :results       "#+RESULTS:"
+    :property      "#+PROPERTY:"
+    :property      ":PROPERTIES:"
+    :end           ":END:"
+    :options       "#+OPTIONS:"
+    :title         "#+TITLE:"
+    :author        "#+AUTHOR:"
+    :date          "#+DATE:"
+    :latex_class   "#+LATEX_CLASS:"
+    :latex_header  "#+LATEX_HEADER:"
+    :begin_quote   "#+BEGIN_QUOTE"
+    :end_quote     "#+END_QUOTE"
+    :begin_export  "#+BEGIN_EXPORT"
+    :end_export    "#+END_EXPORT"
+    :priority_a    "[#A]"
+    :priority_b    "[#B]"
+    :priority_c    "[#C]"
+    :priority_d    "[#D]"
+    :priority_e    "[#E]"
+    :em_dash       "---"))
+(plist-put +pretty-code-symbols :name "⁍") ; or › could be good?
+#+END_SRC
+** GTD
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "✔ DONE(d)")
+                                (sequence "⚑ WAITING(w)" "|")
+                                (sequence "|" "✘ CANCELED(c)")))
+
+    (setq org-agenda-files '("~/org/gtd/"
+                            "~/org/Inbox.org" )))
+#+end_src
+
+** journal
+I use [[https://github.com/bastibe/org-journal][org-journal]] to write journal and then with some customized functions these
+journals are also exported to [[https://dayone.me/][DayOne]] on MacOs.
+
+DOOM Emacs has already support it, just need to add:
+#+begin_example
++journal
+#+end_example
+for Org package in init.el.
+
+However I found some funny issues when using DOOM emacs config for org-journal,
+so I'll put in my own config for now.
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-journal)
+#+end_src
+
+Also currently I have made org-roam also use the same directory where journals
+are stored..
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-journal
+  :bind
+  ("C-c n j" . org-journal-new-entry)
+  ("C-c n t" . org-journal-today)
+  :custom
+  (org-journal-date-prefix "#+TITLE: ")
+  (org-journal-file-format "%Y-%m-%d.org")
+  (org-journal-dir "~/repo/life")
+  (org-journal-carryover-items nil)
+  (org-journal-date-format "%Y-%m-%d")
+  (org-journal-time-prefix "* "))
+#+end_src
+
+*** key binding
+Currently I have bound ~SPC a j~ to invoke ~org-journal-new-entry~ command which
+will start a new journal entry for current date.
+
+To search the journal for a string, use ~C-c C-s~.
+
+It's integrated with Emacs calendar, so after we run ~calendar~, in the calendar
+mode we can do following things. We need to get into insert mode by doing ~i~
+first before any of those key bindings due to evil mode.
+
+| key   | operation                                                             |
+|-------+-----------------------------------------------------------------------|
+| =j=   | view an entry in a new buffer.                                        |
+| =C-j= | view an entry but do not switch to it                                 |
+| =i j= | add a new entry into the day’s file (creates the file if not present) |
+| =f w= | search in all entries of the current week                             |
+| =f m= | search in all entries of the current month                            |
+| =f y= | search in all entries of the current year                             |
+| =f f= | search in all entries of all time                                     |
+| =f F= | search in all entries in the future                                   |
+| =[=   | go to previous day with journal entries                               |
+| =]=   | go to next day with journal entries                                   |
+** capture webpage
+There are multiple ways to capture a webpage into org mode file.
+*** org-web-tools
+https://github.com/alphapapa/org-web-tools
+
+*** capture via eww
+Here is one I discovered at
+http://www.bobnewell.net/publish/35years/webclipper.html.
+
+I uses org-capture by adding a new capture template with entry key ~w~ and a support function.
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+(add-to-list 'org-capture-templates
+    `("w" "Website" plain
+        (function org-website-clipper)
+        "* %a\n%T\n" :immediate-finish t))
+)
+#+end_src
+
+However I have to change the ~org-eww~ to ~ol-eww~ and also ~org-w3m~ to
+~ol-w3m~ to get it working (my ~org-version~ shows it's org mode 9.3).
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+;; org-eww and org-w3m should be in your org distribution, but see
+;; note below on patch level of org-eww.
+(require 'ol-eww)
+(require 'ol-w3m)
+(defvar org-website-page-archive-file "~/org/websites.org")
+(defun org-website-clipper ()
+  "When capturing a website page, go to the right place in capture file,
+   but do sneaky things. Because it's a w3m or eww page, we go
+   ahead and insert the fixed-up page content, as I don't see a
+   good way to do that from an org-capture template alone. Requires
+   Emacs 25 and the 2017-02-12 or later patched version of org-eww.el."
+ (interactive)
+
+  ;; Check for acceptable major mode (w3m or eww) and set up a couple of
+  ;; browser specific values. Error if unknown mode.
+
+  (cond
+   ((eq major-mode 'w3m-mode)
+     (org-w3m-copy-for-org-mode))
+   ((eq major-mode 'eww-mode)
+     (org-eww-copy-for-org-mode))
+   (t
+     (error "Not valid -- must be in w3m or eww mode")))
+
+  ;; Check if we have a full path to the archive file.
+  ;; Create any missing directories.
+
+  (unless (file-exists-p org-website-page-archive-file)
+    (let ((dir (file-name-directory org-website-page-archive-file)))
+      (unless (file-exists-p dir)
+        (make-directory dir))))
+
+  ;; Open the archive file and yank in the content.
+  ;; Headers are fixed up later by org-capture.
+
+  (find-file org-website-page-archive-file)
+  (goto-char (point-max))
+  ;; Leave a blank line for org-capture to fill in
+  ;; with a timestamp, URL, etc.
+  (insert "\n\n")
+  ;; Insert the web content but keep our place.
+  (save-excursion (yank))
+  ;; Don't keep the page info on the kill ring.
+  ;; Also fix the yank pointer.
+  (setq kill-ring (cdr kill-ring))
+  (setq kill-ring-yank-pointer kill-ring)
+  ;; Final repositioning.
+  (forward-line -1)
+)
+#+end_src
+** org brain - disabled
+I noticed I didn't use it too often.. ~org-roam~ seems more interesting..
+#+begin_src emacs-lisp :tangle no
+(use-package! org-brain
+  :defer t
+  :init
+  ;; For Evil users
+  (with-eval-after-load 'evil
+    (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
+  :config
+  (setq org-id-track-globally t)
+  (setq org-id-locations-file "~/org/brain/.org-id-locations")
+  (push '("b" "Brain" plain (function org-brain-goto-end)
+          "* %i%?" :empty-lines 1)
+        org-capture-templates)
+  (setq org-brain-visualize-default-choices 'all)
+  (setq org-brain-title-max-length 12))
+#+end_src
+
+** org roam
+https://github.com/jethrokuan/org-roam
+
+I like it better than org-brain, feels more natural to me..
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-roam :recipe (:host github :repo "jethrokuan/org-roam"))
+#+end_src
+
+Given the frequency I use org-roam, I think it makes sense to always load it
+upfront, not using defer:
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package org-roam
+      :hook
+      (after-init . org-roam-mode)
+      :custom
+      (org-roam-directory "~/org/roam/org")
+      (org-roam-capture--file-name-default "")
+      (org-roam-capture-templates
+        '(("d" "default" plain (function org-roam-capture--get-point)
+            "%?"
+            :file-name "${slug}"
+            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n"
+            :unnarrowed t)
+
+          ("j" "jira" plain (function org-roam-capture--get-point)
+            "%?"
+            :file-name "${slug}"
+            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n#+KEYWORDS: \n#+TYPE: \n#+STATUS: Q\n#+JIRA: \n#+SPRINT: \n#+EPIC: \n#+POINTS: \n"
+            :unnarrowed t)))
+      :bind (:map org-mode-map
+        (("C-c r" . org-roam-insert))))
+#+end_src
+** backlink support during export for org roam
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+;;;###autoload
+(defun my/org-roam--backlinks-list-with-content (file)
+  (with-temp-buffer
+    (if-let* ((backlinks (org-roam--get-backlinks file))
+              (grouped-backlinks (--group-by (nth 0 it) backlinks)))
+        (progn
+          (insert (format "\n\n* %d Backlinks\n"
+                          (length backlinks)))
+          (dolist (group grouped-backlinks)
+            (let ((file-from (car group))
+                  (bls (cdr group)))
+              (insert (format "** [[file:%s][%s]]\n"
+                              file-from
+                              (org-roam--get-title-or-slug file-from)))
+              (dolist (backlink bls)
+                (pcase-let ((`(,file-from _ ,props) backlink))
+                  (insert (s-trim (s-replace "\n" " " (plist-get props :content))))
+                  (insert "\n\n")))))))
+    (buffer-string)))
+
+;;;###autoload
+(defun my/org-export-preprocessor (backend)
+(let ((links (my/org-roam--backlinks-list-with-content (buffer-file-name))))
+    (unless (string= links "")
+    (save-excursion
+        (goto-char (point-max))
+        (insert (concat "\n* Backlinks\n") links)))))
+
+(add-hook 'org-export-before-processing-hook 'my/org-export-preprocessor)
+#+END_SRC
+** multiple org-roam
+I also want to use org-roam for other things in my life other than knowledge
+management, so I wrote this little function to help with that.
+
+#+BEGIN_SRC emacs-lisp
+(defvar org-roam-directories-alist nil)
+(setq org-roam-directories-alist '(("default" . "~/org/roam/org")
+                                   ("life" . "~/repo/life")))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun me/switch-org-roam()
+"choose between all org roam directories"
+  (interactive)
+  (ivy-read "options: " org-roam-directories-alist
+            :action '(1
+                      ("o" (lambda (x) (setq org-roam-directory (cdr x))) "select")))
+)
+#+END_SRC
+
+** custom link type
+#+begin_src emacs-lisp :tangle no
+(defcustom org-yt-url-protocol "yt"
+  "Protocol identifier for youtube links."
+  :group 'org-yt
+  :type 'string)
+
+(defun org-yt-follow (video-id)
+  "Open youtube with VIDEO-ID."
+  (browse-url (concat "https://youtu.be/" video-id)))
+
+(org-link-set-parameters org-yt-url-protocol :follow #'org-yt-follow)
+#+end_src
+** link abbreviation
+When there is long url, we can use ~link abbreviation~ to shorten it.
+For a single org mode file, we can have line below in the file:
+#+BEGIN_SRC org :tangle no
+#+LINK: bing    http://www.bing.com/search?q=%s
+#+END_SRC
+
+If this abbreviation will be usedd in multiple files, then we can set it
+permanently:
+#+begin_src emacs-lisp :tangle no
+(setq org-link-abbrev-alist
+      '(("bing" . "https://www.bing.com/search?q=%s")))
+#+end_src
+** take screenshot
+Sometimes when I write on org mode, I need to capture a screenshot and then
+paste it in the org mode file.
+
+I discovered this [[https://github.com/dfeich/org-screenshot][org-screenshot]] package which makes this workflow very smooth.
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-attach-screenshot)
+#+end_src
+
+After install, all I need to do is run ~org-attach-screenshot~ command which
+will minimize the emacs and allow me to capture the screen and then paste the
+link to image back to where I was, very nice.
+
+It relies on the command line utility ~screencapture~ on MacOS.
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-attach-screenshot
+:defer t
+:commands (org-attach-screenshot)
+:config
+(setq org-attach-screenshot-command-line
+        "screencapture -i %f"
+
+        org-attach-screenshot-dirfunction
+        (lambda ()
+        (concat +org-dir "/files/")))
+)
+#+end_src
+** plantuml
+We need to drop the ~plantuml.jar~ file at =~/.emacs.d/.local/etc= which is what
+~doom-etc-dir~ is set to.
+
+#+BEGIN_SRC sh :tangle emacs-dep.sh
+cp resource/plantuml.jar ~/.emacs.d/.local/etc/
+#+END_SRC
+
+We need to set for org-mode as well:
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (setq org-plantuml-jar-path (concat doom-etc-dir "plantuml.jar")))
+#+end_src
+
+NOTE: following code from ~~/.emacs.d/modules/lang/plantuml/config.el~:
+#+begin_src emacs-lisp :tangle no
+(after! ob-plantuml
+  ;; HACK We force ob-plantuml to use `plantuml-mode''s building mechanism,
+  ;; which is more sophisticated.
+  (advice-add #'org-babel-execute:plantuml
+              :override #'+plantuml-org-babel-execute:plantuml-a)
+  (add-to-list 'org-babel-default-header-args:plantuml
+               '(:cmdline . "-charset utf-8")))
+#+end_src
+
+will cause issue when the output file is in svg format. It produces invalid svg
+file even though the plantuml code block is actual valid.
+
+When preview svg file in chrome there is error message like:
+
+#+BEGIN_QUOTE
+This page contains the following errors:
+
+error on line 46 at column 19: XML declaration allowed only at the start of the document
+#+END_QUOTE
+
+After disable it, it works properly.
+*** do not connect to server
+One day I noticed emacs always tries to connect to ~www.plantuml.com:443~ when I
+open a org mode file with plantuml source code block or execute a plantuml
+source code block.
+
+It took me a little while to figure out there is this variable
+~plantuml-default-exec-mode~ which has value ~server~. Once I set it to ~jar~:
+
+#+begin_src emacs-lisp
+(setq plantuml-default-exec-mode 'jar)
+#+end_src
+
+then this behavior goes away.
+
+** take notes while reading
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-noter)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-noter
+  :defer t)
+#+end_src
+
+** diagrams
+I created a simple package to simplify the diagram generation from org-mode. It
+depends on the tool from https://github.com/francoislaberge/diagrams to generate
+diagrams.
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! ob-diagrams :recipe (:host github :repo "emacsbliss/ob-diagrams"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! ob-diagrams
+  :defer t
+  :config
+  (setq ob-diagrams-cli-path "~/node_modules/.bin/diagrams"))
+#+end_src
+
+** presentations
+disable this for now.. DOOM Emacs has support ~org-reveal~
+#+begin_src emacs-lisp :tangle no
+(use-package! org-re-reveal
+  :after ox
+  :config
+  (setq org-re-reveal-root (format "file://%s/reveal.js" (substitute-in-file-name "$HOME"))
+        org-re-reveal-title-slide nil))
+#+end_src
+
+** org chef
+Emacs can help you cook too! https://github.com/Chobbes/org-chef
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-chef)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-chef
+  :commands (org-chef-insert-recipe org-chef-get-recipe-from-url))
+#+END_SRC
+* presentation
+https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
+
+https://gitlab.com/oer/emacs-reveal
+
+#+begin_src emacs-lisp :tangle no
+(package! emacs-reveal :recipe (:host gitlab :repo "oer/emacs-reveal"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package! emacs-reveal
+  :defer t)
+#+end_src
+** Exporting presentations as PDF
+It's taken from [[https://geeksocket.in/posts/presentations-org-emacs/][here]].
+
+In order to save the presentation as PDF file we have to host the HTML file
+somewhere or start a local HTTP server. This can be done by running this command
+in the directory where the HTML file is:
+#+BEGIN_SRC sh :tangle no
+python3 -m http.server
+#+END_SRC
+
+Open the presentation in Chrome browser and add ~?print-pdf~ at the end of URL.
+** zpresent
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! zpresent)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! zpresent
+  :defer t)
+#+end_src
+** MacOS integration
+I use ~Devonthink~ and ~MarginNote~ on MacOS, below is to make org mode support
+the link for this two apps:
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (require 'org-mac-link)
+
+    (org-link-set-parameters
+    "marginnote3app"
+    :export (lambda (path desc backend)
+        (cl-case backend
+        (md (format "[%s](%s)" (or desc "")
+                    (concat  "marginnote3app:" path))))))
+
+    (org-link-set-parameters
+    "x-devonthink-item"
+    :export (lambda (path desc backend)
+        (cl-case backend
+        (md (format "[%s](%s)" (or desc "")
+                    (concat  "x-devonthink-item:" path))))))
+)
+#+end_src
+** spreadsheet
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun me/org-sum-rows (begin-row)
+  "insert a org-table formula for sum all the rows for current column
+    at the cell under cursor"
+  (interactive "p")
+  (cond ((or (<= begin-row 0)
+             (>= begin-row (org-table-current-dline)) )
+         (error "invalid row!"))
+        (t
+         (let ((cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column))))
+           (if (= begin-row 1)
+               (me/org-append-formula cell
+                                      (format "vsum(@2..@%d)" (- (org-table-current-dline) 1)))
+             (me/org-append-formula cell
+                                    (format "vsum(@%d..@%d)" begin-row (- (org-table-current-dline) 1)))
+             )
+           )
+         )
+        ))
+
+;;;###autoload
+(defun me/org-sum-cols (begin-column)
+  "insert a org-table formula for sum columns begin-column -- current-column -1
+   for current row at the cell under cursor"
+  (interactive "p")
+  (cond ((or (<= begin-column 0)
+             (>= begin-column (org-table-current-column)) )
+         (error "invalid column!"))
+        (t
+         (let (
+               (cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column)) )
+               (sum-formula (format "vsum($%d..$%d)" begin-column (- (org-table-current-column) 1) )))
+           (me/org-append-formula cell sum-formula)
+           )
+         )
+        )
+  )
+
+;;;###autoload
+(defun me/org-append-formula (cell formula)
+  "build a alist (cell . formula) and append to existing formulas of the table
+   also recalculate the whole table."
+   (setq exist-formulas (org-table-get-stored-formulas))
+   (setq new-formulas (add-to-list 'exist-formulas (cons cell formula)))
+   (org-table-store-formulas new-formulas)
+   ;; need to pass 'all so all rows are recalculated, not just current row
+   (org-table-recalculate 'all)
+)
+
+;;;###autoload
+(defun me/org-add-index-column ()
+  "insert a index column to the table under cursor.
+   index starting from 1. Also a hline is expected
+   to exist for table for index to work properly."
+  (interactive)
+  (org-table-goto-column 0)
+  (org-table-insert-column)
+  (org-table-move-column-left)
+  (me/org-append-formula "$1" "@#-1")
+)
+
+;;;###autoload
+(defun me/create-org-table-from-clipboard ()
+  "create a table in org mode with content from clipboard"
+  (interactive)
+  (let* ((buf (current-buffer)))
+    (with-temp-buffer
+      (switch-to-buffer (current-buffer) nil t)
+      (insert (get-kill-ring))
+      (mark-whole-buffer)
+      (org-table-create-or-convert-from-region nil)
+      (org-table-insert-hline)
+      (goto-char (point-min))
+      (open-line 1)
+      (insert "#+tblname:")
+      (append-to-buffer buf (point-min) (point-max))
+      )))
+#+end_src
+** jira
+#+begin_src emacs-lisp :tangle no
+(package! org-jira)
+#+end_src
+** utlity function
+#+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun extract-from-org-heading (pattern)
+  (interactive)
+  "go to top level heading from current position and try to extract
+   using pattern"
+  (let ((result nil))
+    (save-excursion
+      (while (org-up-heading-safe))
+      (setq result (search-current-line pattern))
+      (kill-new result))
+      (if result
+        (message "saved to kill-ring: %s" result)
+        (message "no match found!"))
+))
+
+;;;###autoload
+(defun search-current-line(pattern)
+  "search current line using pattern, return captured group, should
+   be only 1."
+  (interactive)
+  (re-search-forward pattern (line-end-position))
+  (match-string 1)
+)
+#+END_SRC
+** keybinding
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map org-mode-map
+  :desc "org attach by mv"    :n ",a" #'org-attach-attach-mv
+  :desc "org attach by cp"    :n ",c" #'org-attach-attach-cp
+  :desc "open attach in emas" :n ",o" #'org-attach-open-in-emacs
+  :desc "org open attach"     :n ",O" #'org-attach-open)
+#+END_SRC
+* org export to html
+** html theme
+This [[https://github.com/fniessen/org-html-themes][repo]] provides few themes which makes exported html looks really nice.
+
+It's very simple to use but do note that when use the local version of it, we
+need to copy the *styles* folder into the same folder as the file to be
+exported.
+
+Most of the tweaks below are taken from [[https://tecosaur.github.io/emacs-config/config.html#org-mode-visuals][here]]:
+** Custom CSS/JS for html export
+I made few tweaks to the below code:
+- use local version of css/js file for readtheorg theme
+- fix table export issue (two vertical lines on both sides of page)
+#+BEGIN_SRC elisp
+(defun org-inline-css-hook (exporter)
+  "Insert custom inline css to automatically set the
+   background of code to whatever theme I'm using's background"
+  (when (eq exporter 'html)
+    (setq
+     org-html-head-extra
+     (concat
+      (if (s-contains-p "<!––tec/custom-head-start-->" org-html-head-extra)
+          (s-replace-regexp "<!––tec\\/custom-head-start-->[^🙜]*<!––tec\\/custom-head-end-->" "" org-html-head-extra)
+        org-html-head-extra)
+      (format "<!––tec/custom-head-start-->
+<style type=\"text/css\">
+   :root {
+      --theme-bg: %s;
+      --theme-bg-alt: %s;
+      --theme-base0: %s;
+      --theme-base1: %s;
+      --theme-base2: %s;
+      --theme-base3: %s;
+      --theme-base4: %s;
+      --theme-base5: %s;
+      --theme-base6: %s;
+      --theme-base7: %s;
+      --theme-base8: %s;
+      --theme-fg: %s;
+      --theme-fg-alt: %s;
+      --theme-grey: %s;
+      --theme-red: %s;
+      --theme-orange: %s;
+      --theme-green: %s;
+      --theme-teal: %s;
+      --theme-yellow: %s;
+      --theme-blue: %s;
+      --theme-dark-blue: %s;
+      --theme-magenta: %s;
+      --theme-violet: %s;
+      --theme-cyan: %s;
+      --theme-dark-cyan: %s;
+   }
+</style>"
+              (doom-color 'bg)
+              (doom-color 'bg-alt)
+              (doom-color 'base0)
+              (doom-color 'base1)
+              (doom-color 'base2)
+              (doom-color 'base3)
+              (doom-color 'base4)
+              (doom-color 'base5)
+              (doom-color 'base6)
+              (doom-color 'base7)
+              (doom-color 'base8)
+              (doom-color 'fg)
+              (doom-color 'fg-alt)
+              (doom-color 'grey)
+              (doom-color 'red)
+              (doom-color 'orange)
+              (doom-color 'green)
+              (doom-color 'teal)
+              (doom-color 'yellow)
+              (doom-color 'blue)
+              (doom-color 'dark-blue)
+              (doom-color 'magenta)
+              (doom-color 'violet)
+              (doom-color 'cyan)
+              (doom-color 'dark-cyan))
+      "
+<style>
+   pre.src {
+     background-color: var(--theme-bg);
+     color: var(--theme-fg);
+     scrollbar-color:#bbb6#9992;
+     scrollbar-width: thin;
+     margin: 0;
+     border: none;
+   }
+   div.org-src-container {
+     border-radius: 12px;
+     overflow: hidden;
+     margin-bottom: 24px;
+     margin-top: 1px;
+     border: 1px solid#e1e4e5;
+   }
+   pre.src::before {
+     background-color:#6666;
+     top: 8px;
+     border: none;
+     border-radius: 5px;
+     line-height: 1;
+     border: 2px solid var(--theme-bg);
+     opacity: 0;
+     transition: opacity 200ms;
+   }
+   pre.src:hover::before { opacity: 1; }
+   pre.src:active::before { opacity: 0; }
+
+   pre.example {
+     border-radius: 12px;
+     background: var(--theme-bg-alt);
+     color: var(--theme-fg);
+   }
+
+   code {
+     border-radius: 5px;
+     background:#e8e8e8;
+     font-size: 80%;
+   }
+
+   kbd {
+     display: inline-block;
+     padding: 3px 5px;
+     font: 80% SFMono-Regular,Consolas,Liberation Mono,Menlo,monospace;
+     line-height: normal;
+     line-height: 10px;
+     color:#444d56;
+     vertical-align: middle;
+     background-color:#fafbfc;
+     border: 1px solid#d1d5da;
+     border-radius: 3px;
+     box-shadow: inset 0 -1px 0#d1d5da;
+   }
+
+   a {
+       text-decoration: none;
+       background-image: linear-gradient(#d8dce9, #d8dce9);
+       background-position: 0% 100%;
+       background-repeat: no-repeat;
+       background-size: 0% 2px;
+       transition: background-size .3s;
+   }
+   \#table-of-contents a {
+       background-image: none;
+   }
+   a:hover, a:focus {
+       background-size: 100% 2px;
+   }
+   a[href^='#'] { font-variant-numeric: oldstyle-nums; }
+   a[href^='#']:visited { color:#3091d1; }
+
+   li .checkbox {
+       display: inline-block;
+       width: 0.9em;
+       height: 0.9em;
+       border-radius: 3px;
+       margin: 3px;
+       top: 4px;
+       position: relative;
+   }
+   li.on > .checkbox { background: var(--theme-green); box-shadow: 0 0 2px var(--theme-green); }
+   li.trans > .checkbox { background: var(--theme-orange); box-shadow: 0 0 2px var(--theme-orange); }
+   li.off > .checkbox { background: var(--theme-red); box-shadow: 0 0 2px var(--theme-red); }
+   li.on > .checkbox::after {
+     content: '';
+     height: 0.45em;
+     width: 0.225em;
+     -webkit-transform-origin: left top;
+     transform-origin: left top;
+     transform: scaleX(-1) rotate(135deg);
+     border-right: 2.8px solid#fff;
+     border-top: 2.8px solid#fff;
+     opacity: 0.9;
+     left: 0.10em;
+     top: 0.45em;
+     position: absolute;
+   }
+   li.trans > .checkbox::after {
+       content: '';
+       font-weight: bold;
+       font-size: 1.6em;
+       position: absolute;
+       top: 0.23em;
+       left: 0.09em;
+       width: 0.35em;
+       height: 0.12em;
+       background:#fff;
+       opacity: 0.9;
+       border-radius: 0.1em;
+   }
+   li.off > .checkbox::after {
+    content: '✖';
+    color:#fff;
+    opacity: 0.9;
+    position: relative;
+    top: -0.40rem;
+    left: 0.17em;
+    font-size: 0.75em;
+  }
+
+   span.timestamp {
+       color: #003280;
+       background: #647CFF44;
+       border-radius: 3px;
+       line-height: 1.25;
+   }
+
+   \#table-of-contents { overflow-y: auto; }
+   blockquote p { margin: 8px 0px 16px 0px; }
+   \#postamble .date { color: var(--theme-green); }
+
+   ::-webkit-scrollbar { width: 10px; height: 8px; }
+   ::-webkit-scrollbar-track { background:#9992; }
+   ::-webkit-scrollbar-thumb { background:#ccc; border-radius: 10px; }
+   ::-webkit-scrollbar-thumb:hover { background:#888; }
+</style>
+<!––tec/custom-head-end-->
+"
+      ))))
+
+(add-hook 'org-export-before-processing-hook 'org-inline-css-hook)
+#+END_SRC
+** Make verbatim different to code
+#+begin_src emacs-lisp
+(setq org-html-text-markup-alist
+      '((bold . "<b>%s</b>")
+        (code . "<code>%s</code>")
+        (italic . "<i>%s</i>")
+        (strike-through . "<del>%s</del>")
+        (underline . "<span class=\"underline\">%s</span>")
+        (verbatim . "<kbd>%s</kbd>")))
+#+end_src
+** Change checkbox type
+#+BEGIN_SRC elisp
+(after! org
+(appendq! org-html-checkbox-types '((html-span .
+    ((on . "<span class='checkbox'></span>")
+    (off . "<span class='checkbox'></span>")
+    (trans . "<span class='checkbox'></span>")))))
+(setq org-html-checkbox-type 'html-span))
+#+END_SRC
+
+** html with meaningful anchor
+Out of box the html file will have random name for each anchor like ~orga1b2c3~.
+
+To get anchor matching the heading title, I found [[https://github.com/alphapapa/unpackaged.el#export-to-html-with-useful-anchors][this]]. It works nicely except one
+little thing: it produces ~%20~ for the space in the heading.
+
+On top of that for some reason the html file exported with this tweak has an
+issue which breaks the auto-scroll of TOC so it doesn't reflect the cursor
+location for the readtheorg theme from this [[https://github.com/fniessen/org-html-themes][repo]].
+
+Later I discovered [[https://tecosaur.github.io/emacs-config/config.html#behaviour][this]] config which solves both problem, really nice!
+#+BEGIN_SRC elisp
+(defvar org-heading-contraction-max-words 3
+  "Maximum number of words in a heading")
+(defvar org-heading-contraction-max-length 35
+  "Maximum length of resulting string")
+(defvar org-heading-contraction-stripped-words
+  '("the" "on" "in" "off" "a" "for" "by" "of" "and" "is" "to")
+  "Unnecesary words to be removed from a heading")
+
+(defun org-heading-contraction (heading-string)
+  "Get a contracted form of HEADING-STRING that is onlu contains alphanumeric charachters.
+Strips 'joining' words in `org-heading-contraction-stripped-words',
+and then limits the result to the first `org-heading-contraction-max-words' words.
+If the total length is > `org-heading-contraction-max-length' then individual words are
+truncated to fit within the limit"
+  (let ((heading-words
+         (-filter (lambda (word)
+                    (not (member word org-heading-contraction-stripped-words)))
+                  (split-string
+                   (->> heading-string
+                        s-downcase
+                        (replace-regexp-in-string "\\[\\[[^]]+\\]\\[\\([^]]+\\)\\]\\]" "\\1") ; get description from org-link
+                        (replace-regexp-in-string "[-/ ]+" " ") ; replace seperator-type chars with space
+                        (replace-regexp-in-string "[^a-z0-9 ]" "") ; strip chars which need %-encoding in a uri
+                        ) " "))))
+    (when (> (length heading-words)
+             org-heading-contraction-max-words)
+      (setq heading-words
+            (subseq heading-words 0 org-heading-contraction-max-words)))
+
+    (when (> (+ (-sum (mapcar #'length heading-words))
+                (1- (length heading-words)))
+             org-heading-contraction-max-length)
+      ;; trucate each word to a max word length determined by
+      ;;   max length = \floor{ \frac{total length - chars for seperators - \sum_{word \leq average length} length(word) }{num(words) > average length} }
+      (setq heading-words (let* ((total-length-budget (- org-heading-contraction-max-length  ; how many non-separator chars we can use
+                                                         (1- (length heading-words))))
+                                 (word-length-budget (/ total-length-budget                  ; max length of each word to keep within budget
+                                                        org-heading-contraction-max-words))
+                                 (num-overlong (-count (lambda (word)                             ; how many words exceed that budget
+                                                         (> (length word) word-length-budget))
+                                                       heading-words))
+                                 (total-short-length (-sum (mapcar (lambda (word)                 ; total length of words under that budget
+                                                                     (if (<= (length word) word-length-budget)
+                                                                         (length word) 0))
+                                                                   heading-words)))
+                                 (max-length (/ (- total-length-budget total-short-length)   ; max(max-length) that we can have to fit within the budget
+                                                num-overlong)))
+                            (mapcar (lambda (word)
+                                      (if (<= (length word) max-length)
+                                          word
+                                        (substring word 0 max-length)))
+                                    heading-words))))
+    (string-join heading-words "-")))
+#+END_SRC
+#+BEGIN_SRC elisp
+(define-minor-mode unpackaged/org-export-html-with-useful-ids-mode
+  "Attempt to export Org as HTML with useful link IDs.
+Instead of random IDs like \"#orga1b2c3\", use heading titles,
+made unique when necessary."
+  :global t
+  (if unpackaged/org-export-html-with-useful-ids-mode
+      (advice-add #'org-export-get-reference :override #'unpackaged/org-export-get-reference)
+    (advice-remove #'org-export-get-reference #'unpackaged/org-export-get-reference)))
+
+(defun unpackaged/org-export-get-reference (datum info)
+  "Like `org-export-get-reference', except uses heading titles instead of random numbers."
+  (let ((cache (plist-get info :internal-references)))
+    (or (car (rassq datum cache))
+        (let* ((crossrefs (plist-get info :crossrefs))
+               (cells (org-export-search-cells datum))
+               ;; Preserve any pre-existing association between
+               ;; a search cell and a reference, i.e., when some
+               ;; previously published document referenced a location
+               ;; within current file (see
+               ;; `org-publish-resolve-external-link').
+               ;;
+               ;; However, there is no guarantee that search cells are
+               ;; unique, e.g., there might be duplicate custom ID or
+               ;; two headings with the same title in the file.
+               ;;
+               ;; As a consequence, before re-using any reference to
+               ;; an element or object, we check that it doesn't refer
+               ;; to a previous element or object.
+               (new (or (cl-some
+                         (lambda (cell)
+                           (let ((stored (cdr (assoc cell crossrefs))))
+                             (when stored
+                               (let ((old (org-export-format-reference stored)))
+                                 (and (not (assoc old cache)) stored)))))
+                         cells)
+                        (when (org-element-property :raw-value datum)
+                          ;; Heading with a title
+                          (unpackaged/org-export-new-title-reference datum cache))
+                        ;; NOTE: This probably breaks some Org Export
+                        ;; feature, but if it does what I need, fine.
+                        (org-export-format-reference
+                         (org-export-new-reference cache))))
+               (reference-string new))
+          ;; Cache contains both data already associated to
+          ;; a reference and in-use internal references, so as to make
+          ;; unique references.
+          (dolist (cell cells) (push (cons cell new) cache))
+          ;; Retain a direct association between reference string and
+          ;; DATUM since (1) not every object or element can be given
+          ;; a search cell (2) it permits quick lookup.
+          (push (cons reference-string datum) cache)
+          (plist-put info :internal-references cache)
+          reference-string))))
+
+(defun unpackaged/org-export-new-title-reference (datum cache)
+  "Return new reference for DATUM that is unique in CACHE."
+  (cl-macrolet ((inc-suffixf (place)
+                             `(progn
+                                (string-match (rx bos
+                                                  (minimal-match (group (1+ anything)))
+                                                  (optional "--" (group (1+ digit)))
+                                                  eos)
+                                              ,place)
+                                ;; HACK: `s1' instead of a gensym.
+                                (-let* (((s1 suffix) (list (match-string 1 ,place)
+                                                           (match-string 2 ,place)))
+                                        (suffix (if suffix
+                                                    (string-to-number suffix)
+                                                  0)))
+                                  (setf ,place (format "%s--%s" s1 (cl-incf suffix)))))))
+    (let* ((title (org-element-property :raw-value datum))
+           ;; get ascii-only form of title without needing percent-encoding
+           (ref (org-heading-contraction (substring-no-properties title)))
+           (parent (org-element-property :parent datum)))
+      (while (--any (equal ref (car it))
+                    cache)
+        ;; Title not unique: make it so.
+        (if parent
+            ;; Append ancestor title.
+            (setf title (concat (org-element-property :raw-value parent)
+                                "--" title)
+                  ;; get ascii-only form of title without needing percent-encoding
+                  ref (org-heading-contraction (substring-no-properties title))
+                  parent (org-element-property :parent parent))
+          ;; No more ancestors: add and increment a number.
+          (inc-suffixf ref)))
+      ref)))
+
+(add-hook 'org-load-hook #'unpackaged/org-export-html-with-useful-ids-mode)
+#+END_SRC
+* org capture
+This [[http://howardism.org/Technical/Emacs/capturing-content.html][blog post]] is an excellent resource for capturing content in Emacs, I
+borrowed a lot of capture templates and related functions from it.
+
+From that blog post, it says:
+#+BEGIN_QUOTE
+I have found the (clock) reference ideal for altering a default destination.
+Specifically, I begin work on a task, and designate it the focus of my attention
+(i.e. the destination of my work)
+#+END_QUOTE
+** global capture
+#+begin_src emacs-lisp  :tangle modules/emacs/org/packages.el
+(package! yequake :recipe (:host github :repo "alphapapa/yequake"))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! yequake
+  :custom
+  (yequake-frames
+   '(
+     ("org-capture"
+      (buffer-fns . (yequake-org-capture))
+      (width . 0.75)
+      (height . 0.5)
+      (alpha . 0.95)
+      (frame-parameters . ((undecorated . t)
+                           (skip-taskbar . t)
+                            (sticky . t))))
+)))
+#+END_SRC
+
+To trigger org-capture outside emacs, we can run shell command:
+#+BEGIN_SRC sh :tangle no
+/usr/local/opt/emacs-plus/bin/emacsclient -n -e '(yequake-toggle "org-capture")'
+#+END_SRC
+
+For MacOS, I also use [[https://www.keyboardmaestro.com/][keyboardmaestro]] to trigger global capture.
+So far it's just a simple macro setup.
+
+Basically workflow would be:
+- select some text
+- press ~C-t~ to trigger this macro
+
+[[file:files/keyboard_maestro_capture.png]]
+
+** capture the code
+I found this capture template quite helpful when I read code when working on
+some stories, so I just use ~C-c c F~ which will put the code I selected into a
+org mode src block under current clocked task and add add a link point back to
+the code in the source file.
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (add-to-list 'org-capture-templates
+                 `("C" "Code Reference with Comments to Current Task"
+                   plain (clock)
+                   "%(ha/org-capture-code-snippet \"%F\")\n\n   %?"
+                   :empty-lines 1))
+    (add-to-list 'org-capture-templates
+                 `("c" "Code Reference to Current Task"
+                   plain (clock)
+                   "%(ha/org-capture-code-snippet \"%F\")"
+                   :empty-lines 1 :immediate-finish t)))
+#+end_src
+
+In order to support these two capture templates, we need following functions:
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun ha/org-capture-code-snippet (f)
+  "Given a file, F, this captures the currently selected text
+within an Org SRC block with a language based on the current mode
+and a backlink to the function and the file."
+  (with-current-buffer (find-buffer-visiting f)
+    (let ((org-src-mode (replace-regexp-in-string "-mode" "" (format "%s" major-mode)))
+          (func-name (which-function)))
+      (ha/org-capture-fileref-snippet f "SRC" org-src-mode func-name))))
+
+;;;###autoload
+(defun ha/org-capture-fileref-snippet (f type headers func-name)
+  (let* ((code-snippet
+          (buffer-substring-no-properties (mark) (- (point) 1)))
+         (file-name   (buffer-file-name))
+         (file-base   (file-name-nondirectory file-name))
+         (line-number (line-number-at-pos (region-beginning)))
+         (initial-txt (if (null func-name)
+                          (format "From [[file:%s::%s][%s]]:"
+                                  file-name line-number file-base)
+                        (format "From ~%s~ (in [[file:%s::%s][%s]]):"
+                                func-name file-name line-number
+                                file-base))))
+    (format "
+   %s
+
+   #+BEGIN_%s %s
+%s
+   #+END_%s" initial-txt type headers code-snippet type)))
+#+end_src
+
+** capture other things
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (add-to-list 'org-capture-templates
+                 `("f" "Contents to Current Task"
+                   plain (clock)
+                   "%i"
+                   :empty-lines 1 :immediate-finish t))
+
+    (add-to-list 'org-capture-templates
+                 `("k" "Kill-ring to Current Clocked Task" plain
+                   (clock)
+                   "%c" :immediate-finish t :empty-lines 1))
+
+    (add-to-list 'org-capture-templates
+                 '("n" "Thought or Note (from kill-ring)"  entry
+                   (file org-default-notes-file)
+                   "* %?\n\n  %c\n\n  See: %a" :empty-lines 1))
+
+    (add-to-list 'org-capture-templates
+                 '("N" "Thought or Note (from active region)"  entry
+                   (file org-default-notes-file)
+                   "* %?\n\n  %i\n\n  See: %a" :empty-lines 1)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+;;;###autoload
+(defun ha/org-capture-clip-snippet (f)
+  "Given a file, F, this captures the currently selected text
+within an Org EXAMPLE block and a backlink to the file."
+  (with-current-buffer (find-buffer-visiting f)
+    (ha/org-capture-fileref-snippet f "EXAMPLE" "" nil)))
+#+end_src
+** quickly capture selected text
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun region-to-clocked-task (start end)
+"Copies the selected text to the currently clocked in org-mode task."
+(interactive "r")
+  (org-capture-string (buffer-substring-no-properties start end) "f"))
+#+END_SRC
+
+* regex
+#+begin_src emacs-lisp :tangle no
+(package! visual-regexp)
+(package! visual-regexp-steroids)
+#+end_src
+
+* utilities function
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;; https://emacs.stackexchange.com/questions/5371/how-to-change-emacs-windows-from-vertical-split-to-horizontal-split
+;;;###autoload
+(defun window-split-toggle ()
+  "Toggle between horizontal and vertical split with two windows."
+  (interactive)
+  (if (> (length (window-list)) 2)
+      (error "Can't toggle with more than 2 windows!")
+    (let ((func (if (window-full-height-p)
+                    #'split-window-vertically
+                  #'split-window-horizontally)))
+      (delete-other-windows)
+      (funcall func)
+      (save-selected-window
+        (other-window 1)
+        (switch-to-buffer (other-buffer))))))
+
+;;;###autoload
+(defun me/open-module-init ()
+  (interactive)
+  (find-file (format "%s/config.el" doom-private-dir))
+)
+
+;;;###autoload
+(defun me/browse-notes ()
+  (interactive) (doom-project-browse +notes-dir))
+
+;;;###autoload
+(defun me/find-in-notes ()
+  (interactive) (doom-project-find-file +notes-dir))
+
+;;;###autoload
+(defun me/open-message-buffer ()
+  (interactive)
+  (switch-to-buffer "*Messages*"))
+#+end_src
+
+I sometimes need to copy just the name of current file, here is the function
+does that which I bound to ~Spc f y~:
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun copy-file-name-to-clipboard ()
+  "Copy the current buffer file name to the clipboard."
+  (interactive)
+  (kill-new (buffer-name))
+  (message "Copied file name '%s' to clipboard." (buffer-name))
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+;; http://blog.binchen.org/posts/convert-multiple-line-into-one-big-string-in-emacs.html
+(defun strip-convert-lines-into-one-big-string (beg end)
+"strip and convert selected lines into one big string which is copied into kill ring.
+When transient-mark-mode is enabled, if no region is active then only the
+current line is acted upon.
+
+If the region begins or ends in the middle of a line, that entire line is
+copied, even if the region is narrowed to the middle of a line.
+
+Current position is preserved."
+  (interactive "r")
+  (let (str (orig-pos (point-marker)))
+  (save-restriction
+    (widen)
+    (when (and transient-mark-mode (not (use-region-p)))
+      (setq beg (line-beginning-position)
+            end (line-beginning-position 2)))
+
+    (goto-char beg)
+    (setq beg (line-beginning-position))
+    (goto-char end)
+    (unless (= (point) (line-beginning-position))
+      (setq end (line-beginning-position 2)))
+
+    (goto-char beg)
+    (setq str (replace-regexp-in-string "[ \t]*\n" "" (replace-regexp-in-string "^[ \t]+" "" (buffer-substring-no-properties beg end))))
+    ;; (message "str=%s" str)
+    (kill-new str)
+    (goto-char orig-pos)))
+  )
+#+end_src
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun buffer-string* (buffer)
+  (with-current-buffer buffer
+    (buffer-string)))
+
+;;;###autoload
+(defun me/read-lines (filePath)
+  "Return a list of lines of a file at filePath."
+  (with-temp-buffer
+    (insert-file-contents filePath)
+    (split-string (buffer-string) "\n" t)))
+
+;;;###autoload
+(defun me/send-to-project-term (cmd)
+  "send cmd to the project terminal"
+  (interactive)
+  (let ( (bf-name (format "%s-term" (+workspace-current-name))) )
+    (comint-send-string bf-name (format "%s\n" cmd) )
+    )
+  )
+
+;;;###autoload
+(defun me/join-string-with-comma (str)
+  (mapconcat (lambda (x) (format "'%s'" x)) (split-string str " " t) ",")
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun get-kill-ring()
+  (substring-no-properties (car kill-ring))
+)
+
+;;;###autoload
+(defun my-format-date (date)
+  "convert a date in string `2019-05-30' to `30 May 2019 (Thursday)'"
+  (let* ((time (parse-time-string date))
+         (day (nth 3 time))
+         (month (nth 4 time))
+         (year (nth 5 time)))
+    (format-time-string "%d %b %Y (%A)"
+      (encode-time 0 0 0 day month year))))
+
+;;;###autoload
+(defun xah-clean-empty-lines ()
+  "Replace repeated blank lines to just 1.
+Works on whole buffer or text selection, respects `narrow-to-region'.
+
+URL `http://ergoemacs.org/emacs/elisp_compact_empty_lines.html'
+Version 2017-09-22"
+  (interactive)
+  (let ($begin $end)
+    (if (region-active-p)
+        (setq $begin (region-beginning) $end (region-end))
+      (setq $begin (point-min) $end (point-max)))
+    (save-excursion
+      (save-restriction
+        (narrow-to-region $begin $end)
+        (progn
+          (goto-char (point-min))
+          (while (re-search-forward "\n\n\n+" nil "move")
+            (replace-match "\n\n")))))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun jk-org-kwds ()
+  "parse the buffer and return a cons list of (property . value)
+from lines like:
+#+PROPERTY: value"
+  (org-element-map (org-element-parse-buffer 'element) 'keyword
+                   (lambda (keyword) (cons (org-element-property :key keyword)
+                                           (org-element-property :value keyword)))))
+
+;;;###autoload
+(defun jk-org-kwd (KEYWORD)
+  "get the value of a KEYWORD in the form of #+KEYWORD: value"
+  (cdr (assoc KEYWORD (jk-org-kwds))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/join (lst &optional sep)
+"join the elements from `lst' delimited by `sep'.
+by default `sep' is comma(,)."
+(let ((sep (or sep ",")))
+    (mapconcat (lambda (x) (format "'%s'" x)) lst sep)))
+#+END_SRC
+
+* deal with string
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/join-multiline (multi-line-str sep)
+"Takes a multi-line string `multi-line-str' and return a single line.
+each line from original input is delimited by `sep'"
+  (replace-regexp-in-string "[ \t]*\n" sep
+     (replace-regexp-in-string "^[ \t]+" "" multi-line-str)))
+#+END_SRC
+* stackoverflow
+https://www.reddit.com/r/emacs/comments/cs6cb4/instant_stackoverflow_solutions_in_emacs_without/
+
+It uses ~helm-google-suggest~ for auto complete, since I don't use ~helm~, I
+found a ~ivy~ alternative named [[https://github.com/mnewt/counsel-web][counsel-web]].
+
+#+begin_src emacs-lisp :tangle no
+;; install helm via packages and then:
+
+(require 'helm-net)
+
+(defun my-helm-stackoverflow-lookup ()
+  (interactive)
+  ;; set debug-on-error to swallow potential network errors
+  ;; idea taken from: https://blog.johnregner.com/post/78877988910/fixing-helm-spotify#_=_
+  (let ((debug-on-error t)
+        (helm-google-suggest-actions '(("Stackoverflow" . my-get-stackoverflow-answers))))
+    (helm-google-suggest)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(require 'json)
+
+(defun my-get-stackoverflow-answers (query)
+  (interactive "sQuestion: ")
+  (let* ((question_ids
+          (with-current-buffer
+              (url-retrieve-synchronously
+               (concat "https://google.com/search?ie=utf-8&oe=utf-8&hl=en&as_qdr=all&q="
+                       (url-hexify-string (concat query " site:stackoverflow.com"))))
+            (let (ids)
+              (while (re-search-forward "https://stackoverflow.com/questions/\\([0-9]+\\)" nil t)
+                (push (match-string-no-properties 1) ids))
+              (setq ids (reverse ids))
+              (if (> (length ids) 5)
+                  (subseq ids 0 5)
+                ids))))
+
+         (url_template (format "https://api.stackexchange.com/2.2/questions/%s%%s?site=stackoverflow.com"
+                               (string-join question_ids ";")))
+
+         (questions (with-current-buffer
+                        (url-retrieve-synchronously
+                         (format url_template ""))
+                      (goto-char (point-min))
+                      (search-forward "\n\n")
+                      (append (assoc-default 'items (json-read)) nil)))
+
+         (answers (with-current-buffer
+                      (url-retrieve-synchronously
+                       (concat (format url_template "/answers")
+                               "&order=desc&sort=activity&filter=withbody"))
+                    (goto-char (point-min))
+                    (search-forward "\n\n")
+                    (sort (append (assoc-default 'items (json-read)) nil)
+                          (lambda (x y)
+                            (> (assoc-default 'score x)
+                               (assoc-default 'score y)))))))
+
+    (switch-to-buffer "*stackexchange*")
+    (erase-buffer)
+
+    (dolist (question_id (mapcar 'string-to-number question_ids))
+      (let ((question (some (lambda (question)
+                              (if (equal (assoc-default 'question_id question)
+                                         question_id)
+                                  question))
+                            questions)))
+        (insert "<hr><h2 style='background-color:paleturquoise'>Question: "
+                (format "<a href='%s'>%s</a>"
+                        (assoc-default 'link question)
+                        (assoc-default 'title question))
+                "</h2>"
+                "\n"
+                (mapconcat
+                 'identity
+                 (let ((rendered
+                        (remove-if
+                         'null
+                         (mapcar (lambda (answer)
+                                   (if (and (equal question_id
+                                                   (assoc-default 'question_id answer))
+                                            (>= (assoc-default 'score answer) 0))
+                                       (concat "<hr><h2 style='background-color:"
+                                               "#c1ffc1'>Answer - score: "
+                                               (number-to-string (assoc-default 'score answer))
+                                               "</h2>"
+                                               (assoc-default 'body answer))))
+                                 answers))))
+                   (if (> (length rendered) 5)
+                       (append (subseq rendered 0 5)
+                               (list (format "<br><br><a href='%s'>%s</a>"
+                                             (assoc-default 'link question)
+                                             "More answers...")))
+                     rendered))
+                 "\n")
+                )))
+    (shr-render-region (point-min) (point-max))
+    (goto-char (point-min))
+    (save-excursion
+      (while (search-forward "^M" nil t)
+        (replace-match "")))))
+#+end_src
+* browser
+There are at least three options to browser *inside* Emacs:
+- EWW (built-in)
+- Emacs-W3m (requires *w3m*)
+- WebKit-based Xwidget browser (requires Emacs compiled with xwidget support)
+** Browsing the URL of the current buffer
+The command ~browse-url-of-buffer~ gets a browser to render the URL associated
+with the file in the current buffer. This is great when editing web-related
+pages. For example, when you are editing an HTML file, you can have it rendered
+in your favourite browser by typing ‘C-c C-v’.
+** XWidget browser
+Emacs now has a WebKit-based browser embedded in it with XWidget.
+
+To make it default browser for Emacs, we can do this:
+#+begin_src emacs-lisp :tangle no
+(setq browse-url-browser-function 'xwidget-webkit-browse-url)
+#+end_src
+
+It needs a lot of keybindings to work with evil style keybinding.
+#+begin_src emacs-lisp :tangle keybinds.el
+(map!
+  (:map xwidget-webkit-mode-map
+
+    "<up>" #'xwidget-webkit-scroll-down
+    "<down>" #'xwidget-webkit-scroll-up
+    "k" #'xwidget-webkit-scroll-down
+    "j" #'xwidget-webkit-scroll-up
+    "C-c w"     #'ace-window
+    "M-c"  #'xwidget-webkit-copy-selection-as-kill
+))
+#+end_src
+
+I wish I could do something like what [[https://chrome.google.com/webstore/detail/vimium/dbepggeogbaibhgnhhndojpepiihcmeb?hl=en][Vimium]] plugin does for Chrome, so far
+haven't find a solution yet..
+
+By default, xwidget reuses previous xwidget window,thus overriding your current
+website, unless a prefix argument is supplied.
+
+This function always opens a new website in a new window, borrowed from [[https://github.com/syl20bnr/spacemacs/issues/6587][here]].
+#+begin_src emacs-lisp :tangle autoload/funcs.el
+(defun xwidget-browse-url-no-reuse (url &optional sessoin)
+  (interactive (progn
+                 (require 'browse-url)
+                 (browse-url-interactive-arg "xwidget-webkit URL: "
+                                             )))
+  (xwidget-webkit-browse-url url t))
+#+end_src
+
+*** key bindings
+- ~w~:  copy the current url to kill ring
+- ~g~:  open a different url in this xwidget buffer
+- space, shift-space, up/down, left/right, delete: Scrolling
+- b, r, +/-: backward, reload, zoom in/out
+- C-x 2, C-x 3: Duplicate browsing same page in new horizontal or vertical split window (also using a new session)
+- C-g: Give up focus held in HTML input text or textarea element to Emacs
+- C-s, C-r: isearch integration
+- C-x r m, C-x r l: bookmark integration
+
+*** example use case
+- preview markdown inside emacs
+- view html file inside emacs (require package ~html preview~)
+- preview reveal slides from org mode file inside emacs (require package ~html preview~)
+** w3m
+To use Emacs-w3m to browser web page, we need to install ~w3m~ first:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install w3m
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
+(package! w3m)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(use-package! w3m
+  :defer t)
+#+end_src
+
+To use *Emacs-w3m* as default browser, do this:
+#+BEGIN_SRC elisp :tangle no
+(setq browse-url-browser-function  'w3m-goto-url-new-session)
+#+END_SRC
+
+View a file from within Dired
+
+‘M-x browse-url-of-dired-file’
+
+View the current buffer as rendered HTML
+
+‘M-x browse-url-of-buffer’ , bound by default to `C-c C-v` in html-mode.
+
+Downloading files asynchronously
+
+emacs-w3m performs downloads asynchronously, so you can continue working while something is being downloaded. Should you wish to abort a download, press ‘C-c C-k’.
+
+*** keybindings
+| operation              | key binding | function                     |
+|------------------------+-------------+------------------------------|
+| open url               | =o=         |                              |
+| previous page          | =H=         |                              |
+| next page              | =L=         | w3m-view-next-page           |
+| open url in new buffer | =O=         |                              |
+| show browsing history  |             | w3m-history                  |
+|                        | =a=         | w3m-bookmark-add-current-url |
+| view bookmarks         | =gb=        |                              |
+
+w3m-mode-map
+
+w3m-print-current-url
+
+w3m-tab-next-buffer
+
+w3m-view-source
+
+w3m-view-url-with-external-browser
+
+[[https://www.emacswiki.org/emacs/WThreeMHintsAndTips][EmacsWiki: W Three M Hints And Tips]]
+* python
+Doom Emacs already have add support for lsp, we just need to put this in
+~init.el~:
+#+begin_src emacs-lisp :tangle no
+(python +lsp)
+#+end_src
+
+In order to get the lsp server for python need by [[https://github.com/emacs-lsp/lsp-python-ms][lsp-python-ms]], we need to run
+~M-x lsp-python-ms-setup~ to download the server which will be put at ~./emacs.d/.local/etc/lsp/mspyls~.
+
+For Unresolved import warnings, add the directories to ~lsp-python-ms-extra-paths~.
+
+Also my python3 is in this location after brew install:
+#+begin_src emacs-lisp :tangle no
+(setq lsp-python-ms-python-executable-cmd "/usr/local/Cellar/python/3.7.6_1/bin/python3")
+#+end_src
+
+* git
+~Magit~ is excellent git client for Emacs.
+** git blame
+We can do ~magit-blame~, there is also package [[https://github.com/redguardtoo/vc-msg][vc-msg]] which provides more
+accurate commit information, like the case there is multiple commits to the same line.
+#+begin_src emacs-lisp :tangle modules/app/git/packages.el
+(package! vc-msg)
+#+end_src
+
+You can run vc-msg-show from magit blame buffer any time and you can trigger any
+magit command from this program out of the box.
+
+You could also use magit show the code of commit, Here is configuration to use
+magit-find-file and magit-show-commit,
+#+begin_src emacs-lisp :tangle modules/app/git/config.el
+(eval-after-load 'vc-msg-git
+  '(progn
+     ;; show code of commit
+     (setq vc-msg-git-show-commit-function 'magit-show-commit)
+     ;; open file of certain revision
+     (push '("m"
+             "[m]agit-find-file"
+             (lambda ()
+               (let* ((info vc-msg-previous-commit-info)
+                      (git-dir (locate-dominating-file default-directory ".git")))
+                 (magit-find-file (plist-get info :id )
+                                  (concat git-dir (plist-get info :filename))))))
+           vc-msg-git-extra)))
+#+end_src
+** git time machine enhanced
+I like this [[http://blog.binchen.org/posts/new-git-timemachine-ui-based-on-ivy-mode.html][enhancement]] better than original version:
+
+#+begin_src emacs-lisp :tangle modules/app/git/autoload.el
+;;;###autoload
+(defun my-git-timemachine-show-selected-revision ()
+  "Show last (current) revision of file."
+  (interactive)
+  (let* ((collection (mapcar (lambda (rev)
+                    ;; re-shape list for the ivy-read
+                    (cons (concat (substring-no-properties (nth 0 rev) 0 7) "|" (nth 5 rev) "|" (nth 6 rev)) rev))
+                  (git-timemachine--revisions))))
+    (ivy-read "commits:"
+              collection
+              :action (lambda (rev)
+                        ;; compatible with ivy 9+ and ivy 8
+                        (unless (string-match-p "^[a-z0-9]*$" (car rev))
+                          (setq rev (cdr rev)))
+                        (git-timemachine-show-revision rev)))))
+
+;;;###autoload
+(defun my-git-timemachine ()
+  "Open git snapshot with the selected version.  Based on ivy-mode."
+  (interactive)
+  (unless (featurep 'git-timemachine)
+    (require 'git-timemachine))
+  (git-timemachine--start #'my-git-timemachine-show-selected-revision))
+#+end_src
+It give me a list of
+** git gutter enhanced
+This is [[http://blog.binchen.org/posts/enhance-emacs-git-gutter-with-ivy-mode.html][improved version]] of git gutter:
+
+#+begin_src emacs-lisp :tangle modules/app/git/autoload.el
+;;;###autoload
+(defun my-reshape-git-gutter (gutter)
+  "Re-shape gutter for `ivy-read'."
+  (let* ((linenum-start (aref gutter 3))
+         (linenum-end (aref gutter 4))
+         (target-line "")
+         (target-linenum 1)
+         (tmp-line "")
+         (max-line-length 0))
+    (save-excursion
+      (while (<= linenum-start linenum-end)
+        (goto-line linenum-start)
+        (setq tmp-line (replace-regexp-in-string "^[ \t]*" ""
+                                                 (buffer-substring (line-beginning-position)
+                                                                   (line-end-position))))
+        (when (> (length tmp-line) max-line-length)
+          (setq target-linenum linenum-start)
+          (setq target-line tmp-line)
+          (setq max-line-length (length tmp-line)))
+
+        (setq linenum-start (1+ linenum-start))))
+    ;; build (key . linenum-start)
+    (cons (format "%s %d: %s"
+                  (if (eq 'deleted (aref gutter 1)) "-" "+")
+                  target-linenum target-line)
+          target-linenum)))
+
+;;;###autoload
+(defun my-goto-git-gutter ()
+  (interactive)
+  (if git-gutter:diffinfos
+      (ivy-read "git-gutters:"
+                (mapcar 'my-reshape-git-gutter git-gutter:diffinfos)
+                :action (lambda (e)
+                          ;; ivy9+ keep `(car e)'
+                          ;; ivy8- strip the `(car e)'
+                          ;; we handle both data structure
+                          (unless (numberp e) (setq e (cdr e)))
+                          (goto-line e)))
+    (message "NO git-gutters!")))
+#+end_src
+* Zettelkasten - disabled
+Now I prefer ~org-roam~ more, so disable this for now.
+
+#+begin_src emacs-lisp :tangle no
+(package! zetteldeft)
+#+end_src
+
+We need to first configure ~deft~ first:
+#+begin_src emacs-lisp :tangle no
+(use-package! deft
+  :config
+  (setq deft-directory "~/Zettelkasten")
+)
+#+end_src
+
+Then configure ~zetteldeft~:
+#+begin_src emacs-lisp :tangle no
+(use-package! zetteldeft
+  :after deft)
+#+end_src
+
+Create a note with zetteldeft-new-file and provide a name.
+* snails - not working
+Tried this package, it's a bit tough to install since doom emacs didn't install
+~exec-path-from-shell~ but it's required by ~snails~.
+
+After installing it, it didn't really run, got some weird error and after few
+tries it crashes my emacs, so gave up for now..
+* rss
+DOOM Emacs already have rss support built in, we just need to enable it in the
+~init.el~ file.
+
+However DOOM Emacs default set ~elfeed.org~ file from ~org-directory~ but I put
+it in different location:
+
+#+begin_src emacs-lisp
+(setq +rss-elfeed-files (list (concat doom-private-dir "elfeed.org")))
+#+end_src
+
+* email
+I have read through few options for email in Emacs, they are:
+- Gnus
+- notmuch
+- mu4e
+
+Other than Gnus, both notmuch and mu4e requires email messages are downloaed
+locally by using tool like ~offlineimap~ then they work on that local copy.
+
+I felt that's a bit too annoying in terms setting up, so I landed ~WanderLust~
+since it doesn't require that offline setup.
+
+Invoke ~wanderlust~ by running ~M-x wl~.
+
+Wanderlust has four basic buffers: Folder buffer, summary buffer, message
+buffer/view, and draft buffer.
+
+Wanderlust starts in folder buffer.
+
+update on <2020-02-17 Mon>:
+I decide to have my own email module config which I copy from doom emacs and
+make some customizatio on top of that.
+** packages
+There is issue when I tried to get wanderLust uses w3m to display html email, so
+I did a patch to ~semi~ and use my patched version.
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
+;; HACK These are wanderlust's dependencies (wanderlust depends on semi, semi
+;;      depends on flim, flim on apel), but they all have non-standard default
+;;      branches which straight cannot detect without our help.
+(package! apel :recipe (:branch "apel-wl") :pin "d146ddbf88")
+(package! flim :recipe (:branch "flim-1_14-wl") :pin "e4bd54fd7d")
+;; (package! semi :recipe (:branch "semi-1_14-wl") :pin "16228dc2d1")
+(package! semi :recipe (:host github :repo "emacsbliss/semi" :branch "semi-1_14-wl"))
+
+(package! wanderlust :pin "7a919e422a")
+#+end_src
+
+** basic config
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(use-package! wl
+  :defer t
+  :config
+  (setq mail-user-agent 'wl-user-agent
+        pgg-scheme 'gpg
+        mime-edit-split-message nil)
+
+  (when (fboundp 'define-mail-user-agent)
+    (define-mail-user-agent
+      'wl-user-agent
+      'wl-user-agent-compose
+      'wl-draft-send
+      'wl-draft-kill
+      'mail-send-hook))
+
+  (setq wl-demo nil
+        ;; to avoid annoying confirmation when open a message
+        ;; it's in byte. let's make it 10M
+        elmo-message-fetch-threshold 10000000
+        wl-stay-folder-window t
+        wl-init-file (expand-file-name "wl.el" doom-private-dir)
+        wl-folders-file (expand-file-name "folders.wl" doom-private-dir))
+
+  (setq wl-message-truncate-lines t
+        wl-summary-width 120)
+  (setq wl-message-id-domain wl-local-domain)
+  (add-hook 'mime-edit-mode-hook #'auto-fill-mode)
+#+end_src
+** gmail support
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(when (featurep! +gmail)
+    (setq elmo-imap4-default-server "imap.gmail.com"
+          elmo-imap4-default-port 993
+          elmo-imap4-default-authenticate-type 'clear ; CRAM-MD5
+          elmo-imap4-default-user user-mail-address
+          elmo-imap4-default-stream-type 'ssl
+          elmo-imap4-set-seen-flag-explicitly t)
+
+    (setq wl-smtp-connection-type 'starttls
+          wl-smtp-posting-port 587
+          wl-smtp-authenticate-type "plain"
+          wl-smtp-posting-user user-mail-address
+          wl-smtp-posting-server "smtp.gmail.com"
+          wl-local-domain "gmail.com")
+
+    (setq wl-default-folder "%inbox"
+          wl-draft-folder "%[Gmail]/Drafts"
+          wl-trash-folder "%[Gmail]/Trash"
+          wl-fcc-force-as-read t
+          wl-default-spec "%"))
+#+end_src
+** summary buffer
+in summary buffer:
+#+begin_example
+- d to mark an message to be deleted (go to trash), then x to perform it
+- D to mark an message to be deleted (NOT go through trash), then x to perform it
+- RET to read a message
+- w - compose a message
+- m - wl-summary-target-mark-thread
+#+end_example
+** save password
+Find the clue from this [[http://walfield.org/blog/2008/04/24/saving-passwords-with-wanderlust.html][link]].
+
+Run ~elmo-passwd-alist-save~ will save all of your Wanderlust passwords to
+~~/.elmo/passwd~. When Wanderlust first needs a password, it calls
+~elmo-passwd-alist-load~ which loads this file.
+
+In my case password was generated to file ~~/passwd~ and it doesn't work. I have
+to manually move the file to ~~/.elmo/passwd~ then it starts to work.
+
+After password is saved, file looks like this:
+#+begin_example
+(("IMAP:<your gmail account>/clear@imap.gmail.com:993" . "top secret")
+ ("SMTP:<your gmail account>/PLAIN@smtp.gmail.com" . "top secret"))
+#+end_example
+
+It turned out there is entry for receiving (IMAP) and outgoing (SMTP). However
+it's a bit different between these two. For SMTP, we can't put port number also
+we need to use ~PLAIN~ instead of ~clear~.
+
+** folders setup
+#+begin_src emacs-lisp :tangle no
+(setq wl-folders-file "~/.folders")
+#+end_src
+
+To work with gmail, we need to generate a app-specific password first.
+
+this is not working for me for sent emails:
+#+begin_example
+%[Gmail]/Sent:"<my gmail account>"/clear@imap.gmail.com:993!  "Sent"
+#+end_example
+
+Instead I have to use this:
+#+begin_example
+%[Gmail]/Sent Mail:"<my gmail account>"/clear@imap.gmail.com:993!  "Sent mail"
+#+end_example
+
+A example setup for gmail looks like this:
+#+begin_example
+GMAIL{
+   %INBOX:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!         "In"
+   %[Gmail]/Drafts:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993! "Draft"
+   %[Gmail]/Trash:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993! "Trash"
+   %[Gmail]/Spam:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Spam"
+   %[Gmail]/Starred:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Starred"
+   %[Gmail]/Important:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Important"
+   %[Gmail]/All Mail:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "All"
+   %[Gmail]/Sent Mail:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Sent mail"
+}
+#+end_example
+
+update on <2020-01-30 Thu>:
+Having ~Drafts~ defined in ~.folders~ file seems causing frequent lagging when
+writing email due to Wanderlust keeps syncing the draft to server, remove that
+seems improving the situation.
+
+** better display
+Taken from [[https://github.com/LdBeth/Emacs-for-Noobs/blob/master/WanderLust.org][Here]].
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(setq wl-message-ignored-field-list
+      '(".")
+      wl-message-visible-field-list
+      '("^\\(To\\|Cc\\):"
+        "^Subject:"
+        "^\\(From\\|Reply-To\\):"
+        "^\\(Posted\\|Date\\):"
+        "^Organization:"
+        "^X-\\(Face\\(-[0-9]+\\)?\\|Weather\\|Fortune\\|Now-Playing\\):")
+      wl-message-sort-field-list
+      (append wl-message-sort-field-list
+              '("^Reply-To" "^Posted" "^Date" "^Organization")))
+#+end_src
+
+** How can I stop wl from autosaving my draft every second I make a change
+https://www.emacswiki.org/emacs/WlFaq
+
+Wanderlust automatically saves the draft every second there’s a change. If your
+draft folder is an IMAP, this gets tiresome fast.
+
+Doing this below will only save draft when I tell it to (C-x C-s or C-c C-s):
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(setq wl-auto-save-drafts-interval nil)
+#+end_src
+
+Alternatively, you can use a local folder for draft by saying something like
+#+begin_src emacs-lisp :tangle no
+(setq wl-draft-folder "+drafts")
+#+end_src
+
+** save attachments from email
+use ~M-x wl-summary-extract-attachments~, note cursor needs to be on the email
+in summary buffer, not in message buffer
+** add attachment to email
+In ~wl-draft-mode~ press ~C-c C-x TAB mime-edit-insert-file~
+** send html email with org-mode
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(setq org-mime-library 'semi)
+#+end_src
+
+In org-mode after writing email then run ~M-x org-mime-org-buffer-htmlize~
+** only list the unread email
+In folder view, type ~g~, then enter ~/flag:unread/%inbox~,
+then a virtual folder will be created which lists all unread emails.
+
+Following flags can be used:
+
+#+begin_example
+unread    -> unread
+important -> important
+answered  -> replied
+forwarded -> forwarded
+digest    -> unread or important
+any       -> unread or replied or forwarded or global-flag.
+#+end_example
+** display html email
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(after! wl
+    (setq mime-view-text/html-previewer 'mime-w3m))
+#+end_src
+
+However I got errors like this:
+#+begin_example
+(void-function w3-region)
+mime-display-text/html: Symbol’s value as variable is void: w3-mode-map
+#+end_example
+
+Turned out it's using:
+~/.emacs.d/.local/straight/repos/semi/mime-w3.el
+
+and I have to manually change ~w3-mode-map~ to ~w3m-mode-map~, also ~w3-region~
+to ~w3m-region~.
+
+Not sure why this file is not used instead:
+~/.emacs.d/.local/straight/repos/emacs-w3m/mime-w3m.el
+
+By default inline images in the email are not shown automatically, we need to
+set this, however this seems not working..
+#+begin_src emacs-lisp :tangle no
+(after! w3m
+    (setq w3m-default-display-inline-images t))
+#+end_src
+** save message content
+wl-message-extract-content
+** save message as eml file
+Need to do it from ~summary buffer~ with command ~wl-summary-save~.
+** filter email
+#+begin_example
+/from:xyz/%inbox
+/body:foo/%inbox
+#+end_example
+** key binding
+We need to activate evil normal state when enter into wl-folder-mode.
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(add-hook 'wl-folder-mode-hook (lambda () (evil-normal-state)))
+#+end_src
+
+Now we need to finish the ~(use-package! wl~:
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(map! :map wl-folder-mode-map
+  :desc "next folder"     :n "j"   #'wl-folder-next-entity
+  :desc "previous folder" :n "k"   #'wl-folder-prev-entity
+  :desc "open folder"     :n "RET" #'wl-folder-jump-to-current-entity
+  :desc "goto folder"     :n "/"   #'wl-folder-goto-folder
+  :desc "quit"            :n "q"   #'wl-exit)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(map! :map wl-summary-mode-map
+  :desc "compose"             :n "c"     #'wl-summary-write
+  :desc "trash email"         :n "d"     #'wl-summary-dispose
+  :desc "trash marked"        :n "D"     #'wl-summary-target-mark-dispose
+  :desc "forward"             :n "f"     #'wl-summary-forward
+  :desc "mark current"        :n "m"     #'wl-summary-target-mark-line
+  :desc "mark current"        :n "M"     #'wl-summary-target-mark-thread
+  :desc "auto refile"         :n "o"     #'wl-summary-auto-refile
+  :desc "print mail"          :n "p"     #'wl-summary-print-message
+  :desc "exit"                :n "q"     #'wl-summary-exit
+  :desc "reply"               :n "r"     #'wl-summary-reply
+  :desc "reply with citation" :n "R"     #'wl-summary-reply-with-citation
+  ;; not working, evil-snipe is taking priority
+  :desc "sort"                :n "s"     #'wl-summary-sort
+  :desc "mark all"            :n "t"     #'wl-summary-target-mark-all
+  :desc "unmark current"      :n "u"     #'wl-summary-unmark
+  :desc "unmark all"          :n "U"     #'wl-summary-unmark-all
+  :desc "execute"             :n "x"     #'wl-summary-exec
+  :desc "save marked"         :n "y"     #'wl-summary-target-mark-save
+  :desc "open mail"           :n "RET"   #'wl-summary-enter-handler
+  :desc "refresh"             :n "gr"    #'wl-summary-sync-update
+  :desc "store org mode link"  "C-c l"   #'org-store-link
+  :desc "toggle folding"      :n "<tab>" #'wl-thread-open-close)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+;; not working, ace-link is taking priority
+(map! :map mime-view-mode-default-map
+  :desc "open link externally" :n "gl"     #'w3m-lnum-external-view-this-url
+  :desc "open link"            :n "gL"     #'w3m-lnum-goto)
+#+end_src
+** mark
+#+begin_example
+m a - mark all
+m u - remove all mark
+m d - dispose all marked mails
+m D - delete all marked mails (not go through trash)
+m y - save all marked mails
+#+end_example
+** rss
+#+begin_example
+|rss:http://www.reddit.com/r/emacs/.rss|+rss
+#+end_example
+** capture with org-mode
+I discovered [[https://github.com/chep/org-wl][org-wl]] but it's a bit outdated, so I created a fork and made some
+modification to it.
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
+(package! org-wl :recipe (:host github :repo "emacsbliss/org-wl"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(use-package! org-wl
+  :after org)
+#+end_src
+
+With this below we can use org capture workflow to capture an email message from WanderLust.
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(after! org
+  (add-to-list 'org-capture-templates
+               '("e" "Email Todo" entry
+        (file+headline "~/org/inbox.org" "Task")
+        "* TODO %^{Brief Description}\nEmail: %a\nFrom: %:from \nTo: %:to \n%?Added: %U\n" :prepend t)))
+#+end_src
+
+But when follow the link in org mode, we will need to run ~M-x wl~ beforehand
+otherwise there will be error.
+* json
+This somehow does not work..
+#+begin_src emacs-lisp :tangle no
+(defvar json/printer-alist '(
+    ("jq" . 'jsons-print-path-jq)
+    ("python" . 'jsons-print-path-python)
+    ("list" . 'me/jsons-print-path-list)))
+#+END_SRC
+
+Need to use this one:
+#+begin_src emacs-lisp :tangle modules/lang/json/config.el
+(defvar json/printer-alist '(
+    ("jq" . "jsons-print-path-jq")
+    ("python" . "jsons-print-path-python")
+    ("list" . "me/jsons-print-path-list")))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/lang/json/autoload.el
+;;;###autoload
+(defun json/select-printer ()
+  "choose path printer"
+  (interactive)
+  (ivy-read "printers: " json/printer-alist
+      :action '(1
+       ("o" (lambda (x) (setq jsons-path-printer (intern (cdr x))) "choose")))))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/lang/json/packages.el
+(package! json-snatcher)
+#+end_src
+
+I want to override printer to print json path in the way I want:
+#+begin_src emacs-lisp :tangle modules/lang/json/config.el
+(use-package! json-snatcher
+  :config
+    (setq jsons-path-printer 'jsons-print-path-jq)
+  :defer t)
+#+end_src
+
+I have created a function to print xpath for json in a python list format:
+#+begin_src emacs-lisp :tangle modules/lang/json/autoload.el
+;;;###autoload
+(defun me/jsons-print-path-list ()
+  "Print the path to the JSON value as plain list under point, and save it in the kill ring.
+   output: ['a', 'b', 'c']"
+  (let ((path (jsons-get-path))
+        (i 0)
+        (python_str ""))
+    (setq path (reverse path))
+    (while (< i (length path))
+      (if (numberp (elt path i))
+          (progn
+            (setq python_str (concat python_str (number-to-string (elt path i)) ","))
+            (setq i (+ i 1)))
+        (progn
+          (if (equal i (- (length path) 1))
+          (setq python_str (concat python_str (elt path i)))
+          (setq python_str (concat python_str (elt path i) ","))
+              )
+          (setq i (+ i 1)))))
+    (unless (string-empty-p python_str)
+      (setq python_str (concat "[" python_str "]"))
+    )
+    (setq python_str (s-replace "\"" "\'" python_str))
+    (kill-new python_str)
+    (princ python_str)))
+#+end_src
+** counsel-jq
+#+begin_src emacs-lisp :tangle modules/lang/json/packages.el
+(package! counsel-jq)
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/lang/json/config.el
+(use-package! counsel-jq
+  :defer t)
+#+END_SRC
+** jq-mode
+#+begin_src emacs-lisp :tangle modules/lang/json/packages.el
+(package! jq-mode)
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/lang/json/config.el
+(use-package! jq-mode
+  :mode "\\.jq\\'")
+#+END_SRC
+** keybinding
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map json-mode-map
+  :desc "xpath" :n ",p" #'jsons-print-path
+  :desc "counsel-jq" :n ",jq" #'counsel-jq
+  :desc "pretty print bufer" :n ",f" #'json-pretty-print-buffer)
+#+end_src
+* xml
+** pretty print
+It's take from [[https://emacs.stackexchange.com/questions/14197/how-to-prettify-format-an-xml-buffer][here]]:
+#+begin_src emacs-lisp :tangle no
+;;;###autoload
+(defun xml-pretty-print (beg end &optional arg)
+  "Pretty print the XML region between BEG and END.
+    With optional ARG, also auto-fill."
+  (interactive "*r\nP")
+  (let ((fill (or (bound-and-true-p auto-fill-function) -1)))
+    (sgml-mode)
+    (when arg (auto-fill-mode))
+    (sgml-pretty-print beg end)
+    (nxml-mode)
+    (auto-fill-mode fill)))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle no
+;;;###autoload
+(defun xml-pretty-print-buffer ()
+  "Pretty-print current XML buffer."
+  (interactive)
+  (xml-pretty-print (point-min) (point-max)))
+#+END_SRC
+
+However this version does not format as nicely as the one with xmllint,
+particulary it doesn't put open and close tag on the same line:
+#+begin_example
+<root>
+  <winter>-1743454825.115449
+  </winter>
+</root>
+#+end_example
+
+Better option is to use external tool ~xmllint~:
+#+begin_src emacs-lisp :tangle modules/lang/xml/autoload.el
+;;;###autoload
+(defun xml-pretty-print (beg end)
+  "Pretty print the XML region between BEG and END using `xmllint`"
+  (interactive)
+  (save-excursion
+    (shell-command-on-region beg end "xmllint --format -" (buffer-name) t)
+))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/lang/xml/autoload.el
+;;;###autoload
+(defun xml-pretty-print-buffer ()
+  "Pretty print the XML buffer using `xmllint`"
+  (interactive)
+  (xml-pretty-print (point-min) (point-max)))
+#+end_src
+
+#+RESULTS:
+: xml-pretty-print-buffer
+
+** xpath
+This function prints out xpath and copy to clipboard:
+#+begin_src emacs-lisp :tangle modules/lang/xml/autoload.el
+;;;###autoload
+(defun nxml-where ()
+  "Display the hierarchy of XML elements the point is on as a
+path. from http://www.emacswiki.org/emacs/NxmlMode"
+  (interactive)
+  (let ((path nil))
+    (save-excursion
+      (save-restriction
+        (widen)
+        (while
+            (and (< (point-min) (point)) ;; Doesn't error if point is at
+                                         ;; beginning of buffer
+                 (condition-case nil
+                     (progn
+                       (nxml-backward-up-element) ; always returns nil
+                       t)
+                   (error nil)))
+          (setq path (cons (xmltok-start-tag-local-name) path)))
+        (if (called-interactively-p t)
+            (progn
+                (message "/%s" (mapconcat 'identity path "/"))
+                (kill-new (format "/%s" (mapconcat 'identity path "/"))))
+          (format "/%s" (mapconcat 'identity path "/")))))))
+#+end_src
+** editing
+Here are few functions I created to help editing xml file:
+#+begin_src emacs-lisp :tangle modules/lang/xml/autoload.el
+;;;###autoload
+(defun me/xml-tag-from-kill-ring ()
+"create a tag(open and close) with the top of kill-ring
+for eg, if kill ring has ['ab', 'cd']
+then this will create:
+<ab></ab>"
+  (interactive)
+  (let ((x (substring-no-properties (car kill-ring))))
+    (insert (concat "<" x ">" "</" x ">"))
+    (goto-char (- (point) (length (concat "</" x ">"))))
+))
+
+;;;###autoload
+(defun me/xml-add-tag (input)
+"create a open and close tag using given input."
+  (insert (concat "<" input ">" "</" input ">"))
+  (insert "\n"))
+
+;;;###autoload
+(defun me/xml-tag-from-whole-kill-ring ()
+"create a bunch of tags(open and close) with all the things from kill ring
+for eg, if kill ring has ['ab', 'cd']
+then this will create:
+<ab></ab>
+<cd></cd>"
+  (interactive)
+  (mapcar 'xml-add-tag kill-ring))
+#+end_src
+** folding
+#+begin_src emacs-lisp :tangle no
+(add-hook 'nxml-mode-hook 'hs-minor-mode)
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle no
+(add-to-list 'hs-special-modes-alist
+             '(nxml-mode
+               "<!--\\|<[^/>]*[^/]>" ;; regexp for start block
+               "-->\\|</[^/>]*[^/]>" ;; regexp for end block
+               "<!--"
+               nxml-forward-element
+               nil))
+#+END_SRC
+
+Tried ~hs-minor-mode~, still not happy with it.
+
+Turned out ~web-mode~ does a much better job, so use it instead of ~nxml-mode~
+for xml/xsd file.
+#+begin_src emacs-lisp :tangle modules/lang/xml/autoload.el
+(setq auto-mode-alist (delete '("\\.x[ms]l\\'" . xml-mode) auto-mode-alist))
+(add-to-list 'auto-mode-alist '("\\.xml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.xsd\\'" . web-mode))
+#+END_SRC
+** keybinding
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map nxml-mode-map
+  :desc "fold"  :n "TAB" #'hs-toggle-hiding
+  :desc "xpath" :n ",xp" #'nxml-where)
+#+end_src
+* diff
+** emacs vdiff
+[[https://github.com/justbur/emacs-vdiff][emacs-vdiff]] behaves similarly to vimdiff and I found it more intuitive than ediff.
+
+#+begin_src emacs-lisp :tangle modules/tools/diff/packages.el
+(package! vdiff)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/tools/diff/config.el
+(use-package! vdiff
+  :defer t
+)
+#+end_src
+
+** ztree
+ztree can be used to diff directories.
+#+begin_src emacs-lisp :tangle modules/tools/diff/packages.el
+(package! ztree)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/tools/diff/config.el
+(use-package! ztree
+  :defer t
+)
+;; to ignore case differences and whitespace differences:
+;; (setq ztree-diff-additional-options '("-w" "-i"))
+#+end_src
+
+** ultra-diff
+I realize there are few cases I want to do comparision using one of the
+following options within Emacs:
+- emacs-vdiff
+- ediff
+- diff (there is a built-in function in Emacs, not CLI diff)
+
+I think it make sense to provide some setup so I can choose between those
+options whenever I want to diff something, be it buffers or files or something
+else.
+
+So far I decided to create a simple package named ~ultra-diff~.
+It will provide a variable to indicate current diff backend.
+Looks like most of time I use ~ediff~ since ~vdiff~ has performance issue for
+large buffer:
+#+begin_src emacs-lisp :tangle modules/tools/diff/config.el
+(defvar ud/diff-backend 'ediff)
+#+END_SRC
+
+Of course we want be able to change the backend in a nicer way in this case I
+provide ivy interface to do that:
+#+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
+;;;###autoload
+(defun ud/select-backend ()
+  "choose diff backend"
+  (interactive)
+  (let (
+        (backends '("vdiff" "ediff" "diff")))
+
+    (ivy-read "backends: " backends
+      :action '(1
+       ("o" (lambda (x) (setq ud/diff-backend (intern x)) "choose"))))
+))
+#+END_SRC
+
+This function will map the backend symbol to the actual elisp function:
+#+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
+;;;###autoload
+(defun ud/get-backend ()
+  "return the function for the current ud/diff-backend"
+  (cond ((eq ud/diff-backend 'vdiff) #'vdiff-buffers)
+        ((eq ud/diff-backend 'ediff) #'ediff-buffers)
+        ((eq ud/diff-backend 'diff) #'diff-buffers)
+))
+#+END_SRC
+
+Now with this in place, we can use it in few scenarios listed below.
+** quickly diff last two kills
+Sometimes I make two copies into system clipboard outside Emacs and return to
+Emacs to do a diff in Emacs (with different backend mentioned earlier).
+
+It would typically look like this:
+- copy first thing into system clipboard from the application
+- return to Emacs, put the top of kill-ring into a temporary buffer
+- copy second thing either from previous application or somewhere else
+- return to Emacs, put the top of kill-ring into a another temporary buffer
+- invoke commands for diff and then select those two buffers upon prompt
+
+This workflow feels quite clumsy and a lot of switch and keystrokes, so it's
+naturally to improve it.
+
+The multiple copies outside Emacs and sync with kill-ring can be solved by
+[[*sync system clipboard with kill-ring][sync system clipboard with kill-ring]].
+
+Once that is out of the way, we can make use of [[http://mbork.pl/2019-11-17_Diffing_buffer_fragments%2c_continued][this]] function to take it from
+there.
+
+I created enhanced version which allows:
+- pretty print the kil (either json/xml) before compare
+- choose different diff backend based on ~ultra-diff~ created earlier
+
+#+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
+;;;###autoload
+(defun ud/diff-last-two-kills (prettier backend)
+  "Put the last two kills to temporary buffers, apply the prttier to the buffers, then diff using backend"
+  (let ((first-copy (generate-new-buffer "*first*"))
+    (last-copy (generate-new-buffer "*last*")))
+    (set-buffer last-copy)
+    (insert (current-kill 0 t))
+    (funcall prettier)
+    (set-buffer first-copy)
+    (insert (current-kill 1 t))
+    (funcall prettier)
+    (funcall backend first-copy last-copy)
+))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
+;;;###autoload
+(defun ud/json-diff-last-two-kills ()
+  "Put the last two kills to temporary buffers,
+   json pretty print buffers and diff using ud/diff-back-end"
+  (interactive)
+  (ud/diff-last-two-kills #'json-pretty-print-buffer (ud/get-backend)))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
+;;;###autoload
+(defun ud/xml-diff-last-two-kills ()
+  "Put the last two kills to temporary buffers,
+   xml pretty print buffers and diff using ud/diff-back-end"
+  (interactive)
+  (ud/diff-last-two-kills #'xml-pretty-print-buffer (ud/get-backend)))
+#+END_SRC
+** quickly diff currently visible buffers
+Sometimes I already have two buffers opened side by side I want to diff, in that
+case there is no point to go through all the steps to choose buffers for
+comparision. So I created this little helper to do the job, but it requires that
+currently there should be only 2 unique visible buffers.
+
+First we need to know how to figure out the visible buffers for current frame:
+#+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
+;; https://emacs.stackexchange.com/questions/3494/how-to-count-all-of-the-windows-in-a-frame
+;;;###autoload
+(defun unique-visible-buffers (&optional frame)
+  (delete-dups (mapcar #'window-buffer (window-list frame))))
+
+;;;###autoload
+(defun count-unique-visible-buffers (&optional frame)
+  "Count how many buffers are currently being shown.  Defaults to
+selected frame."
+  (length (unique-visible-buffers)))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
+;;;###autoload
+(defun ud/diff-buffers()
+  "quickly diff two unique visible buffers using current backend in current frame"
+  (interactive)
+  (if (not (equal (count-unique-visible-buffers) 2))
+      (message "should have two unique buffers for diff.")
+      (let ((buffer1 (buffer-name (car (unique-visible-buffers))))
+           (buffer2 (buffer-name (car (last (unique-visible-buffers))))))
+           (funcall (ud/get-backend) buffer1 buffer2))))
+#+END_SRC
+** evil-quick-diff
+It comes with DOOM Emacs, but with what we have implemented earlier for ~quickly
+diff last two kills~, it's probably not that useful..
+https://github.com/rgrinberg/evil-quick-diff
+** auxiliary functions
+#+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
+;; https://oremacs.com/2017/03/18/dired-ediff/
+;; -*- lexical-binding: t -*-
+;;;###autoload
+(defun ora-ediff-files ()
+  (interactive)
+  (let ((files (dired-get-marked-files))
+        (wnd (current-window-configuration)))
+    (if (<= (length files) 2)
+        (let ((file1 (car files))
+              (file2 (if (cdr files)
+                         (cadr files)
+                       (read-file-name
+                        "file: "
+                        (dired-dwim-target-directory)))))
+          (if (file-newer-than-file-p file1 file2)
+              (ediff-files file2 file1)
+            (ediff-files file1 file2))
+          (add-hook 'ediff-after-quit-hook-internal
+                    (lambda ()
+                      (setq ediff-after-quit-hook-internal nil)
+                      (set-window-configuration wnd))))
+      (error "no more than 2 files should be marked"))))
+#+end_src
+* workspace
+#+begin_src emacs-lisp :tangle modules/emacs/workspace/autoload.el
+;; +workspace/new does NOT take the name from user input,
+ ;; this solve that issue
+ ;;;###autoload
+ (defun +workspace/me/new (name)
+     (interactive "sEnter workspace name: ")
+     (+workspace/new name)
+ )
+
+ ;;;###autoload
+ (defun doom/jump-to-last-workspace ()
+   "Open the previously selected workspace, if it exists."
+   (interactive)
+   (unless (eq 'non-existent
+               (gethash doom-last-selected-workspace
+                        *persp-hash* 'non-existent))
+     (persp-switch doom-last-selected-workspace)))
+
+;;;###autoload
+(defun me/new-workspace-term ()
+  "create a term-mode buffer which belongs to current workspace (persp-mode)
+   return the newly created buffer name"
+  (interactive)
+  (if (featurep! :term vterm)
+      (+vterm/here nil)
+      (+term/here))
+
+  (let ( (term-name (format "%s-term" (+workspace-current-name)))
+        )
+    (rename-buffer term-name t)
+    (persp-add-buffer
+      (current-buffer) (get-current-persp) t nil)
+    term-name
+  )
+)
+
+;;;###autoload
+(defun me/switch-to-workspace-term ()
+  "switch to the term-mode buffer for the workspace"
+  (interactive)
+  (let ((buf-name (format "%s-term" (+workspace-current-name))))
+    (if (get-buffer buf-name)
+        (switch-to-buffer buf-name)
+      (message "buffer %s not exist!" buf-name)
+      )
+    )
+  )
+
+;;;###autoload
+ (defun +workspace/save-name(name frame)
+   (setq doom-last-selected-workspace persp-last-persp-name)
+   (message (format "persp-last: %s" persp-last-persp-name))
+ )
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/workspace/config.el
+(defvar doom-default-workspace-name "main"
+   " name of the default layout.")
+
+ (defvar doom-last-selected-workspace doom-default-workspace-name
+   "previously selected layout.")
+
+ (add-hook 'persp-before-switch-functions #'+workspace/save-name)
+#+end_src
+* kill-ring
+Normally when we delete something, it will go to kill ring which sometimes can
+be annoying and clutter the clipboard, so we define some key binding which when
+delete it will not go through kill-ring:
+
+#+begin_src emacs-lisp :tangle keybinds.el
+(map!
+ "M-<backspace>"  #'doom/delete-backward-word
+ "C-<backspace>"  #'doom/delete-backward-word)
+#+end_src
+
+** clear kill ring
+credit: https://superuser.com/questions/546619/clear-the-kill-ring-in-emacs
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun clear-kill-ring ()
+  (interactive)
+  (progn (setq kill-ring nil) (garbage-collect))
+  )
+#+end_src
+
+** sync system clipboard with kill-ring
+Normally if we make serveral copies outside Emacs, when return to Emacs only the
+last copy will be saved to kill-ring. Most time it's fine however there are
+times I make serveral copies and want all of them appear in the kill-ring.
+
+After some searching, I find a simple but working solution [[https://emacs.stackexchange.com/questions/14453/how-to-push-system-clipboards-to-kill-ring-contents-at-real-time-when-i-copy-out][here]]:
+
+#+BEGIN_SRC emacs-lisp
+(run-at-time 0 3 (lambda () (interactive) (current-kill 0)))
+#+END_SRC
+
+With this as long as each copy outside Emacs is done 3 seconds apart, then all
+of them will appear in kill-ring, quite nice!
+
+* lentic - disabled
+To create the lentic buffer, press C-c,c or “Edit->Lentic->Create All”, followed
+by C-c,b or “Edit->Lentic->Split Below” to show both Emacs-Lisp and Org-mode
+file at the same time.
+
+#+begin_src emacs-lisp :tangle no
+(package! lentic)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package! lentic
+  :defer t)
+#+END_SRC
+
+** update on <2020-03-15 Sun>
+So far still not found much use for this package, maybe I still don't quite
+understand it.. anyway disable for now
+* pdf
+It needs a binary called ~epdfinfo~ in order for it to work.
+* jupyter/ipython
+Doom Emacs has already include [[github:dzop/emacs-jupyter][jupyter]] package, to use it just add
+#+begin_src emacs-lisp :tangle no
+(org +jupyter)
+#+end_src
+in the =~/.doom.d/init.el=.
+
+Before using it, it needs few things - jupyter and emacs-zmq.
+
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install jupyter
+#+END_SRC
+
+For emacs-zmq, we can download pre-built library and place it at below location:
+#+BEGIN_SRC sh :tangle emacs-dep.sh :shebang "#!/bin/bash"
+cp resource/mojave/emacs-zmq-x86_64-apple-darwin17.4.0/emacs-zmq.so ~/.emacs.d/.local/straight/build/zmq/
+#+END_SRC
+
+However for some reason variable ~module-file-suffix~ sometimes got the value of ~.dylib~
+instead of ~.so~ on my Mac which breaks the jupyter since zmq module is in ~.so~ format.
+
+#+begin_src emacs-lisp
+(setq module-file-suffix ".so")
+#+end_src
+
+To use it in org mode, just have a src block with language ~jupyter-python~, but
+~:session~ header argument must be provided.
+
+#+begin_example :tangle no
+#+BEGIN_SRC jupyter-python :session py
+print('hello world')
+#+END_SRC
+#+end_example
+
+** REPL
+To start a new kernel on the localhost and connect a REPL client to it
+~M-x jupyter-run-repl~. Alternatively you can connect to an existing kernel by
+supplying the kernel’s connection file using ~M-x jupyter-connect-repl~.
+* hyperbole
+From its Demo page:
+#+BEGIN_QUOTE
+Welcome to GNU Hyperbole.  Hyperbole will super-charge your GNU Emacs
+experience, allowing you to work faster, utilize fewer key bindings, recall
+more information and link it all together by learning just a few concepts and
+keys.  Invest an hour learning Hyperbole now and speed your daily information
+management for years to come.
+#+END_QUOTE
+
+#+begin_src emacs-lisp :tangle packages.el
+(package! hyperbole)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! hyperbole
+  :defer t)
+#+end_src
+
+By default *Action Key* is binded to ~M-RET~ and Assist Key to ~C-u M-RET~
+
+Action key invokes function ~hkey-either~ and Assit key invokes ~hkey-help~.
+
+** implicit button
+Hyperbole can automatically turn your existing, unchanged text files into
+hypertexts via its incredibly powerful feature: implicit buttons.
+
+Few useful use case I feel personally:
+
+- "${load-path}/simple.el"
+- "${load-path}/w3m.el"
+- "${load-path}/emacs-dayone2.el"
+
+** hyperbole not working
+Sometimes hyperbole stops working for some reason, not sure exactly why, but
+doing this seems to help:
+#+BEGIN_SRC sh :tangle no
+rm ~/.emacs.d/.local/straight/build/hyperbole/*.elc
+#+END_SRC
+
+** Git (Local) References
+Similarly, again for software developers, git references work on local
+git repositories.  If you have a clone of the Hyperbole git repository
+on your local system, then you can activate all of the following buttons.
+
+#+begin_example
+  git#/hyperbole            (displays the top directory of the hyperbole repository)
+  git#/hyperbole/55a1f0     (displays hyperbole git commit diff)
+  git#=hactypes.el          (displays a git-versioned file regardless of directory)
+  git#=master:kotl/kview.el (displays file in subdirectory from master branch)
+  git#55a1f0                 (when within a git repo, displays its commit diff)
+#+end_example
+
+** man page
+grep, egrep, fgrep (1) - search a file for a string or regular expression
+rm (1)                 - remove (unlink) files or directories
+touch (1)              - update the access and modification times of a file
+cat (1)                - concatenate and display
+* scratch buffer
+I prefer that scratch buffer use ~org-mode~ as default:
+#+begin_src emacs-lisp :tangle no
+(setq initial-major-mode 'org-mode)
+#+end_src
+
+It turned out DOOM Emacs creates its own scratch buffer with name
+=*doom:scratch*=, so we need to set ~doom-scratch-buffer-major-mode~ instead:
+
+#+begin_src emacs-lisp :tangle no
+(setq doom-scratch-buffer-major-mode 'org-mode)
+#+end_src
+
+** WARNING
+Later it turned out by adding above two lines into config file caused around
+*2.4* seconds more loading time when Emacs starts, so I decide to disable them
+and turn scratch buffer to org mode on demand.
+
+** manually set major mode
+If ~doom-scratch-buffer-major-mode~ is not set, when trying to open doom scratch
+buffer, we will get error like:
+
+#+begin_example
+cond: Symbol’s value as variable is void: doom-scratch-buffer-major-mode
+#+end_example
+
+So I created a tiny function to set it in such case:
+#+BEGIN_SRC emacs-lisp :tangle no
+;;;###autoload
+(defun me/set-scratch-buffer ()
+  (interactive)
+  (setq doom-scratch-buffer-major-mode 'org-mode)
+)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :tangle autoload/funcs.el
+;;;###autoload
+(defun me/open-scratch-buffer ()
+  "set doom-scratch-buffer-major-mode if not set already.
+   then open the scratch buffer."
+  (interactive)
+  (unless (boundp 'doom-scratch-buffer-major-mode)
+    (setq doom-scratch-buffer-major-mode 'org-mode))
+  (doom/open-scratch-buffer))
+#+end_src
+* auto line wrapping
+https://superuser.com/questions/592154/how-to-turn-off-emacss-auto-line-wrapping-for-the-current-session
+
+To disable it, could either do:
+
+{M-x toggle-truncate-lines}
+
+(set-default 'truncate-lines t)
+
+or maybe toggle ~auto-fill-mode~
+* spell checking
+** Prerequisites
+Either ~aspell~ or ~hunspell~ will work, but ~hunspell~ gives better suggestions
+for typo fix, so I choose it over ~aspell~.
+
+We first need to install them:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install aspell
+brew install hunspell
+#+END_SRC
+
+Then we need to put dictionary files under either =~/Library/Spelling/= or
+=/Library/Spelling/=:
+
+#+BEGIN_SRC sh :tangle emacs-dep.sh
+cp resource/dict/*.* ~/Library/Spelling/
+#+END_SRC
+
+We can find more dictionary at https://wiki.openoffice.org/wiki/Dictionaries.
+
+** emacs setup
+Doom Emacs already supports it, just enable it by putting
+this under ~:checkers~ section in ~init.el~.
+
+#+begin_example :tangle no
+(spell +hunspell)
+#+end_example
+
+We can also ask Emacs to use ~aspell~ by changing to:
+#+BEGIN_EXAMPLE :tangle no
+(spell +aspell)
+#+END_EXAMPLE
+
+After spell checking is done, we can use ~]s~ (~evil-next-flyspell-error~) to move to next spell checking
+error and ~[s~ (~evil-next-flyspell-error~) to previous error.
+
+When cursor is on the error, we can use ~z=~ which invokes
+~flyspell-correct-at-point~ command and will list all suggestions in ivy interface.
+
+Examples to use which shows the differences between aspell and hunspell:
+#+begin_example :tangle no
+anohter
+helle
+#+end_example
+
+** code checking
+Normally spell checking code will produce a lot of noise and it makes sense to only
+check the comments in the code.
+
+According to this [[https://emacsredux.com/blog/2019/05/24/spell-checking-comments/][blog post]], we can easily achieve that by:
+#+begin_src emacs-lisp :tangle no
+(add-hook! 'prog-mode-hook #'flyspell-prog-mode)
+#+end_src
+
+DOOM Emacs already has this ~flyspell-prog-mode~ support, so we don't need to do
+anything here.
+
+This [[http://blog.binchen.org/posts/what-s-the-best-spell-check-set-up-in-emacs.html][post]] also offers a lot of information on spell checking, maybe will see how
+I can incorporate it in the future.
+
+* Anki
+Anki is useful for spaced repetition and [[https://yiufung.net/post/anki-org/][this]] is a great post showing how to
+make things into Anki easier with org-mode. My config is pretty much copied from this
+post. Main powerhorse is [[https://github.com/louietan/anki-editor][anki-editor]] package.
+** anki-editor
+#+begin_src emacs-lisp :tangle modules/app/anki/packages.el
+(package! anki-editor)
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/app/anki/config.el
+(use-package! anki-editor
+  :after org
+   ; Reset cloze-number after each capture.
+  :hook (org-capture-after-finalize . anki-editor-reset-cloze-number)
+  :config
+  ;; Allow anki-editor to create a new deck if it doesn't exist
+  (setq anki-editor-create-decks t
+        anki-editor-org-tags-as-anki-tags t)
+
+  ;; Initialize
+  (anki-editor-reset-cloze-number)
+)
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/app/anki/autoload.el
+;;;###autoload
+(defun anki-editor-cloze-region-auto-incr (&optional arg)
+  "Cloze region without hint and increase card number."
+  (interactive)
+  (anki-editor-cloze-region my-anki-editor-cloze-number "")
+  (setq my-anki-editor-cloze-number (1+ my-anki-editor-cloze-number))
+  (forward-sexp))
+
+;;;###autoload
+(defun anki-editor-cloze-region-dont-incr (&optional arg)
+  "Cloze region without hint using the previous card number."
+  (interactive)
+  (anki-editor-cloze-region (1- my-anki-editor-cloze-number) "")
+  (forward-sexp))
+
+;;;###autoload
+(defun anki-editor-reset-cloze-number (&optional arg)
+  "Reset cloze number to ARG or 1"
+  (interactive)
+  (setq my-anki-editor-cloze-number (or arg 1)))
+
+;;;###autoload
+(defun anki-editor-push-tree ()
+  "Push all notes under a tree."
+  (interactive)
+  (anki-editor-push-notes '(4))
+  (anki-editor-reset-cloze-number))
+#+END_SRC
+
+** anki setup
+After installing Anki, we also need to install the plugin [[https://github.com/FooSoft/anki-connect][AnkiConnect]].
+
+For MacOS, we need to run following commands for AnkiConnect to work properly as
+per the manual:
+#+BEGIN_SRC sh :tangle no
+defaults write net.ankiweb.dtop NSAppSleepDisabled -bool true
+defaults write net.ichi2.anki NSAppSleepDisabled -bool true
+defaults write org.qt-project.Qt.QtWebEngineCore NSAppSleepDisabled -bool true
+#+END_SRC
+
+** capture
+To make use of ~org-capture~, we need following capture templates to quickly
+create anki card entry in org mode and later push to anki, the entry will be
+saved to ~org-anki-file~.
+#+BEGIN_SRC emacs-lisp
+(setq org-anki-file "~/org/anki.org")
+(after! org
+    (add-to-list 'org-capture-templates
+                `("a" "Anki basic"
+                entry
+                (file+headline org-anki-file "Dispatch Shelf")
+                "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Basic\n:ANKI_DECK: capture\n:END:\n** Front\n%?\n** Back\n%c\n"))
+
+    (add-to-list 'org-capture-templates
+                `("A" "Anki cloze"
+                entry
+                (file+headline org-anki-file "Dispatch Shelf")
+                "* %<%H:%M>   %^g\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Cloze\n:ANKI_DECK: capture\n:END:\n** Text\n%c\n** Extra\n")) )
+#+END_SRC
+
+When trigger the global capture (even outside Emacs), we can choose ~a~ or ~A~
+to create anki entry.
+* preview
+** github markdown/org preview
+We need to install ~grip~ first, so
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+pip3 install grip
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle packages.el
+(package! grip-mode)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(use-package! grip-mode
+  :defer t)
+#+END_SRC
+
+* html to epub
+Use ~pandoc~, command line is:
+#+BEGIN_SRC sh :tangle no
+pandoc -f html -t epub -o test.epub test.html
+#+END_SRC
+* Record Screencasts
+https://github.com/tarsius/keycast
+#+begin_src emacs-lisp :tangle packages.el
+(package! keycast :recipe (:host github :repo "tarsius/keycast"))
+#+end_src
+
+#+BEGIN_SRC elisp
+(use-package! keycast
+  :defer t)
+#+END_SRC
+So far keycast is not working yet, having the error:
+#+begin_example
+user-error: Cannot turn on keycast-mode. mode-line-buffer-identification not
+found in mode-line-format. Try customizing keycast-insert-after.
+#+end_example
+
+#+begin_src emacs-lisp :tangle packages.el
+(package! gif-screencast :recipe (:host gitlab :repo "ambrevar/emacs-gif-screencast"))
+#+end_src
+
+#+BEGIN_SRC elisp
+(use-package! gif-screencast
+  :defer t
+  :config
+  ;; To shut up the shutter sound of `screencapture' (see `gif-screencast-command').
+  (setq gif-screencast-args '("-x"))
+  ;; Optional: Used to crop the capture to the Emacs frame.
+  (setq gif-screencast-cropping-program "mogrify")
+  ;; Optional: Required to crop captured images.
+  (setq gif-screencast-capture-format "ppm"))
+#+END_SRC
+
+There are some dependencies as well and can be installed using homebrew:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install mogrify
+brew install gifsicle
+#+END_SRC
+
+After install you should see:
+#+begin_example :tangle no
+❯ which mogrify
+/usr/local/bin/mogrify
+
+❯ which convert
+/usr/local/bin/convert
+
+❯ which gifsicle
+/usr/local/bin/gifsicle
+#+end_example
+* window management
+#+begin_src emacs-lisp :tangle packages.el
+(package! zoom)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package! zoom)
+#+END_SRC
+* use Emacs for CLI
+#+begin_src emacs-lisp :tangle autoload/funcs.el
+;;;###autoload
+(defun me/handle-files-from-dir (dir pattern handler)
+  "run `handler' on files matching `pattern' under `dir'"
+  (interactive)
+
+  (require 'find-lisp)
+  (mapc (lambda (f)
+          (message "process file: %s" f)
+          (funcall handler f))
+        (find-lisp-find-files dir pattern)))
+#+END_SRC
+
+#+RESULTS:
+: me/handle-files-from-dir
+
+For eg, to print all org files under current directory:
+#+BEGIN_SRC elisp :tangle no
+(me/handle-files-from-dir "." "\\.org$"
+                          '(lambda (x) (message "file: %s" x)))
+#+END_SRC
+* Narrowing
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/toggle-narrow ()
+  "if buffer already narrowing, widen it.
+  otherwise narrow the active region"
+  (interactive)
+  (if (buffer-narrowed-p)
+      (widen)
+      (narrow-to-region (region-beginning) (region-end))
+  )
+)
+#+end_src
+* notdeft
+There are some dependencies needed to build and use this package.
+
+To build the xapian backend, we need ~tclap~:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install tclap
+#+END_SRC
+
+And we also need ~xapian~ itself:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install xapian
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle packages.el
+(package! notdeft :recipe (:host github :repo "hasu/notdeft" :branch "xapian"))
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(use-package! notdeft
+  :config
+  (setq notdeft-extension "org")
+  (setq notdeft-directories '("~/org/roam/org" "~/org/roam/org/.attach"))
+  (setq notdeft-secondary-extensions '("md" "json" "xml" "fix"))
+  (setq notdeft-xapian-program (concat doom-local-dir "straight/repos/notdeft/xapian/notdeft-xapian")))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map notdeft-mode-map
+  :desc "query"         :n "<tab>" #'notdeft-open-query
+  :desc "clear query"   :n "c" #'notdeft-query-clear
+  :desc "quit"          :n "q" #'notdeft-quit
+  :desc "filter yank"   :n "C-y" #'notdeft-filter-yank
+  :desc "filter clear"  :n "f" #'notdeft-filter-clear
+  :desc "refresh"       :n "r" #'notdeft-refresh
+  :desc "rebuild index" :n "R" #'notdeft-reindex)
+#+end_src
+* Calendar
+#+BEGIN_SRC elisp
+(use-package! calendar
+  :defer t
+  :config
+  (setq holiday-other-holidays
+  '((holiday-fixed 1 1   "New Year")
+    (holiday-fixed 2 14  "Valentine")
+    ;; second Sunday of May
+    (holiday-float 5 0 2 "Mother's day")
+    (holiday-float 6 0 3 "Father's day")))
+
+  (setq holiday-local-holidays
+  '((holiday-chinese 1 15  "元宵节 (正月十五)")
+    (holiday-chinese 1 1   "春节")
+    (holiday-chinese 5 5   "端午节 (五月初五)")
+    (holiday-chinese 9 9   "重阳节 (九月初九)")
+    (holiday-chinese 8 15  "中秋节 (八月十五)")
+    ))
+
+  (setq calendar-date-style 'american
+  calendar-mark-holidays-flag t
+  ;; week starts on monday, 0 means sunday
+  calendar-week-start-day 1
+  calendar-mark-diary-entries-flag nil))
+#+END_SRC
