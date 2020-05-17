@@ -13,6 +13,9 @@
   :mode "\\.vue\\'"
   :mode "\\.twig\\'"
   :mode "\\.jinja2?\\'"
+  :mode "\\.xs\\(?:d\\|lt\\)\\'"   ; xslt, xsd
+  :mode "\\.xml\\'"  ; xml
+  :magic "<\\?xml"   ; xml too
   :mode "wp-content/themes/.+/.+\\.php\\'"
   :mode "templates/.+\\.php\\'"
   ;; REVIEW We associate TSX files with `web-mode' because `typescript-mode'
@@ -21,6 +24,7 @@
   :mode "\\.tsx\\'"
   :config
   (set-docsets! 'web-mode "HTML" "CSS" "Twig" "WordPress")
+  (setq web-mode-enable-auto-indentation nil)
 
   ;; tidy is already defined by the format-all package. We redefine it to add
   ;; more sensible arguments to the tidy command.
