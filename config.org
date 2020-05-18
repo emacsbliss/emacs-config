@@ -1425,14 +1425,12 @@ languages listed in that file will get formatting behavior:
 
 #+begin_src emacs-lisp :tangle no
 ((nil . (
-
   (format-all-formatters
    ("C++" clang-format)
    ("C" clang-format)
    ("JavaScript" standard)
    ("Python" (black "--skip-string-normalization"))
    ("SQL" (sqlformat "-a" "--keywords" "capitalize")))
-
 )))
 #+end_src
 So for any language not listed in this file, formatting won't kick in.
@@ -1441,6 +1439,20 @@ Currently this feature only existed on ~multi-formatter~ branch, so we have to
 install package like this:
 #+BEGIN_SRC emacs-lisp :tangle no
 (package! format-all :recipe (:host github :repo "lassik/emacs-format-all-the-code" :branch "multi-formatter"))
+#+END_SRC
+** better clang-format
+Given these days I mostly just deal with C++ code, so [[https://eklitzke.org/smarter-emacs-clang-format][this solution]] suits me
+better since I don't have to add ~.dir-locals.el~ to the repo where I want to
+have the format kicks in.
+
+Later it turns out there is a [[https://github.com/SavchenkoValeriy/emacs-clang-format-plus][package]] already provides this functionality:
+#+BEGIN_SRC elisp :tangle packages.el
+(package! clang-format+ :recipe (:host github :repo "SavchenkoValeriy/emacs-clang-format-plus"))
+#+END_SRC
+
+#+BEGIN_SRC elisp
+(use-package! clang-format+)
+(add-hook 'c-mode-common-hook #'clang-format+-mode)
 #+END_SRC
 * symbol highlight
 This package [[https://github.com/wolray/symbol-overlay][symbol-overlay]] is perfect for this purpose.
