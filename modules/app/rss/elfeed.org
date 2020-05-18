@@ -26,6 +26,10 @@
     :PROPERTIES:
     :ID:       6DAC16E7-B570-4EF2-B033-A290887DF3D8
     :END:
+*** [[https://nullprogram.com/feed/][nullprogram]]
+** favorite
+*** [[http://feeds.feedburner.com/ruanyifeng][ruanyifeng]] :chinese:
+*** [[http://feedmaker.kindle4rss.com/feeds/xilei.dapenti.com.xml][dapenti]] :chinese:
 ** Literature :literature:
    :PROPERTIES:
    :ID:       6F8AE594-DF73-4A71-BDB9-073D12253A89
