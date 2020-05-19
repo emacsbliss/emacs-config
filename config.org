@@ -355,7 +355,7 @@ By default I use three consecutive ~$~ as separator in the files used by
 #+END_SRC
 
 Do not use ~company-ispell~ as backend, too much noise most of the time.
-#+BEGIN_SRC emacs-lisp :tangle no
+#+BEGIN_SRC emacs-lisp
 (set-company-backend! '(org-mode org-journal-mode)
   '(:separate company-english-helper-search
               company-tabnine
@@ -3367,11 +3367,11 @@ To use Emacs-w3m to browser web page, we need to install ~w3m~ first:
 brew install w3m
 #+END_SRC
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
+#+begin_src emacs-lisp :tangle packages.el
 (package! w3m)
 #+end_src
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp
 (use-package! w3m
   :defer t)
 #+end_src
@@ -3634,8 +3634,9 @@ I did a patch to ~semi~ and use my patched version.
         ;; it's in byte. let's make it 10M
         elmo-message-fetch-threshold 10000000
         wl-stay-folder-window t
-        wl-init-file (expand-file-name "wl.el" doom-private-dir)
-        wl-folders-file (expand-file-name "folders.wl" doom-private-dir))
+        ;; wl-init-file (expand-file-name "wl.el" doom-private-dir)
+        wl-folders-file "~/.folders")
+        ;; wl-folders-file (expand-file-name "folders.wl" doom-private-dir)
 
   (setq wl-message-truncate-lines t
         wl-summary-width 120)
@@ -3846,12 +3847,19 @@ Now we need to finish the ~(use-package! wl~:
 #+end_src
 
 #+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(defun emacslibss/mark-mail ()
+  (interactive)
+  (wl-summary-target-mark)
+  (evil-next-line))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
 (map! :map wl-summary-mode-map
   :desc "compose"             :n "c"     #'wl-summary-write
   :desc "trash email"         :n "d"     #'wl-summary-dispose
   :desc "trash marked"        :n "D"     #'wl-summary-target-mark-dispose
   :desc "forward"             :n "f"     #'wl-summary-forward
-  :desc "mark current"        :n "m"     #'wl-summary-target-mark-line
+  :desc "mark current"        :n "m"     #'emacslibss/mark-mail
   :desc "mark current"        :n "M"     #'wl-summary-target-mark-thread
   :desc "auto refile"         :n "o"     #'wl-summary-auto-refile
   :desc "print mail"          :n "p"     #'wl-summary-print-message
@@ -3859,7 +3867,7 @@ Now we need to finish the ~(use-package! wl~:
   :desc "reply"               :n "r"     #'wl-summary-reply
   :desc "reply with citation" :n "R"     #'wl-summary-reply-with-citation
   ;; not working, evil-snipe is taking priority
-  :desc "sort"                :n "s"     #'wl-summary-sort
+  ;; :desc "sort"                :n "s"     #'wl-summary-sort
   :desc "mark all"            :n "t"     #'wl-summary-target-mark-all
   :desc "unmark current"      :n "u"     #'wl-summary-unmark
   :desc "unmark all"          :n "U"     #'wl-summary-unmark-all
