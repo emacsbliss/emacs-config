@@ -2293,6 +2293,21 @@ Emacs can help you cook too! https://github.com/Chobbes/org-chef
 (use-package! org-chef
   :commands (org-chef-insert-recipe org-chef-get-recipe-from-url))
 #+END_SRC
+** clocking with org mode
+An excellent [[https://writequit.org/denver-emacs/presentations/2017-04-11-time-clocking-with-org.html][guide]] about clocking in org mode.
+
+https://github.com/atheriel/org-clock-csv
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-clock-csv)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-clock-csv
+  :defer t)
+#+END_SRC
+
+There is another package https://github.com/tmarble/timesheet.el which I haven't
+tried yet..
 * presentation
 https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 
