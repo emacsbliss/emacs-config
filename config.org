@@ -2127,7 +2127,8 @@ management, so I wrote this little function to help with that.
 #+BEGIN_SRC emacs-lisp
 (defvar org-roam-directories-alist nil)
 (setq org-roam-directories-alist '(("default" . "~/org/roam/org")
-                                   ("life" . "~/repo/life")))
+                                   ("life" . "~/repo/life")
+                                   ("work" . "~/org/work/org")))
 #+END_SRC
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
