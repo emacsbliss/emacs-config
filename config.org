@@ -2138,8 +2138,10 @@ management, so I wrote this little function to help with that.
   (interactive)
   (ivy-read "options: " org-roam-directories-alist
             :action '(1
-                      ("o" (lambda (x) (setq org-roam-directory (cdr x))) "select")))
-)
+                      ("o" (lambda (x)
+                             (progn (setq org-roam-directory (cdr x))
+                                    (setq notdeft-directories (list (cdr x)))))
+                       "select"))))
 #+END_SRC
 
 ** custom link type
@@ -4966,7 +4968,7 @@ brew install xapian
 (use-package! notdeft
   :config
   (setq notdeft-extension "org")
-  (setq notdeft-directories '("~/org/roam/org" "~/org/roam/org/.attach"))
+  (setq notdeft-directories '("~/org/roam/org"))
   (setq notdeft-secondary-extensions '("md" "json" "xml" "fix"))
   (setq notdeft-xapian-program (concat doom-local-dir "straight/repos/notdeft/xapian/notdeft-xapian")))
 #+END_SRC
