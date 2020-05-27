@@ -28,7 +28,7 @@
         +prescient)
 
        :ui
-       deft              ; notational velocity for Emacs
+       ;; deft              ; notational velocity for Emacs
        doom              ; what makes DOOM look the way it does
        doom-dashboard    ; a nifty splash screen for Emacs
        doom-quit         ; DOOM quit-message prompts when you quit Emacs
@@ -57,7 +57,7 @@
        (evil +everywhere); come to the dark side, we have cookies
        file-templates    ; auto-snippets for empty files
        fold              ; (nigh) universal code folding
-       (format +onsave)  ; automated prettiness
+       ;; (format +onsave)  ; automated prettiness
        ;;god               ; run Emacs commands without modifier keys
        ;;lispy             ; vim for lisp, for people who don't like vim
        multiple-cursors  ; editing in many places at once
