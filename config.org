@@ -1968,8 +1968,32 @@ first before any of those key bindings due to evil mode.
 ** capture webpage
 There are multiple ways to capture a webpage into org mode file.
 *** org-web-tools
-https://github.com/alphapapa/org-web-tools
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-web-tools)
+#+END_SRC
 
+https://github.com/alphapapa/org-web-tools
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-web-tools
+  :defer t)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+(add-to-list 'org-capture-templates
+    `("w" "Website with org-web-tools" entry
+        (file "~/org/websites.org")
+        (function my/website-to-org-entry)
+        :immediate-finish t))
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun my/website-to-org-entry ()
+"Convert clipboard's URL content to org entry."
+  (org-web-tools-insert-web-page-as-entry (org-get-x-clipboard 'PRIMARY)))
+#+END_SRC
 *** capture via eww
 Here is one I discovered at
 http://www.bobnewell.net/publish/35years/webclipper.html.
@@ -1978,7 +2002,7 @@ I uses org-capture by adding a new capture template with entry key ~w~ and a sup
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (after! org
 (add-to-list 'org-capture-templates
-    `("w" "Website" plain
+    `("W" "Website with w3m/eww" plain
         (function org-website-clipper)
         "* %a\n%T\n" :immediate-finish t))
 )
@@ -2128,6 +2152,7 @@ management, so I wrote this little function to help with that.
 (defvar org-roam-directories-alist nil)
 (setq org-roam-directories-alist '(("default" . "~/org/roam/org")
                                    ("life" . "~/repo/life")
+                                   ("coding" . "~/org/coding")
                                    ("work" . "~/org/work/org")))
 #+END_SRC
 
@@ -2978,9 +3003,9 @@ and a backlink to the function and the file."
     (format "
    %s
 
-   #+BEGIN_%s %s
+#+BEGIN_%s %s
 %s
-   #+END_%s" initial-txt type headers code-snippet type)))
+#+END_%s" initial-txt type headers code-snippet type)))
 #+end_src
 
 ** capture other things
@@ -4386,7 +4411,12 @@ selected frame."
 It comes with DOOM Emacs, but with what we have implemented earlier for ~quickly
 diff last two kills~, it's probably not that useful..
 https://github.com/rgrinberg/evil-quick-diff
-** auxiliary functions
+** diff two marked files in dired
+By default ~dired-diff~ will ignore any markers in dired directory but use
+current file under cursor as first file and prompt for second file for diff.
+
+It's more desirable if I have marked two files already then it should just diff
+uses this two files, this function below does that:
 #+begin_src emacs-lisp :tangle modules/tools/diff/autoload.el
 ;; https://oremacs.com/2017/03/18/dired-ediff/
 ;; -*- lexical-binding: t -*-
@@ -5084,3 +5114,41 @@ brew install xapian
 #+BEGIN_SRC elisp :tangle modules/app/calendar/config.el
 (use-package! calfw-git)
 #+END_SRC
+
+** caldav
+https://github.com/dengste/org-caldav
+
+#+BEGIN_SRC elisp :tangle modules/app/calendar/packages.el
+(package! org-caldav)
+#+END_SRC
+
+#+BEGIN_SRC elisp :tangle modules/app/calendar/config.el
+(use-package! org-caldav
+  :defer t
+  :config
+  (setq org-caldav-url "https://cloud.emacsbliss.com/remote.php/dav/calendars/showgood")
+  (setq org-caldav-calendar-id "camp")
+  (setq org-caldav-inbox "~/org/calendar/incoming.org")
+  (setq org-caldav-files '("~/org/calendar/camp.org")))
+#+END_SRC
+
+https://cloud.emacsbliss.com/remote.php/dav/principals/users/showgood/
+
+
+https://OWNCLOUD-SERVER-URL/remote.php/dav/calendars/USERID
+
+http://192.168.1.231:32768/remote.php/dav/calendars/showgood/camp/
+
+http://192.168.1.231:5000/caldav/showgood
+
+Set org-caldav-calendar-id to the calendar-id of your new calendar:
+
+Own/NextCloud: Click on that little symbol next to the calendar name and inspect the link of the calendar; the last element of the shown path is the calendar-id. This should usually be the same as the name of the calendar, but not necessarily: Owncloud might replace certain characters (upper- to lowercase, for instance), or it might even be entirely different if the calendar was created by another CalDAV application.
+
+Google: Click on 'calendar settings' and the id will be shown next to "Calendar Address". It is of the form ID@group.calendar.google.com. Do not omit the domain!
+
+Set org-caldav-inbox to an org filename where new entries from the calendar should be stored. Just to be safe, I suggest using an empty, dedicated Org file for that.
+
+Set org-caldav-files to the list of org files you would like to sync. The above org-caldav-inbox will be automatically added, so you don't have to add it here.
+
+It is usually a good idea to manually set org-icalendar-timezone
