@@ -41,10 +41,10 @@ I like use ~SF Mono~ font from MacOS. However In order to make certain symbols
 displayed properly, we need powerline patched SF Mono font.
 
 #+BEGIN_SRC emacs-lisp
-(setq doom-font (font-spec :family "SF Mono Powerline" :size 16)
+(setq doom-font (font-spec :family "SF Mono Powerline" :size 22)
       doom-variable-pitch-font (font-spec :family "SF Mono Powerline")
       doom-unicode-font (font-spec :family "SF Mono Powerline")
-      doom-big-font (font-spec :family "SF Mono Powerline" :size 20))
+      doom-big-font (font-spec :family "SF Mono Powerline" :size 30))
 #+END_SRC
 
 Intestingly we can adjust font either on per buffer basis or frame basis.
@@ -2097,6 +2097,7 @@ upfront, not using defer:
       :custom
       (org-roam-directory "~/org/roam/org")
       (org-roam-capture--file-name-default "")
+      (org-roam-rename-file-on-title-change nil)
       (org-roam-capture-templates
         '(("d" "default" plain (function org-roam-capture--get-point)
             "%?"
@@ -2336,6 +2337,24 @@ https://github.com/atheriel/org-clock-csv
 
 There is another package https://github.com/tmarble/timesheet.el which I haven't
 tried yet..
+** org attach
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun me/org-attach-mv (file)
+  (let ((org-attach-method 'mv))
+     (org-attach-attach file)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun me/attach-json-from-kill-ring ()
+  "put kill ring content into a json file
+  and attach to current org heading"
+  (interactive)
+
+    (me/org-attach-mv (me/kill-ring-to-json-file))
+    (message "file attached!"))
+#+end_src
 * presentation
 https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 
@@ -3370,6 +3389,7 @@ It needs a lot of keybindings to work with evil style keybinding.
     "k" #'xwidget-webkit-scroll-down
     "j" #'xwidget-webkit-scroll-up
     "C-c w"     #'ace-window
+    "f"  #'xwwp-follow-link
     "M-c"  #'xwidget-webkit-copy-selection-as-kill
 ))
 #+end_src
@@ -3382,6 +3402,7 @@ website, unless a prefix argument is supplied.
 
 This function always opens a new website in a new window, borrowed from [[https://github.com/syl20bnr/spacemacs/issues/6587][here]].
 #+begin_src emacs-lisp :tangle autoload/funcs.el
+;;;###autoload
 (defun xwidget-browse-url-no-reuse (url &optional sessoin)
   (interactive (progn
                  (require 'browse-url)
@@ -3389,6 +3410,20 @@ This function always opens a new website in a new window, borrowed from [[https:
                                              )))
   (xwidget-webkit-browse-url url t))
 #+end_src
+
+*** enhance
+https://github.com/BlueFlo0d/xwwp
+#+begin_src emacs-lisp :tangle packages.el
+(package! xwwp
+  :recipe (:host github :repo "BlueFlo0d/xwwp"
+           :files ("*.el")))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package! xwwp
+  :custom
+  (xwwp-follow-link-completion-system 'ivy))
+#+END_SRC
 
 *** key bindings
 - ~w~:  copy the current url to kill ring
@@ -3578,6 +3613,15 @@ This is [[http://blog.binchen.org/posts/enhance-emacs-git-gutter-with-ivy-mode.h
                           (goto-line e)))
     (message "NO git-gutters!")))
 #+end_src
+** open upstream in browser
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/git-open-upstream ()
+  (interactive)
+  (browse-url
+   (shell-command-to-string "git config --get remote.upstream.url")))
+#+end_src
+
 * Zettelkasten - disabled
 Now I prefer ~org-roam~ more, so disable this for now.
 
@@ -5152,3 +5196,130 @@ Set org-caldav-inbox to an org filename where new entries from the calendar shou
 Set org-caldav-files to the list of org files you would like to sync. The above org-caldav-inbox will be automatically added, so you don't have to add it here.
 
 It is usually a good idea to manually set org-icalendar-timezone
+
+* Utils
+** kill ring to json file
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/build-file-name (ext)
+"use the first two words from TITLE property and build filename from it"
+  (let* ((title (split-string (jk-org-kwd "TITLE") " +"))
+         (file-name))
+
+    (setq file-name (format "%s_%s.%s"
+          (car title) (nth 1 title) ext))
+
+    file-name)
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/kill-ring-to-json-file ()
+  "put kill ring content into a json file"
+  (interactive)
+  (let* ((json-file (me/build-file-name "json")))
+
+    (with-temp-file json-file
+      (insert (get-kill-ring))
+      (json-pretty-print-buffer)
+    )
+
+    json-file
+  )
+)
+#+end_src
+
+** save json blob
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/save-json-blob (pattern string file)
+  "find pattern from given string, it should be a json blob.
+   then it will be written to file and pretty print the file."
+  (let ((json-blob nil))
+    (when (string-match pattern string)
+      (setq json-blob (match-string 1 string))
+      (with-temp-buffer
+        (insert json-blob)
+        (json-pretty-print (point-min) (point-max))
+        (write-region (point-min) (point-max) file)))
+))
+#+END_SRC
+** save json file
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/save-json (dir prefix content)
+"save content to json file"
+(let* ((file-name (make-temp-name prefix))
+       (out-file (format "%s/%s.json" dir file-name)))
+    (with-temp-file out-file
+        (insert content)
+        (json-pretty-print-buffer)
+    )
+
+    (message "extracted to %s" out-file)
+    (kill-new file-name)
+    out-file
+))
+#+END_SRC
+** save xml file
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/save-xml (dir prefix content)
+"save content to xml file"
+(let* ((file-name (make-temp-name (format "%s-" prefix)))
+       (out-file (format "%s/%s.xml" dir file-name)))
+    (with-temp-file out-file
+        (insert content)
+        (xml-pretty-print-buffer)
+    )
+
+    (message "extracted to %s" out-file)
+    (kill-new file-name)
+    out-file
+))
+#+END_SRC
+** extract log line
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/extract-log-line (log-file pattern reverse-search)
+"open the given log file and extract matched pattern"
+  (let* ((extracted nil))
+
+    (set-buffer (find-file-noselect log-file))
+    (if reverse-search
+        (progn
+          (goto-char (point-max))
+          (when (re-search-backward pattern nil t)
+            (setq extracted (match-string 1))
+            (message "extracted: %s" extracted)
+          )
+        )
+
+      (progn
+        (goto-char (point-min))
+        (when (re-search-forward pattern nil t)
+              (setq extracted (match-string 1))
+              (message "extracted: %s" extracted))
+      )
+    )
+
+    extracted
+))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/extract-log-all (log-file pattern)
+"open the given log file and extract *all* lines matching pattern"
+  (let* ((extracted nil))
+
+     (with-current-buffer (find-file-noselect actual-log-file)
+        (goto-char (point-min))
+        (while (re-search-forward pattern nil t)
+          (setq extracted (cons (match-string 1) extracted))))
+
+     (setq extracted (nreverse extracted))
+    (message "extracted: %s" extracted)
+    extracted))
+#+END_SRC
