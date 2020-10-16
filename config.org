@@ -1820,6 +1820,7 @@ Find definition or references not give me any result..
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (after! org
+    (require 'ox-gfm nil t)
     ; Targets include this file and any file contributing to the agenda
     ; - up to 9 levels deep
     (setq org-refile-targets (quote ((nil :maxlevel . 9)
@@ -1828,10 +1829,19 @@ Find definition or references not give me any result..
 #+end_src
 
 To improve the code editing experience for org-babel:
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+#+begin_src emacs-lisp :tangle no
 (after! org
     (setq org-src-window-setup 'current-window))
 #+END_SRC
+
+Later I realized to make the editing window take whole screen
+sometimes not desirable since I can't see the original org mode
+buffer, so change the setting a bit:
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (setq org-src-window-setup 'split-window-below))
+#+END_SRC
+
 ** look and feel
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (after! org
