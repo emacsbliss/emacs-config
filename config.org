@@ -5333,3 +5333,10 @@ It is usually a good idea to manually set org-icalendar-timezone
     (message "extracted: %s" extracted)
     extracted))
 #+END_SRC
+
+* new
+#+BEGIN_SRC emacs-lisp
+(load! "ox-dtmd")
+(after! org
+    (require 'ox-dtmd nil t))
+#+end_src
