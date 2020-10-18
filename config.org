@@ -2365,6 +2365,11 @@ tried yet..
     (me/org-attach-mv (me/kill-ring-to-json-file))
     (message "file attached!"))
 #+end_src
+** export
+#+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+  (setq org-export-show-temporary-export-buffer nil))
+#+END_SRC
 * presentation
 https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 

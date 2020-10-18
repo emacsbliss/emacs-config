@@ -21,6 +21,10 @@
 (require 'ox-md)
 (require 'ox-gfm)
 
+(defvar org-dt/db "SlipBox")
+(defvar org-dt/group "/test-1")
+(defvar org-dt/current-title nil)
+
 (defgroup org-export-dtmd nil
   "Options specific to Markdown export back-end."
   :tag "Org to Devonthink Flavored Markdown"
@@ -41,6 +45,8 @@
                 (org-open-file (org-dtmd-export-to-markdown nil s v)))))))
   :translate-alist '((src-block . org-dtmd-src-block)
                      (link . org-dtmd-link)
+                     (inner-template . org-dtmd-inner-template)
+                     (footnote-reference . org-dtmd-footnote-reference)
                      ))
 
 ;;;###autoload
@@ -74,15 +80,17 @@ channel."
          (suffix "```"))
     (concat prefix code suffix)))
 
-(defvar org-dt/db "SlipBox")
-(defvar org-dt/group "/test-1")
-(defvar org-dt/current-title nil)
-
-(defun org-dtmd-get-devon-id-title (file-name)
-  (with-current-buffer (find-file-noselect file-name)
-    (list (jk-org-kwd "DEVON-ID")
-          (jk-org-kwd "TITLE"))
-))
+(defun org-dtmd-footnote-reference (footnote-reference _contents info)
+  "Transcode a FOOTNOTE-REFERENCE element from Org to HTML.
+CONTENTS is nil.  INFO is a plist holding contextual information."
+  (concat
+   ;; Insert separator between two footnotes in a row.
+   (let ((prev (org-export-get-previous-element footnote-reference info)))
+     (when (eq (org-element-type prev) 'footnote-reference)
+       " "))
+   (let* ((n (org-export-get-footnote-number footnote-reference info)))
+          (format "[^%d]" n)
+          )))
 
 (defun org-dtmd-link (link desc info)
   "Transcode LINK object into Markdown format.
@@ -124,6 +132,55 @@ INFO is a plist holding contextual information.  See
           ;; fall back to org-md for handle rest of link type
           (org-md-link link desc info))
     )
+))
+
+(defun org-dtmd--footnote-formatted (footnote info)
+  "Formats a single footnote entry FOOTNOTE.
+FOOTNOTE is a cons cell of the form (number . definition).
+INFO is a plist with contextual information."
+  (let* ((fn-num (car footnote))
+         (fn-text (cdr footnote))
+         )
+    ;; use [^1]: blah
+    ;; for footnote format
+    (format "[^%s]: %s" fn-num fn-text)))
+
+(defun org-dtmd--footnote-section (info)
+  "Format the footnote section.
+INFO is a plist used as a communication channel."
+  (let* ((fn-alist (org-export-collect-footnote-definitions info))
+         (fn-alist (cl-loop for (n _type raw) in fn-alist collect
+                            (cons n (org-trim (org-export-data raw info)))))
+         (headline-style (plist-get info :md-headline-style))
+         (section-title (org-html--translate "Footnotes" info)))
+    (when fn-alist
+      (format (plist-get info :md-footnotes-section)
+              (org-md--headline-title headline-style 1 section-title)
+              (mapconcat (lambda (fn) (org-dtmd--footnote-formatted fn info))
+                         fn-alist
+                         "\n")))))
+
+(defun org-dtmd-inner-template (contents info)
+  "Return body of document after converting it to Markdown syntax.
+CONTENTS is the transcoded contents string.  INFO is a plist
+holding export options."
+  ;; Make sure CONTENTS is separated from table of contents and
+  ;; footnotes with at least a blank line.
+  (concat
+   ;; Table of contents.
+   (let ((depth (plist-get info :with-toc)))
+     (when depth
+       (concat (org-md--build-toc info (and (wholenump depth) depth)) "\n")))
+   ;; Document contents.
+   contents
+   "\n"
+   ;; Footnotes section.
+   (org-dtmd--footnote-section info)))
+
+(defun org-dtmd-get-devon-id-title (file-name)
+  (with-current-buffer (find-file-noselect file-name)
+    (list (jk-org-kwd "DEVON-ID")
+          (jk-org-kwd "TITLE"))
 ))
 
 (defun org-dt/create-md-in-dt (name)
@@ -204,6 +261,7 @@ INFO is a plist holding contextual information.  See
   (insert "#+DEVON-ID: " devon-id "\n")
   (save-buffer)
   devon-id)
+
 
 (provide 'ox-dtmd)
 ;;; ox-dtmd.el ends here
