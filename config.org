@@ -1023,9 +1023,17 @@ them to most frequently used things in Emacs.
       :desc "Download remote"            "d" #'ssh-deploy-download-handler
       :desc "Diff local & remote"        "D" #'ssh-deploy-diff-handler
       :desc "Browse remote files"        "." #'ssh-deploy-browse-remote-handler
-      :desc "org roam today"             "t" #'org-roam-today
-      :desc "org roam yesterday"         "T" #'org-roam-yesterday
       :desc "Detect remote changes"      ">" #'ssh-deploy-remote-changes-handler)))
+#+END_SRC
+** keybinding - org-roam
+#+begin_src emacs-lisp
+(map! :leader
+  ;;; <leader> r --- roam
+    (:prefix-map ("r" . "org-roam")
+      :desc "org roam today"             "t" #'org-roam-dailies-today
+      :desc "org roam yesterday"         "y" #'org-roam-dailies-yesterday
+      :desc "org roam daily date"        "d" #'org-roam-dailies-date
+      :desc "org roam tomorrow"          "T" #'org-roam-dailies-tomorrow))
 #+END_SRC
 ** keybinding - search
 #+begin_src emacs-lisp
