@@ -217,8 +217,8 @@ holding export options."
 "<link rel=\"stylesheet\" href=\"x-devonthink-item://B58D8A66-2572-44BB-BB55-932EA0A28D2E\"/>
 <link rel=\"stylesheet\" href=\"x-devonthink-item://84207DDE-C706-4CE1-899C-7B938D6B443A\"/>
 <script src=\"x-devonthink-item://20EA3C53-C5D7-4BC3-A067-D5203B2C48FD\"></script>
-<section class=\"line-numbers\">\n\n")
-;; {{TOC}}\n\n")
+<section class=\"line-numbers\">\n\n"
+"{{TOC}}\n\n")
 
       (buffer-substring-no-properties (point-min) (point-max))
 )))
@@ -226,6 +226,9 @@ holding export options."
 (defun org-dt/export ()
   "export current buffer to DT3"
   (interactive)
+
+  ;; use {{TOC}} from Devonthink instead
+  (setq org-export-with-toc nil)
 
   ;; NOTE: detect if file already have DEVON-ID,
   ;; if yes, then we should update instead of creating
