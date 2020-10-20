@@ -16,6 +16,7 @@ This is my DOOM Emacs configuration file, it's written in [[http://www.howardism
 
 It is *heavily* inspired by following Emacs configurations:
 - [[https://tecosaur.github.io/emacs-config/config.html][tecosaur DOOM Emacs configuration]]
+  - [[https://zzamboni.org/post/my-doom-emacs-configuration-with-commentary/][zzamboni DOOM Emacs config]]
 - [[https://github.com/fuxialexander/doom-emacs-private-xfu][doom-emacs-private-xfu]]
 - [[https://www.gtrun.org/post/init/][GTruN emacs config (DOOM Emacs)]]
 
@@ -42,7 +43,7 @@ displayed properly, we need powerline patched SF Mono font.
 
 #+BEGIN_SRC emacs-lisp
 (setq doom-font (font-spec :family "SF Mono Powerline" :size 22)
-      doom-variable-pitch-font (font-spec :family "SF Mono Powerline")
+      doom-variable-pitch-font (font-spec :family "ETBembo" :size 30)
       doom-unicode-font (font-spec :family "SF Mono Powerline")
       doom-big-font (font-spec :family "SF Mono Powerline" :size 30))
 #+END_SRC
@@ -61,7 +62,39 @@ Intestingly we can adjust font either on per buffer basis or frame basis.
 
 Quickest way to increase font size for frame is to make use of
 ~doom-big-font-mode~ which is bound to ~SPC t b~.
+
+*** mixed pitch - disabled
+Just trying out, one issue so far is the font size for ETBembo seems always
+bit too small. It also seems caused problem with company package.
+
+#+begin_example
+Company: An error occurred in post-command
+Company: frontend company-pseudo-tooltip-frontend error "Invalid face" on command post-command
+#+end_example
+
+#+begin_src emacs-lisp :tangle no
+(package! mixed-pitch)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package! mixed-pitch
+  :defer
+  ;; :config
+  ;; (setq mixed-pitch-variable-pitch-cursor nil)
+  :hook
+  (text-mode . mixed-pitch-mode))
+#+end_src
+
 ** theme
+Now trying out spacemacs light theme:
+#+begin_src emacs-lisp :tangle packages.el
+(package! spacemacs-theme)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(setq doom-theme 'spacemacs-light)
+#+END_SRC
+
 Other than default theme ~doom-one~, I also found ~doom-acario-light~ nice as a
 light theme.
 #+begin_src emacs-lisp :tangle no
@@ -76,7 +109,7 @@ Now I also found that ~leuven~ theme is pleasant to use.
 Since ~leuven~ is not customized specially for DOOM Emacs, sometimes it seems
 have a bit of performance issue (not sure if that's the reason), now I have
 switched to ~doom-dracular~:
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (setq doom-theme 'doom-dracula)
 #+END_SRC
 ** fill column indicator
@@ -354,35 +387,67 @@ By default I use three consecutive ~$~ as separator in the files used by
         company-minimum-prefix-length 3))
 #+END_SRC
 
-Do not use ~company-ispell~ as backend, too much noise most of the time.
+#+BEGIN_SRC elisp
+(use-package! company-tabnine
+  :when (featurep! :completion company)
+  :hook
+  (kill-emacs . company-tabnine-kill-process)
+  (lsp-after-open . (lambda ()
+                      (add-to-list 'company-transformers 'company//sort-by-tabnine t)
+                      (add-to-list 'company-backends '(company-lsp :with company-tabnine :separate))))
+  (after-init . (lambda ()
+                  (add-to-list 'company-backends #'company-tabnine)
+                  (set-company-backend! 'text-mode
+                    'company-tabnine 'company-dabbrev 'company-yasnippet 'company-ispell)
+                  (set-company-backend! 'conf-mode
+                    'company-tabnine 'company-capf 'company-dabbrev-code 'company-yasnippet)
+                  (set-company-backend! 'prog-mode
+                    'company-tabnine 'company-capf 'company-yasnippet)))
+  :config
+  (set company-idle-delay 1)
+  (map! (:leader
+          :desc "Use company default backend" "clo" #'company-other-backend
+          :desc "Use company tabnine backend" "clt" #'company-tabnine))
+  ;; Integrate company-tabnine with lsp-mode
+  (defun company//sort-by-tabnine (candidates)
+    (if (or (functionp company-backend)
+            (not (and (listp company-backend) (memq 'company-tabnine company-backend))))
+        candidates
+      (let ((candidates-table (make-hash-table :test #'equal))
+            candidates-lsp
+            candidates-tabnine)
+        (dolist (candidate candidates)
+          (if (eq (get-text-property 0 'company-backend candidate)
+                  'company-tabnine)
+              (unless (gethash candidate candidates-table)
+                (push candidate candidates-tabnine))
+            (push candidate candidates-lsp)
+            (puthash candidate t candidates-table)))
+        (setq candidates-lsp (nreverse candidates-lsp))
+        (setq candidates-tabnine (nreverse candidates-tabnine))
+        (nconc (seq-take candidates-tabnine 3)
+               (seq-take candidates-lsp 6))))))
+#+END_SRC
+
 #+BEGIN_SRC emacs-lisp
-(set-company-backend! '(org-mode org-journal-mode)
+(after! org
+(set-company-backend! '(org-mode)
   '(:separate company-english-helper-search
               company-tabnine
               company-files
               company-yasnippet
               ))
-(set-company-backend! '(c-mode
-                        c++-mode
-                        ess-mode
-                        haskell-mode
-                        ;;emacs-lisp-mode
-                        lisp-mode
-                        sh-mode
-                        php-mode
-                        python-mode
-                        go-mode
-                        ruby-mode
-                        rust-mode
-                        js-mode
-                        js2-mode
-                        rjsx-mode
-                        css-mode
-                        web-mode
-                        )
-  '(:separate company-tabnine
+)
+#+END_SRC
+
+Do not use ~company-ispell~ as backend, too much noise most of the time.
+#+BEGIN_SRC emacs-lisp
+(set-company-backend! '(prog-mode)
+  '(:separate company-english-helper-search
+              company-tabnine
               company-files
-              company-yasnippet))
+              company-yasnippet
+              ))
 
 (setq +lsp-company-backend '(company-lsp :with company-tabnine :separate))
 #+END_SRC
