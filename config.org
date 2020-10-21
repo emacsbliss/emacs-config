@@ -2229,18 +2229,10 @@ upfront, not using defer:
 (add-hook 'org-export-before-processing-hook 'my/org-export-preprocessor)
 #+END_SRC
 ** multiple org-roam
-I also want to use org-roam for other things in my life other than knowledge
-management, so I wrote this little function to help with that.
+Now with latest version of org-roam, they have switched to use dir local variable
+to achieve multiple org-roam.
 
-#+BEGIN_SRC emacs-lisp
-(defvar org-roam-directories-alist nil)
-(setq org-roam-directories-alist '(("default" . "~/org/roam/org")
-                                   ("life" . "~/repo/life")
-                                   ("coding" . "~/org/coding")
-                                   ("work" . "~/org/work/org")))
-#+END_SRC
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+#+begin_src emacs-lisp :tangle no
 ;;;###autoload
 (defun me/switch-org-roam()
 "choose between all org roam directories"
