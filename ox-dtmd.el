@@ -103,6 +103,7 @@ INFO is a plist holding contextual information.  See
 
     (message "org-dt/current-title: %s" org-dt/current-title)
     (message "desc: %s" desc)
+    (message "raw-path: %s" raw-path)
     (if (string-equal desc org-dt/current-title)
         (progn
           (message "link to self")
@@ -113,10 +114,18 @@ INFO is a plist holding contextual information.  See
             (if (org-export-inline-image-p link)
                 ;; TODO: later we may need to create the image
                 ;; in devonthink and get uuid back
-                (org-md-link link desc info)
+                ;; (org-md-link link desc info)
+                (progn
+                  ;; NOTE: we need full path otherwise applescript will fail
+                  (setq image-path (expand-file-name raw-path))
+                  (message "image-path: %s" image-path)
+                  (setq image-id (org-dt/add-image-to-dt image-path org-dt/db org-dt/group))
+                  (message "image uuid: %s" image-id)
+                  (format "![](x-devonthink-item://%s)" image-id)
+                  ;; (org-md-link link desc info)
+                 )
 
                 (progn
-                  (message "raw-path: %s" raw-path)
                   (setq uuid-title (org-dtmd-get-devon-id-title raw-path))
                   (if (car uuid-title)
                     (format "[%s](x-devonthink-item://%s)" desc (car uuid-title))
@@ -207,6 +216,43 @@ holding export options."
     "end tell"
 )))
 
+(defun org-dt/file-exists-p (filename db)
+  (message "filename: %s" filename)
+
+  (do-applescript
+   (concat
+    "tell application id \"DNtp\"\n"
+    "set theDB to (database named \"" db "\")\n"
+    "set theRecords to (lookup records with file \"" filename "\" in theDB)\n"
+    "set docId to \"\"\n"
+    "repeat with a from 1 to length of theRecords\n"
+    "set theCurrentListItem to item a of theRecords\n"
+    "set docId to uuid of theCurrentListItem\n"
+    "end repeat\n"
+    "end tell\n"
+    "return docId as string"
+)))
+
+(defun org-dt/add-image-to-dt (path db group)
+  (let* ((filename (file-name-nondirectory path))
+         (uuid (org-dt/file-exists-p filename org-dt/db)))
+    (if (string-equal uuid "")
+        (do-applescript
+          (concat
+            "tell application id \"DNtp\"\n"
+            "set theDB to (database named \"" db "\")\n"
+            "set theFolder to (get record at \"" group "\" in theDB)\n"
+            "set newRecord to (import \"" path "\" to theFolder)\n"
+            "set docId to uuid of newRecord\n"
+            "end tell\n"
+            "return docId as string"))
+        (progn
+          (message "file already exists, skip")
+          uuid)
+   )
+ )
+)
+
 (defun org-dt/export-md ()
   (let* ((export-buffer "*temp-export*"))
 
@@ -215,7 +261,7 @@ holding export options."
       (goto-char (point-min))
       (insert
 "<link rel=\"stylesheet\" href=\"x-devonthink-item://B58D8A66-2572-44BB-BB55-932EA0A28D2E\"/>
-<link rel=\"stylesheet\" href=\"x-devonthink-item://84207DDE-C706-4CE1-899C-7B938D6B443A\"/>
+<link rel=\"stylesheet\" href=\"x-devonthink-item://0EAD7DA8-8FB5-450A-8B95-2D7BADB371CD\"/>
 <script src=\"x-devonthink-item://20EA3C53-C5D7-4BC3-A067-D5203B2C48FD\"></script>
 <section class=\"line-numbers\">\n\n"
 "{{TOC}}\n\n")
