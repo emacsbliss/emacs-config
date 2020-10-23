@@ -16,7 +16,7 @@ This is my DOOM Emacs configuration file, it's written in [[http://www.howardism
 
 It is *heavily* inspired by following Emacs configurations:
 - [[https://tecosaur.github.io/emacs-config/config.html][tecosaur DOOM Emacs configuration]]
-  - [[https://zzamboni.org/post/my-doom-emacs-configuration-with-commentary/][zzamboni DOOM Emacs config]]
+- [[https://zzamboni.org/post/my-doom-emacs-configuration-with-commentary/][zzamboni DOOM Emacs config]]
 - [[https://github.com/fuxialexander/doom-emacs-private-xfu][doom-emacs-private-xfu]]
 - [[https://www.gtrun.org/post/init/][GTruN emacs config (DOOM Emacs)]]
 
@@ -40,6 +40,8 @@ I have heavily customized my keybindings and put them into a separate file:
 ** font
 I like use ~SF Mono~ font from MacOS. However In order to make certain symbols
 displayed properly, we need powerline patched SF Mono font.
+
+Also for the variable pitch font, [[https://edwardtufte.github.io/et-book/][ET Book]] font is very pretty.
 
 #+BEGIN_SRC emacs-lisp
 (setq doom-font (font-spec :family "SF Mono Powerline" :size 22)
@@ -2181,15 +2183,22 @@ upfront, not using defer:
       (org-roam-directory "~/org/roam/org")
       (org-roam-capture--file-name-default "")
       (org-roam-rename-file-on-title-change nil)
+      (org-roam-dailies-capture-templates
+         '(("d" "daily" plain (function org-roam-capture--get-point) ""
+         :immediate-finish t
+         :file-name "2020/%<%Y-%m-%d>"
+         :head "#+TITLE: %<%Y-%m-%d>")))
       (org-roam-capture-templates
         '(("d" "default" plain (function org-roam-capture--get-point)
             "%?"
+            :immediate-finish t
             :file-name "${slug}"
             :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n"
             :unnarrowed t)
 
           ("j" "jira" plain (function org-roam-capture--get-point)
             "%?"
+            :immediate-finish t
             :file-name "${slug}"
             :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n#+KEYWORDS: \n#+TYPE: \n#+STATUS: Q\n#+JIRA: \n#+SPRINT: \n#+EPIC: \n#+POINTS: \n"
             :unnarrowed t)))
