@@ -31,7 +31,7 @@
        ;; deft              ; notational velocity for Emacs
        doom              ; what makes DOOM look the way it does
        doom-dashboard    ; a nifty splash screen for Emacs
-       doom-quit         ; DOOM quit-message prompts when you quit Emacs
+       ;; doom-quit         ; DOOM quit-message prompts when you quit Emacs
        ;;fill-column       ; a `fill-column' indicator
        hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
        hydra
@@ -72,6 +72,7 @@
        electric          ; smarter, keyword-based electric-indent
        ;ibuffer           ; interactive buffer management
        vc                ; version-control and Emacs, sitting in a tree
+       undo              ; persistent, smarter undo for your inevitable mistakes
        org               ; my org mode customization
        workspace         ; my workspace customization
 
@@ -100,7 +101,6 @@
         +offline
         +docsets)        ; ...or in Dash docsets locally
        ;;lsp
-       macos             ; MacOS-specific commands
        (magit +forge)   ; a git porcelain for Emacs
        ;;make            ; run make tasks from Emacs
        ;;pass            ; password manager for nerds
@@ -111,6 +111,10 @@
        ;;tmux              ; an API for interacting with tmux
        ;upload            ; map local to remote projects via ssh/ftp
        diff
+
+       :os
+       (:if IS-MAC macos)  ; improve compatibility with macOS
+       ;;tty               ; improve the terminal Emacs experience
 
        :lang
        ;;agda              ; types of types of types of types...
@@ -191,6 +195,9 @@
        ;; (rss +org)        ; emacs as an RSS reader
        ;;twitter           ; twitter client https://twitter.com/vnought
        work
+
+       :my
+       dired
 
        :config
        literate
