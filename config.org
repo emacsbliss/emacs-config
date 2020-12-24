@@ -1860,11 +1860,11 @@ TODO: this need review:
 ** Nox
 A lightweight alternative to lsp-mode.
 https://github.com/manateelazycat/nox
-#+begin_src emacs-lisp :tangle packages.el
+#+begin_src emacs-lisp :tangle packages.el :tangle no
 (package! nox :recipe (:host github :repo "manateelazycat/nox"))
 #+END_SRC
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (require 'nox)
 
 (dolist (hook (list
