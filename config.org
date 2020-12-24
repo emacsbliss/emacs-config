@@ -5419,3 +5419,17 @@ It is usually a good idea to manually set org-icalendar-timezone
 (after! org
     (require 'ox-dtmd nil t))
 #+end_src
+
+* tree-sitter
+#+begin_src emacs-lisp :tangle packages.el
+(package! tree-sitter)
+(package! tree-sitter-langs)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp
+(use-package! tree-sitter
+  :config
+  (require 'tree-sitter-langs)
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+#+END_SRC
