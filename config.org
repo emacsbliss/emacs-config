@@ -2180,7 +2180,7 @@ upfront, not using defer:
       :hook
       (after-init . org-roam-mode)
       :custom
-      (org-roam-directory "~/org/roam/org")
+      (org-roam-directory "~/org/roam")
       (org-roam-capture--file-name-default "")
       (org-roam-rename-file-on-title-change nil)
       (org-roam-dailies-capture-templates
@@ -2239,7 +2239,13 @@ upfront, not using defer:
 #+END_SRC
 ** multiple org-roam
 Now with latest version of org-roam, they have switched to use dir local variable
-to achieve multiple org-roam.
+to achieve multiple org-roam, but this seems still works:
+
+#+BEGIN_SRC emacs-lisp
+(defvar org-roam-directories-alist nil)
+(setq org-roam-directories-alist '(("default" . "~/org/roam")
+                                   ("coding" . "~/org/coding")))
+#+END_SRC
 
 #+begin_src emacs-lisp :tangle no
 ;;;###autoload
@@ -3582,6 +3588,8 @@ w3m-view-source
 w3m-view-url-with-external-browser
 
 [[https://www.emacswiki.org/emacs/WThreeMHintsAndTips][EmacsWiki: W Three M Hints And Tips]]
+** akirakyle/emacs-webkit
+can't build it on macOS due to gtkwebkit not available..
 * python
 Doom Emacs already have add support for lsp, we just need to put this in
 ~init.el~:
@@ -5433,3 +5441,4 @@ It is usually a good idea to manually set org-icalendar-timezone
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 #+END_SRC
+[fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
