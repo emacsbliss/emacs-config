@@ -14,14 +14,6 @@
     :PROPERTIES:
     :ID:       7A18DBE9-F56A-459E-9110-4AA1C054CAB9
     :END:
-*** [[https://www.reddit.com/r/emacs/.rss][r/M-x Emacs]]
-    :PROPERTIES:
-    :ID:       29C05341-9540-4D83-9EED-5127C4FD10FC
-    :END:
-*** [[https://www.reddit.com/r/orgmode/.rss][r/orgmode]]
-    :PROPERTIES:
-    :ID:       25178EB0-4C68-49AF-A1BD-4FE8AE1DDEBB
-    :END:
 *** [[http://oremacs.com/atom.xml][(or emacs irrelevant)]]
     :PROPERTIES:
     :ID:       6DAC16E7-B570-4EF2-B033-A290887DF3D8
@@ -29,7 +21,11 @@
 *** [[https://nullprogram.com/feed/][nullprogram]]
 *** [[https://yiufung.net/index.xml][yiufung]]
 *** [[http://cachestocaches.com/feed/][cachestocaches]]
-** favorite
+*** [[https://protesilaos.com/master.xml][Protesilaos Stavrou]]
+** Tech Blog :blog:
+*** [[https://paulmck.livejournal.com/data/rss][Paul E. McKenney's Journal]]
+*** [[https://eli.thegreenplace.net/feeds/all.atom.xml][Eli Bendersky's website]]
+*** [[http://feeds.feedburner.com/zhihua-xblog][doctor-lai]]
 *** [[http://feeds.feedburner.com/ruanyifeng][ruanyifeng]] :chinese:
 ** clojure :clojure:
 *** [[https://www.reddit.com/r/Clojure/.rss][r/Clojure]]
