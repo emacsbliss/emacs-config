@@ -71,6 +71,8 @@
           :n "-" #'elfeed-search-untag-all
           :n "S" #'elfeed-search-set-filter
           :n "o" #'elfeed-search-browse-url
+          :n "t" #'elfeed-w3m-open
+          :n "w" #'elfeed-eww-open
           :n "y" #'elfeed-search-yank)
     (after! evil-snipe
       (push 'elfeed-search-mode evil-snipe-disabled-modes))

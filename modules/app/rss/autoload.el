@@ -335,6 +335,41 @@ XWIDGET instance, XWIDGET-EVENT-TYPE depends on the originating xwidget."
                #'avy--overlay-pre))))
     (ace-link--elfeed-action pt)))
 
+;;;###autoload
+(defun elfeed-eww-open (&optional use-generic-p)
+  "open with eww"
+  (interactive "P")
+  (let ((entries (elfeed-search-selected)))
+    (cl-loop for entry in entries
+             do (elfeed-untag entry 'unread)
+             when (elfeed-entry-link entry)
+             do (eww-browse-url it))
+    (mapc #'elfeed-search-update-entry entries)
+    (unless (use-region-p) (forward-line))))
+
+;;;###autoload
+(defun elfeed-w3m-open (&optional use-generic-p)
+  "open with w3m"
+  (interactive "P")
+  (let ((entries (elfeed-search-selected)))
+    (cl-loop for entry in entries
+             do (elfeed-untag entry 'unread)
+             when (elfeed-entry-link entry)
+             do (ffap-w3m-other-window it))
+    (mapc #'elfeed-search-update-entry entries)
+    (unless (use-region-p) (forward-line))))
+
+;;;###autoload
+(defun ffap-w3m-other-window (url &optional new-session)
+  "Browse url in w3m.
+  If current frame has only one window, create a new window and browse the webpage"
+  (interactive (progn
+                 (require 'browse-url)
+                 (browse-url-interactive-arg "Emacs-w3m URL: ")))
+  (let ((w3m-pop-up-windows t))
+    (if (one-window-p) (split-window))
+    (other-window 1)
+    (w3m-browse-url url new-session)))
 
 ;; * Deprecated
 ;; ;;;###autoload
