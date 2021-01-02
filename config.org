@@ -1855,6 +1855,8 @@ since I'm using evil mode, esc button will be intercepted by Emacs so vterm will
 not be able to pass it to vim, so I use ~C-c C-e~ for ~Esc~ and ~C-c C-q~ for ex
 mode.
 
+It turned out bad idea to bind ~jf~ in insert mode to switch to normal mode, that will cause ~j~ can't be entered at all..
+
 #+begin_src emacs-lisp :tangle modules/term/vterm/config.el :mkdirp yes
 (add-hook 'vterm-mode-hook 'my-vterm-hook)
 
@@ -1863,7 +1865,9 @@ mode.
 
     [remap whole-line-or-region-yank] #'vterm-yank
     :desc "to normal mode" :i "C-;"   #'evil-normal-state
-    :desc "to normal mode" :i "jf"    #'evil-normal-state
+    ;; bad idea
+    ;; :desc "to normal mode" :i "jf"    #'evil-normal-state
+    :desc "yank"           :n "p"    #'vterm-yank
     :desc "up"             :in "C-k"              #'vterm-send-up
     :desc "down"           :in "C-j"            #'vterm-send-down
     :desc "window up"      :i "C-c C-k"    #'evil-window-up
