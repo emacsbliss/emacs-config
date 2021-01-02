@@ -1792,11 +1792,53 @@ and caused problem:
 (after! web-mode
     (setq web-mode-enable-auto-indentation t))
 #+END_SRC
-* terminal/shell
-** vterm
+* vterm
+Best terminal emulator for Emacs so far.
+#+begin_src emacs-lisp :tangle modules/term/vterm/packages.el :mkdirp yes
+(package! vterm
+  :pin "a670b786539d3c886...")
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/term/vterm/config.el :mkdirp yes
+;;; term/vterm/config.el -*- lexical-binding: t; -*-
+
+(use-package! vterm
+  :when (bound-and-true-p module-file-suffix)
+  :commands vterm-mode
+  :hook (vterm-mode . doom-mark-buffer-as-real-h)
+  :hook (vterm-mode . hide-mode-line-mode) ; modeline serves no purpose in vterm
+  :config
+  (set-popup-rule! "^vterm" :size 0.25 :vslot -4 :select t :quit nil :ttl 0)
+
+  ;; Once vterm is dead, the vterm buffer is useless. Why keep it around? We can
+  ;; spawn another if want one.
+  (setq vterm-kill-buffer-on-exit t)
+
+  ;; 10000 lines of scrollback
+  (setq vterm-max-scrollback 10000)
+
+  (setq-hook! 'vterm-mode-hook
+    ;; Don't prompt about dying processes when killing vterm
+    confirm-kill-processes nil
+    ;; Prevent premature horizontal scrolling
+    hscroll-margin 0)
+)
+#+end_src
+
+We need to disable this hook from DOOM Emacs since it causes weird cursor issue when move cursor in normal mode then start inserting:
+#+begin_src emacs-lisp :tangle no
+ Restore the point's location when leaving and re-entering insert mode.
+  (when (featurep! :editor evil)
+    (add-hook! 'vterm-mode-hook
+      (defun +vterm-init-remember-point-h ()
+        (add-hook 'evil-insert-state-exit-hook #'+vterm-remember-insert-point-h nil t)
+        (add-hook 'evil-insert-state-entry-hook #'+vterm-goto-insert-point-h nil t))))
+#+end_src
+
+** interact with emacs from shell
 Here I define a bunch of commands for vterm so I can use them on the command
 line to interact with emacs:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle modules/term/vterm/config.el :mkdirp yes
 (after! vterm
   (add-to-list 'vterm-eval-cmds '("ediff-files" ediff-files))
   (add-to-list 'vterm-eval-cmds '("magit-diff" magit-diff-dwim))
@@ -1807,29 +1849,183 @@ line to interact with emacs:
 )
 #+end_src
 
+** keybindings
 When running vim in vterm, we need to be able to escape to normal mode, but
 since I'm using evil mode, esc button will be intercepted by Emacs so vterm will
 not be able to pass it to vim, so I use ~C-c C-e~ for ~Esc~ and ~C-c C-q~ for ex
 mode.
-#+begin_src emacs-lisp :tangle keybinds.el
+
+#+begin_src emacs-lisp :tangle modules/term/vterm/config.el :mkdirp yes
+(add-hook 'vterm-mode-hook 'my-vterm-hook)
+
 (map!
   (:map vterm-mode-map
 
     [remap whole-line-or-region-yank] #'vterm-yank
-    "C-;"                        #'evil-normal-state
-    "C-k"                        #'vterm-send-up
-    "C-j"                        #'vterm-send-down
-    "C-c C-k"                    #'evil-window-up
-    "C-c C-j"                    #'evil-window-down
+    :desc "to normal mode" :i "C-;"   #'evil-normal-state
+    :desc "to normal mode" :i "jf"    #'evil-normal-state
+    :desc "up"             :in "C-k"              #'vterm-send-up
+    :desc "down"           :in "C-j"            #'vterm-send-down
+    :desc "window up"      :i "C-c C-k"    #'evil-window-up
+    :desc "window down"    :i "C-c C-j"  #'evil-window-down
     "C-c C-e"                        (lambda ()
                                         (interactive)
                                         (vterm-send-key "<escape>" nil t nil))
     "C-c C-q"                        (lambda ()
                                         (interactive)
                                         (vterm-send-key ":" nil t nil))
-    ))
+))
 #+end_src
 
+** autoloads
+#+begin_src emacs-lisp :tangle modules/term/vterm/autoload.el :mkdirp yes
+;;; term/vterm/autoload.el -*- lexical-binding: t; -*-
+
+;;;###autoload
+(defun +vterm/toggle (arg)
+  "Toggles a terminal popup window at project root.
+
+If prefix ARG is non-nil, recreate vterm buffer in the current project's root."
+  (interactive "P")
+  (unless (fboundp 'module-load)
+    (user-error "Your build of Emacs lacks dynamic modules support and cannot load vterm"))
+  (let ((buffer-name
+         (format "*doom:vterm-popup:%s*"
+                 (if (bound-and-true-p persp-mode)
+                     (safe-persp-name (get-current-persp))
+                   "main")))
+        confirm-kill-processes
+        current-prefix-arg)
+    (when arg
+      (let ((buffer (get-buffer buffer-name))
+            (window (get-buffer-window buffer-name)))
+        (when (buffer-live-p buffer)
+          (kill-buffer buffer))
+        (when (window-live-p window)
+          (delete-window window))))
+    (if-let (win (get-buffer-window buffer-name))
+        (if (eq (selected-window) win)
+            (delete-window win)
+          (select-window win)
+          (when (bound-and-true-p evil-local-mode)
+            (evil-change-to-initial-state))
+          (goto-char (point-max)))
+      (setenv "PROOT" (or (doom-project-root) default-directory))
+      (let ((buffer (get-buffer-create buffer-name)))
+        (with-current-buffer buffer
+          (unless (eq major-mode 'vterm-mode)
+            (vterm-mode))
+          (+vterm--change-directory-if-remote))
+        (pop-to-buffer buffer)))))
+
+;;;###autoload
+(defun +vterm/here (arg)
+  "Open a terminal buffer in the current window at project root.
+
+If prefix ARG is non-nil, cd into `default-directory' instead of project root."
+  (interactive "P")
+  (unless (fboundp 'module-load)
+    (user-error "Your build of Emacs lacks dynamic modules support and cannot load vterm"))
+  (require 'vterm)
+  ;; This hack forces vterm to redraw, fixing strange artefacting in the tty.
+  (save-window-excursion
+    (pop-to-buffer "*scratch*"))
+  (let* ((project-root (or (doom-project-root) default-directory))
+         (default-directory
+           (if arg
+               default-directory
+             project-root))
+         display-buffer-alist)
+    (setenv "PROOT" project-root)
+    (vterm)
+    (+vterm--change-directory-if-remote)))
+
+(defun +vterm--change-directory-if-remote ()
+  "When `default-directory` is remote, use the corresponding
+method to prepare vterm at the corresponding remote directory."
+  (when (and (featurep 'tramp)
+             (tramp-tramp-file-p default-directory))
+    (message "default-directory is %s" default-directory)
+    (with-parsed-tramp-file-name default-directory path
+      (let ((method (cadr (assoc `tramp-login-program
+                                 (assoc path-method tramp-methods)))))
+        (vterm-send-string
+         (concat method " "
+                 (when path-user (concat path-user "@")) path-host))
+        (vterm-send-return)
+        (vterm-send-string
+         (concat "cd " path-localname))
+        (vterm-send-return)))))
+
+
+(defvar +vterm--insert-point nil)
+
+;;;###autoload
+(defun +vterm-remember-insert-point-h ()
+  "Remember point when leaving insert mode."
+  (setq-local +vterm--insert-point (point)))
+
+;;;###autoload
+(defun +vterm-goto-insert-point-h ()
+  "Go to the point we were at when we left insert mode."
+  (when +vterm--insert-point
+    (goto-char +vterm--insert-point)
+    (setq-local +vterm--insert-point nil)))
+#+end_src
+** better evil integration
+#+begin_src emacs-lisp :tangle modules/term/vterm/autoload.el :mkdirp yes
+;;;###autoload
+(defun vterm-evil-insert ()
+  (interactive)
+  (vterm-goto-char (point))
+  (call-interactively #'evil-insert))
+
+;;;###autoload
+(defun vterm-evil-append ()
+  (interactive)
+  (vterm-goto-char (1+ (point)))
+  (call-interactively #'evil-append))
+
+;;;###autoload
+(defun vterm-evil-delete ()
+  "Provide similar behavior as `evil-delete'."
+  (interactive)
+  (let ((inhibit-read-only t)
+        )
+    (cl-letf (((symbol-function #'delete-region) #'vterm-delete-region))
+      (call-interactively 'evil-delete))))
+
+;;;###autoload
+(defun vterm-evil-change ()
+  "Provide similar behavior as `evil-change'."
+  (interactive)
+  (let ((inhibit-read-only t))
+    (cl-letf (((symbol-function #'delete-region) #'vterm-delete-region))
+      (call-interactively 'evil-change))))
+
+;;;###autoload
+(defun my-vterm-hook()
+  (evil-local-mode 1)
+  (evil-define-key 'normal 'local "a" 'vterm-evil-append)
+  (evil-define-key 'normal 'local "d" 'vterm-evil-delete)
+  (evil-define-key 'normal 'local "i" 'vterm-evil-insert)
+  (evil-define-key 'normal 'local "c" 'vterm-evil-change))
+#+end_src
+
+** counsel-yank-pop
+#+begin_src emacs-lisp :tangle modules/term/vterm/autoload.el :mkdirp yes
+;;;###autoload
+(defun vterm-counsel-yank-pop-action (orig-fun &rest args)
+  (if (equal major-mode 'vterm-mode)
+      (let ((inhibit-read-only t)
+            (yank-undo-function (lambda (_start _end) (vterm-undo))))
+        (cl-letf (((symbol-function 'insert-for-yank)
+               (lambda (str) (vterm-send-string str t))))
+            (apply orig-fun args)))
+    (apply orig-fun args)))
+
+(advice-add 'counsel-yank-pop-action :around #'vterm-counsel-yank-pop-action)
+#+end_src
 * LSP
 ** lsp-mode
 TODO: this need review:
