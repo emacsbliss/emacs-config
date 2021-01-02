@@ -5197,7 +5197,7 @@ brew install xapian
 #+END_SRC
 
 #+begin_src emacs-lisp :tangle packages.el
-(package! notdeft :recipe (:host github :repo "hasu/notdeft" :branch "xapian"))
+(package! notdeft :recipe (:host github :repo "hasu/notdeft" :branch "devel"))
 #+end_src
 
 #+BEGIN_SRC emacs-lisp
