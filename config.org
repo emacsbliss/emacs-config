@@ -1416,8 +1416,7 @@ https://oremacs.com/2017/08/04/ripgrep/
 (use-package! deadgrep
   :defer t)
 #+END_SRC
-* lookup
-** dictionary
+* dictionary
 DOOM Emacs uses ~osx-dictionary~ package to look up word by interacting with
 MacOS Dict app, but there is a [[https://github.com/xuchunyang/osx-dictionary.el/issues/21][deal breaker]] for me: ~osx-dictionary~ can only
 show the result from one dictionary, but that limitation comes from MacOS dict
@@ -1428,6 +1427,7 @@ I found that ~sdcv~ program works better, but we need to install it first:
 brew install sdcv
 #+END_SRC
 
+** sdcv.el
 Then ~sdcv.el~ package will make use of the binary ~sdcv~ to do the translation:
 #+begin_src emacs-lisp :tangle no
 (package! sdcv :recipe (:host github :repo "manateelazycat/sdcv"))
@@ -1436,7 +1436,7 @@ Then ~sdcv.el~ package will make use of the binary ~sdcv~ to do the translation:
 We need to add dictionaries so ~sdcv~ will use, you can put it anywhere but we
 need to let ~sdcv.el~ know by setting this:
 #+BEGIN_SRC emacs-lisp :tangle no
-(setq sdcv-dictionary-data-dir "~/dict")
+(setq sdcv-dictionary-data-dir (expand-file-name "~/dict"))
 #+END_SRC
 
 Note the directory for dictionary needs to be fully expanded path, something like =~/dict=
@@ -1452,6 +1452,46 @@ sdcv --list-dicts --data-dir=~/dict
 (setq sdcv-say-word-p t)
 #+END_SRC
 
+** lexic [fn:5]
+#+begin_src emacs-lisp :tangle packages.el
+(package! lexic :recipe (:host github :repo "tecosaur/lexic"))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! lexic
+  :commands lexic-search lexic-list-dictionary
+  :config
+  (setq lexic-dictionary-path (expand-file-name "~/dict"))
+  (map! :map lexic-mode-map
+        :n "q" #'lexic-return-from-lexic
+        :nv "RET" #'lexic-search-word-at-point
+        :n "a" #'outline-show-all
+        :n "h" (cmd! (outline-hide-sublevels 3))
+        :n "o" #'lexic-toggle-entry
+        :n "n" #'lexic-next-entry
+        :n "N" (cmd! (lexic-next-entry t))
+        :n "p" #'lexic-previous-entry
+        :n "P" (cmd! (lexic-previous-entry t))
+        :n "E" (cmd! (lexic-return-from-lexic) ; expand
+                     (switch-to-buffer (lexic-get-buffer)))
+        :n "M" (cmd! (lexic-return-from-lexic) ; minimise
+                     (lexic-goto-lexic))
+        :n "C-p" #'lexic-search-history-backwards
+        :n "C-n" #'lexic-search-history-forwards
+        :n "/" (cmd! (call-interactively #'lexic-search))))
+#+end_src
+
+#+begin_src emacs-lisp
+(defadvice! +lookup/dictionary-definition-lexic (identifier &optional arg)
+  "Look up the definition of the word at point (or selection) using `lexic-search'."
+  :override #'+lookup/dictionary-definition
+  (interactive
+   (list (or (doom-thing-at-point-or-region 'word)
+             (read-string "Look up in dictionary: "))
+         current-prefix-arg))
+  (lexic-search identifier nil nil t))
+#+end_src
+* lookup
 ** dash-at-point
 #+begin_src emacs-lisp :tangle packages.el
 (package! dash-at-point)
@@ -5731,3 +5771,4 @@ It is usually a good idea to manually set org-icalendar-timezone
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
 [fn:3] https://karthinks.com/blog/lazy-elfeed/
 [fn:4] https://noonker.github.io/posts/2020-04-22-elfeed/
+[fn:5] https://tecosaur.github.io/emacs-config/config.html#dictionary
