@@ -2082,6 +2082,26 @@ https://github.com/manateelazycat/nox
 
 Tried so far but somehow doesn't seem to work for me at all, not sure why..
 Find definition or references not give me any result..
+** clangd
+#+BEGIN_SRC emacs-lisp
+(setq lsp-clients-clangd-args '("-j=3"
+                                "--background-index"
+                                "--cross-file-rename"
+                                "--suggest-missing-includes"
+                                "--enable-config"
+                                "--clang-tidy"
+                                "--completion-style=detailed"
+                                "--header-insertion=never"))
+(after! lsp-clangd (set-lsp-priority! 'clangd 2))
+#+END_SRC
+** lsp-treemacs
+#+begin_src emacs-lisp :tangle packages.el
+(package! lsp-treemacs)
+#+END_SRC
+
+#+begin_src emacs-lisp
+(use-package! lsp-treemacs)
+#+END_SRC
 * org mode
 ** basic setup
 #+begin_src emacs-lisp
