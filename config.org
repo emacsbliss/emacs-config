@@ -2406,7 +2406,7 @@ upfront, not using defer:
       (org-roam-dailies-capture-templates
          '(("d" "daily" plain (function org-roam-capture--get-point) ""
          :immediate-finish t
-         :file-name "2020/%<%Y-%m-%d>"
+         :file-name "journals/%<%Y-%m-%d>"
          :head "#+TITLE: %<%Y-%m-%d>")))
       (org-roam-capture-templates
         '(("d" "default" plain (function org-roam-capture--get-point)
