@@ -4539,6 +4539,32 @@ I have created a function to print xpath for json in a python list format:
   :desc "counsel-jq" :n ",jq" #'counsel-jq
   :desc "pretty print bufer" :n ",f" #'json-pretty-print-buffer)
 #+end_src
+** quicklook
+Often I copy some json blob into clipboard and just to quickly view them after
+pretty-print, but by saving it into a file, then format and only after that to
+view it makes it too much work, so create a function to quickly do that..
+
+#+begin_src emacs-lisp :tangle modules/lang/json/autoload.el :mkdirp yes
+;;;###autoload
+(defun preview/save-kill (prettier)
+  "Put the last kill to temporary buffer, apply the prttier to the buffer"
+  (let ((buf (get-buffer-create (generate-new-buffer-name "*preview*"))))
+    (set-buffer buf)
+    (insert (current-kill 0 t))
+    (funcall prettier)
+    (switch-to-buffer buf)
+    (goto-char (point-min))
+))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/lang/json/autoload.el :mkdirp yes
+;;;###autoload
+(defun json/quicklook ()
+  "quickly preview the json blob in clipboard after pretty print"
+  (interactive)
+  (preview/save-kill #'json-pretty-print-buffer)
+  (json-mode))
+#+end_src
 * xml
 ** pretty print
 It's take from [[https://emacs.stackexchange.com/questions/14197/how-to-prettify-format-an-xml-buffer][here]]:
