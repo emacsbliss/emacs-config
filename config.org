@@ -1097,10 +1097,14 @@ them to most frequently used things in Emacs.
 (map! :leader
   ;;; <leader> r --- roam
     (:prefix-map ("r" . "org-roam")
-      :desc "org roam today"             "t" #'org-roam-dailies-today
-      :desc "org roam yesterday"         "y" #'org-roam-dailies-yesterday
-      :desc "org roam daily date"        "d" #'org-roam-dailies-date
-      :desc "org roam tomorrow"          "T" #'org-roam-dailies-tomorrow))
+      :desc "org roam today"                      "t" #'org-roam-dailies-find-today
+      :desc "org roam capture today"              "c" #'org-roam-dailies-capture-today
+      :desc "org roam yesterday"                  "y" #'org-roam-dailies-find-yesterday
+      :desc "org roam daily date"                 "d" #'org-roam-dailies-find-date
+      :desc "org roam daily capture date"         "D" #'org-roam-dailies-capture-date
+      :desc "org roam daily capture tomorrow"     "C" #'org-roam-dailies-capture-tomorrow
+      :desc "org roam todo"                       "o" #'me/org-roam-todo
+      :desc "org roam tomorrow"                   "T" #'org-roam-dailies-find-tomorrow))
 #+END_SRC
 ** keybinding - search
 #+begin_src emacs-lisp
@@ -1757,6 +1761,39 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
   (require 'vlf-setup)
 )
 #+END_SRC
+* GTD
+** capture
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+    (setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "✔ DONE(d)")
+                                (sequence "⚑ WAITING(w)" "|")
+                                (sequence "|" "✘ CANCELED(c)")))
+
+    (setq org-agenda-files '("~/org/gtd/gtd.org"
+                            "~/org/gtd/Inbox.org"
+                            "~/org/gtd/tickler.org"))
+
+    (setq org-capture-templates '())
+    (setq org-refile-targets
+          '(("~/org/gtd/gtd.org" :maxlevel . 3)
+            ("~/org/gtd/someday.org" :level . 1)
+            ("~/org/gtd/tickler.org" :maxlevel . 2))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+(add-to-list 'org-capture-templates
+    `("t" "Todo [inbox]" entry
+        (file+headline "~/org/gtd/Inbox.org" "Tasks")
+        "* TODO %i%?"))
+
+(add-to-list 'org-capture-templates
+     `("T" "Tickler" entry
+        (file+headline "~/gtd/tickler.org" "Tickler")
+         "* %i%? \n %U"))
+)
+#+end_src
+
 * editing
 ** super save
 #+begin_src emacs-lisp :tangle packages.el
@@ -2244,17 +2281,6 @@ Following is taken from [[https://tecosaur.github.io/emacs-config/config.html][H
     :em_dash       "---"))
 (plist-put +pretty-code-symbols :name "⁍") ; or › could be good?
 #+END_SRC
-** GTD
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(after! org
-    (setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "✔ DONE(d)")
-                                (sequence "⚑ WAITING(w)" "|")
-                                (sequence "|" "✘ CANCELED(c)")))
-
-    (setq org-agenda-files '("~/org/gtd/"
-                            "~/org/Inbox.org" )))
-#+end_src
-
 ** journal
 I use [[https://github.com/bastibe/org-journal][org-journal]] to write journal and then with some customized functions these
 journals are also exported to [[https://dayone.me/][DayOne]] on MacOs.
@@ -2424,101 +2450,6 @@ I noticed I didn't use it too often.. ~org-roam~ seems more interesting..
   (setq org-brain-visualize-default-choices 'all)
   (setq org-brain-title-max-length 12))
 #+end_src
-
-** org roam
-https://github.com/jethrokuan/org-roam
-
-I like it better than org-brain, feels more natural to me..
-#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! org-roam :recipe (:host github :repo "jethrokuan/org-roam"))
-#+end_src
-
-Given the frequency I use org-roam, I think it makes sense to always load it
-upfront, not using defer:
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(use-package org-roam
-      :hook
-      (after-init . org-roam-mode)
-      :custom
-      (org-roam-directory "~/org/roam")
-      (org-roam-capture--file-name-default "")
-      (org-roam-rename-file-on-title-change nil)
-      (org-roam-dailies-capture-templates
-         '(("d" "daily" plain (function org-roam-capture--get-point) ""
-         :immediate-finish t
-         :file-name "journals/%<%Y-%m-%d>"
-         :head "#+TITLE: %<%Y-%m-%d>")))
-      (org-roam-capture-templates
-        '(("d" "default" plain (function org-roam-capture--get-point)
-            "%?"
-            :immediate-finish t
-            :file-name "${slug}"
-            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n"
-            :unnarrowed t)
-
-          ("j" "jira" plain (function org-roam-capture--get-point)
-            "%?"
-            :immediate-finish t
-            :file-name "${slug}"
-            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n#+KEYWORDS: \n#+TYPE: \n#+STATUS: Q\n#+JIRA: \n#+SPRINT: \n#+EPIC: \n#+POINTS: \n"
-            :unnarrowed t)))
-      :bind (:map org-mode-map
-        (("C-c r" . org-roam-insert))))
-#+end_src
-** backlink support during export for org roam
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-;;;###autoload
-(defun my/org-roam--backlinks-list-with-content (file)
-  (with-temp-buffer
-    (if-let* ((backlinks (org-roam--get-backlinks file))
-              (grouped-backlinks (--group-by (nth 0 it) backlinks)))
-        (progn
-          (insert (format "\n\n* %d Backlinks\n"
-                          (length backlinks)))
-          (dolist (group grouped-backlinks)
-            (let ((file-from (car group))
-                  (bls (cdr group)))
-              (insert (format "** [[file:%s][%s]]\n"
-                              file-from
-                              (org-roam--get-title-or-slug file-from)))
-              (dolist (backlink bls)
-                (pcase-let ((`(,file-from _ ,props) backlink))
-                  (insert (s-trim (s-replace "\n" " " (plist-get props :content))))
-                  (insert "\n\n")))))))
-    (buffer-string)))
-
-;;;###autoload
-(defun my/org-export-preprocessor (backend)
-(let ((links (my/org-roam--backlinks-list-with-content (buffer-file-name))))
-    (unless (string= links "")
-    (save-excursion
-        (goto-char (point-max))
-        (insert (concat "\n* Backlinks\n") links)))))
-
-(add-hook 'org-export-before-processing-hook 'my/org-export-preprocessor)
-#+END_SRC
-** multiple org-roam
-Now with latest version of org-roam, they have switched to use dir local variable
-to achieve multiple org-roam, but this seems still works:
-
-#+BEGIN_SRC emacs-lisp
-(defvar org-roam-directories-alist nil)
-(setq org-roam-directories-alist '(("default" . "~/org/roam")
-                                   ("coding" . "~/org/coding")))
-#+END_SRC
-
-#+begin_src emacs-lisp :tangle no
-;;;###autoload
-(defun me/switch-org-roam()
-"choose between all org roam directories"
-  (interactive)
-  (ivy-read "options: " org-roam-directories-alist
-            :action '(1
-                      ("o" (lambda (x)
-                             (progn (setq org-roam-directory (cdr x))
-                                    (setq notdeft-directories (list (cdr x)))))
-                       "select"))))
-#+END_SRC
 
 ** custom link type
 #+begin_src emacs-lisp :tangle no
@@ -2710,6 +2641,116 @@ tried yet..
 (after! org
   (setq org-export-show-temporary-export-buffer nil))
 #+END_SRC
+* org roam
+https://github.com/jethrokuan/org-roam
+
+I like it better than org-brain, feels more natural to me..
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-roam :recipe (:host github :repo "jethrokuan/org-roam"))
+#+end_src
+
+Given the frequency I use org-roam, I think it makes sense to always load it
+upfront, not using defer:
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package org-roam
+      :hook
+      (after-init . org-roam-mode)
+      :custom
+      (org-roam-directory "~/org/roam")
+      (org-roam-capture--file-name-default "")
+      (org-roam-rename-file-on-title-change nil)
+      (org-roam-dailies-capture-templates
+         '(("d" "daily" plain (function org-roam-capture--get-point) ""
+         :immediate-finish t
+         :file-name "journals/%<%Y-%m-%d>"
+         :head "#+TITLE: %<%Y-%m-%d>")))
+      (org-roam-capture-templates
+        '(("d" "default" plain (function org-roam-capture--get-point)
+            "%?"
+            :immediate-finish t
+            :file-name "${slug}"
+            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n"
+            :unnarrowed t)
+
+          ("j" "jira" plain (function org-roam-capture--get-point)
+            "%?"
+            :immediate-finish t
+            :file-name "${slug}"
+            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n#+KEYWORDS: \n#+TYPE: \n#+STATUS: Q\n#+JIRA: \n#+SPRINT: \n#+EPIC: \n#+POINTS: \n"
+            :unnarrowed t)))
+      :bind (:map org-mode-map
+        (("C-c r" . org-roam-insert))))
+#+end_src
+** backlink support during export for org roam
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+;;;###autoload
+(defun my/org-roam--backlinks-list-with-content (file)
+  (with-temp-buffer
+    (if-let* ((backlinks (org-roam--get-backlinks file))
+              (grouped-backlinks (--group-by (nth 0 it) backlinks)))
+        (progn
+          (insert (format "\n\n* %d Backlinks\n"
+                          (length backlinks)))
+          (dolist (group grouped-backlinks)
+            (let ((file-from (car group))
+                  (bls (cdr group)))
+              (insert (format "** [[file:%s][%s]]\n"
+                              file-from
+                              (org-roam--get-title-or-slug file-from)))
+              (dolist (backlink bls)
+                (pcase-let ((`(,file-from _ ,props) backlink))
+                  (insert (s-trim (s-replace "\n" " " (plist-get props :content))))
+                  (insert "\n\n")))))))
+    (buffer-string)))
+
+;;;###autoload
+(defun my/org-export-preprocessor (backend)
+(let ((links (my/org-roam--backlinks-list-with-content (buffer-file-name))))
+    (unless (string= links "")
+    (save-excursion
+        (goto-char (point-max))
+        (insert (concat "\n* Backlinks\n") links)))))
+
+(add-hook 'org-export-before-processing-hook 'my/org-export-preprocessor)
+#+END_SRC
+** multiple org-roam
+Now with latest version of org-roam, they have switched to use dir local variable
+to achieve multiple org-roam, but this seems still works:
+
+#+BEGIN_SRC emacs-lisp
+(defvar org-roam-directories-alist nil)
+(setq org-roam-directories-alist '(("default" . "~/org/roam")
+                                   ("coding" . "~/org/coding")))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle no
+;;;###autoload
+(defun me/switch-org-roam()
+"choose between all org roam directories"
+  (interactive)
+  (ivy-read "options: " org-roam-directories-alist
+            :action '(1
+                      ("o" (lambda (x)
+                             (progn (setq org-roam-directory (cdr x))
+                                    (setq notdeft-directories (list (cdr x)))))
+                       "select"))))
+#+END_SRC
+
+** org-roam todo [fn:6]
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+;;;###autoload
+(defun me/org-roam-todo ()
+  "An ad-hoc agenda for `org-roam'."
+  (interactive)
+  (let* ((regex "^\\* TODO")
+         (b (get-buffer (concat "*ivy-occur counsel-rg \"" regex "\"*"))))
+    (if b
+        (progn
+          (switch-to-buffer b)
+          (ivy-occur-revert-buffer))
+      (setq unread-command-events (listify-key-sequence (kbd "C-c C-o M->")))
+      (counsel-rg regex org-roam-directory "--sort modified"))))
+#+end_src
 * presentation
 https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 
@@ -5798,3 +5839,4 @@ It is usually a good idea to manually set org-icalendar-timezone
 [fn:3] https://karthinks.com/blog/lazy-elfeed/
 [fn:4] https://noonker.github.io/posts/2020-04-22-elfeed/
 [fn:5] https://tecosaur.github.io/emacs-config/config.html#dictionary
+[fn:6] https://github.com/abo-abo/oremacs/blob/15e6a33d314121ea0b3f1659dbc3ee8181dce854/modes/ora-org-roam.el
