@@ -145,16 +145,16 @@ To install ~some-package~ from MELPA, ELPA or emacsmirror:
 *** Packages from git repositories
 To install a package directly from a particular repo, you'll need to specify
 a ~:recipe~. You'll find documentation on what ~:recipe~ accepts [[https://github.com/raxod502/straight.el#the-recipe-format][here]]:
-#+BEGIN_SRC emacs-lisp
-(package! another-package :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! another-package
   :recipe (:host github :repo "username/repo"))
 #+END_SRC
 
 If the package you are trying to install does not contain a ~PACKAGENAME.el~
 file, or is located in a subdirectory of the repo, you'll need to specify
 ~:files~ in the ~:recipe~:
-#+BEGIN_SRC emacs-lisp
-(package! this-package :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! this-package
   :recipe (:host github :repo "username/repo"
            :files ("some-file.el" "src/lisp/*.el")))
 #+END_SRC
@@ -1666,13 +1666,46 @@ this is =template file system= ~DOOM~ supports:
 #+END_SRC
 
 * dired
-#+BEGIN_SRC emacs-lisp
-(setq dired-recursive-deletes 'always)
+** dired+
+One thing I want to achieve is do grep on marked files,
+~dired+~ offers this(command ~diredp-do-grep~) and more:
+https://www.emacswiki.org/emacs/DiredPlus
+#+begin_src emacs-lisp :tangle packages.el
+(package! dired+
+  :recipe (:host github :repo "emacsmirror/dired-plus"))
 #+END_SRC
 
-This setting will try suggesting dired targets:
-#+BEGIN_SRC emacs-lisp
-(setq dired-dwim-target t)
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+(use-package! dired+)
+;; I want to see the details
+(add-hook 'dired-mode-hook
+            (lambda ()
+              (dired-hide-details-mode -1)))
+#+END_SRC
+
+In dired buffer, use ~(~ will toggle the show/hide of details.
+
+** dired-quick-sort - disabled
+seems not quite working, particularly on MacOS, even with the
+GNU version of ls installed, not sure why.. for now, use ~ranger.el~
+to sort dired buffer in different way..
+#+begin_src emacs-lisp :tangle packages.el :tangle no
+(package! dired-quick-sort)
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes :tangle no
+(use-package! dired-quick-sort)
+#+END_SRC
+
+** ranger
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+(setq ranger-override-dired-mode nil)
+(setq ranger-override-dired nil)
+#+END_SRC
+
+** config
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+(setq dired-recursive-deletes 'always)
 #+END_SRC
 
 do NOT put =--group-directories-first= otherwise will trigger error:
@@ -1680,10 +1713,14 @@ do NOT put =--group-directories-first= otherwise will trigger error:
 Listing directory failed but 'access-file' worked
 #+END_QUOTE
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
 (setq dired-listing-switches "-aBhl")
 #+END_SRC
 
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+(map! :map dired-mode-map
+  :desc "open"  :n "z" #'me/mac-open)
+#+END_SRC
 * Do NOT use
 ** auto revert tail mode
 disable it since it seems caused some undesired side effect
