@@ -5131,6 +5131,57 @@ So far still not found much use for this package, maybe I still don't quite
 understand it.. anyway disable for now
 * pdf
 It needs a binary called ~epdfinfo~ in order for it to work.
+** rotate pdf [fn:7]
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun pdf-view--rotate (&optional counterclockwise-p page-p)
+  "Rotate PDF 90 degrees.  Requires pdftk to work.\n
+Clockwise rotation is the default; set COUNTERCLOCKWISE-P to
+non-nil for the other direction.  Rotate the whole document by
+default; set PAGE-P to non-nil to rotate only the current page.
+\nWARNING: overwrites the original file, so be careful!"
+  ;; error out when pdftk is not installed
+  (if (null (executable-find "pdftk"))
+      (error "Rotation requires pdftk")
+    ;; only rotate in pdf-view-mode
+    (when (eq major-mode 'pdf-view-mode)
+      (let* ((rotate (if counterclockwise-p "left" "right"))
+             (file   (format "\"%s\"" (pdf-view-buffer-file-name)))
+             (page   (pdf-view-current-page))
+             (pages  (cond ((not page-p)                        ; whole doc?
+                            (format "1-end%s" rotate))
+                           ((= page 1)                          ; first page?
+                            (format "%d%s %d-end"
+                                    page rotate (1+ page)))
+                           ((= page (pdf-info-number-of-pages)) ; last page?
+                            (format "1-%d %d%s"
+                                    (1- page) page rotate))
+                           (t                                   ; interior page?
+                            (format "1-%d %d%s %d-end"
+                                    (1- page) page rotate (1+ page))))))
+        ;; empty string if it worked
+        (if (string= "" (shell-command-to-string
+                         (format (concat "pdftk %s cat %s "
+                                         "output %s.NEW "
+                                         "&& mv %s.NEW %s")
+                                 file pages file file file)))
+            (pdf-view-revert-buffer nil t)
+          (error "Rotation error!"))))))
+
+;;;###autoload
+(defun pdf-view-rotate-clockwise (&optional arg)
+  "Rotate PDF page 90 degrees clockwise.  With prefix ARG, rotate
+entire document."
+  (interactive "P")
+  (pdf-view--rotate nil (not arg)))
+
+;;;###autoload
+(defun pdf-view-rotate-counterclockwise (&optional arg)
+  "Rotate PDF page 90 degrees counterclockwise.  With prefix ARG,
+rotate entire document."
+  (interactive "P")
+  (pdf-view--rotate :counterclockwise (not arg)))
+#+end_src
 * jupyter/ipython
 Doom Emacs has already include [[github:dzop/emacs-jupyter][jupyter]] package, to use it just add
 #+begin_src emacs-lisp :tangle no
@@ -5877,3 +5928,4 @@ It is usually a good idea to manually set org-icalendar-timezone
 [fn:4] https://noonker.github.io/posts/2020-04-22-elfeed/
 [fn:5] https://tecosaur.github.io/emacs-config/config.html#dictionary
 [fn:6] https://github.com/abo-abo/oremacs/blob/15e6a33d314121ea0b3f1659dbc3ee8181dce854/modes/ora-org-roam.el
+[fn:7] https://github.com/politza/pdf-tools/issues/347
