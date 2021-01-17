@@ -2788,19 +2788,6 @@ to achieve multiple org-roam, but this seems still works:
       (setq unread-command-events (listify-key-sequence (kbd "C-c C-o M->")))
       (counsel-rg regex org-roam-directory "--sort modified"))))
 #+end_src
-* presentation
-https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
-
-https://gitlab.com/oer/emacs-reveal
-
-#+begin_src emacs-lisp :tangle no
-(package! emacs-reveal :recipe (:host gitlab :repo "oer/emacs-reveal"))
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-(use-package! emacs-reveal
-  :defer t)
-#+end_src
 ** Exporting presentations as PDF
 It's taken from [[https://geeksocket.in/posts/presentations-org-emacs/][here]].
 
@@ -5220,7 +5207,9 @@ print('hello world')
 To start a new kernel on the localhost and connect a REPL client to it
 ~M-x jupyter-run-repl~. Alternatively you can connect to an existing kernel by
 supplying the kernel’s connection file using ~M-x jupyter-connect-repl~.
-* hyperbole
+* hyperbole - disabled
+Disabled as of <2021-01-15 Fri> since not really use it much..
+
 From its Demo page:
 #+BEGIN_QUOTE
 Welcome to GNU Hyperbole.  Hyperbole will super-charge your GNU Emacs
@@ -5230,11 +5219,11 @@ keys.  Invest an hour learning Hyperbole now and speed your daily information
 management for years to come.
 #+END_QUOTE
 
-#+begin_src emacs-lisp :tangle packages.el
+#+begin_src emacs-lisp :tangle packages.el :tangle no
 (package! hyperbole)
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package! hyperbole
   :defer t)
 #+end_src
@@ -5929,3 +5918,24 @@ It is usually a good idea to manually set org-icalendar-timezone
 [fn:5] https://tecosaur.github.io/emacs-config/config.html#dictionary
 [fn:6] https://github.com/abo-abo/oremacs/blob/15e6a33d314121ea0b3f1659dbc3ee8181dce854/modes/ora-org-roam.el
 [fn:7] https://github.com/politza/pdf-tools/issues/347
+
+* presentation
+** emacs-reveal
+https://gitlab.com/oer/emacs-reveal
+https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
+#+begin_src emacs-lisp :tangle packages.el
+(package! emacs-reveal :recipe (:host gitlab :repo "oer/emacs-reveal"))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! emacs-reveal
+  :init
+  (setq emacs-reveal-managed-install-p nil))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! ox-oer-reveal
+    :after ox)
+
+(use-package! oer-reveal)
+#+end_src
