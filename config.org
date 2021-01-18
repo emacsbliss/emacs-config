@@ -1949,6 +1949,12 @@ We need to disable this hook from DOOM Emacs since it causes weird cursor issue 
         (add-hook 'evil-insert-state-entry-hook #'+vterm-goto-insert-point-h nil t))))
 #+end_src
 
+** compile the module
+In order to compile the libvterm dynamic module, we need to have ~cmake~ and ~libtool~:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install cmake libtool
+#+END_SRC
+
 ** interact with emacs from shell
 Here I define a bunch of commands for vterm so I can use them on the command
 line to interact with emacs:
@@ -5119,6 +5125,13 @@ understand it.. anyway disable for now
 * pdf
 It needs a binary called ~epdfinfo~ in order for it to work.
 ** rotate pdf [fn:7]
+rotate pdf requires ~pdftk~ to work, but official version is too much
+trouble to work on MacOS, instead there is a ~pdftk-java~ which is an
+open source implementation in java:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install pdftk-java
+#+END_SRC
+
 #+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
 ;;;###autoload
 (defun pdf-view--rotate (&optional counterclockwise-p page-p)
@@ -5911,14 +5924,6 @@ It is usually a good idea to manually set org-icalendar-timezone
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 #+END_SRC
 
-[fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
-[fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
-[fn:3] https://karthinks.com/blog/lazy-elfeed/
-[fn:4] https://noonker.github.io/posts/2020-04-22-elfeed/
-[fn:5] https://tecosaur.github.io/emacs-config/config.html#dictionary
-[fn:6] https://github.com/abo-abo/oremacs/blob/15e6a33d314121ea0b3f1659dbc3ee8181dce854/modes/ora-org-roam.el
-[fn:7] https://github.com/politza/pdf-tools/issues/347
-
 * presentation
 ** emacs-reveal
 https://gitlab.com/oer/emacs-reveal
@@ -5939,3 +5944,14 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 
 (use-package! oer-reveal)
 #+end_src
+
+* weather
+https://github.com/bcbcarl/emacs-wttrin
+
+[fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
+[fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
+[fn:3] https://karthinks.com/blog/lazy-elfeed/
+[fn:4] https://noonker.github.io/posts/2020-04-22-elfeed/
+[fn:5] https://tecosaur.github.io/emacs-config/config.html#dictionary
+[fn:6] https://github.com/abo-abo/oremacs/blob/15e6a33d314121ea0b3f1659dbc3ee8181dce854/modes/ora-org-roam.el
+[fn:7] https://github.com/politza/pdf-tools/issues/347
