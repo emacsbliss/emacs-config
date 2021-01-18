@@ -1831,6 +1831,16 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
 )
 #+end_src
 
+** setup
+- directory is =~/org/gtd=
+- inbox is ~inbox.org~
+- if it's someday, goes into ~someday.org~
+- tickler file is ~tickler.org~
+- appointment goes into ~appt.org~?
+- how to surface entries tickler file?
+- all project related goes into ~project.org~
+- later once done, manually refile into file within ~org roam directory~
+- if it's reference, first refile into ~reference.org~, then at some point manually refile them into corresponding org file
 * editing
 ** super save
 #+begin_src emacs-lisp :tangle packages.el
