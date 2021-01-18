@@ -1738,6 +1738,31 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
 )
 #+END_SRC
 * GTD
+** packages
+#+BEGIN_SRC emacs-lisp :tangle packages.el
+(package! org-gtd :recipe (:host github :repo "Trevoke/org-gtd.el"))
+#+END_SRC
+
+#+begin_src emacs-lisp
+(use-package! org-gtd
+  :after org
+  :demand t
+  :custom
+  ;; where org-gtd will put its files. This value is also the default one.
+  (org-gtd-directory "~/org/gtd/")
+  ;; package: https://github.com/Malabarba/org-agenda-property
+  ;; this is so you can see who an item was delegated to in the agenda
+  (org-agenda-property-list '("DELEGATED_TO"))
+  ;; I think this makes the agenda easier to read
+  (org-agenda-property-position 'next-line)
+  ;; package: https://www.nongnu.org/org-edna-el/
+  ;; org-edna is used to make sure that when a project task gets DONE,
+  ;; the next TODO is automatically changed to NEXT.
+  (org-edna-use-inheritance t)
+  :config
+  (org-edna-load))
+#+end_src
+
 ** capture
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
 (after! org
@@ -5170,19 +5195,19 @@ or maybe toggle ~auto-fill-mode~
 * spell checking
 ** Prerequisites
 Either ~aspell~ or ~hunspell~ will work, but ~hunspell~ gives better suggestions
-for typo fix, so I choose it over ~aspell~.
+for typo fix, so I choose it over ~aspell~. Actually ~aspell~ seems works better
+with spell-fu package, so use ~aspell~ now.
 
 We first need to install them:
 #+BEGIN_SRC sh :tangle emacs-dep-once.sh
 brew install aspell
-brew install hunspell
 #+END_SRC
 
 Then we need to put dictionary files under either =~/Library/Spelling/= or
 =/Library/Spelling/=:
 
 #+BEGIN_SRC sh :tangle emacs-dep.sh
-cp resource/dict/*.* ~/Library/Spelling/
+cp resource/spell/*.* ~/Library/Spelling/
 #+END_SRC
 
 We can find more dictionary at https://wiki.openoffice.org/wiki/Dictionaries.
@@ -5192,13 +5217,8 @@ Doom Emacs already supports it, just enable it by putting
 this under ~:checkers~ section in ~init.el~.
 
 #+begin_example :tangle no
-(spell +hunspell)
-#+end_example
-
-We can also ask Emacs to use ~aspell~ by changing to:
-#+BEGIN_EXAMPLE :tangle no
 (spell +aspell)
-#+END_EXAMPLE
+#+end_example
 
 After spell checking is done, we can use ~]s~ (~evil-next-flyspell-error~) to move to next spell checking
 error and ~[s~ (~evil-next-flyspell-error~) to previous error.
