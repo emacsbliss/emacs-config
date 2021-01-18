@@ -65,28 +65,6 @@ Intestingly we can adjust font either on per buffer basis or frame basis.
 Quickest way to increase font size for frame is to make use of
 ~doom-big-font-mode~ which is bound to ~SPC t b~.
 
-*** mixed pitch - disabled
-Just trying out, one issue so far is the font size for ETBembo seems always
-bit too small. It also seems caused problem with company package.
-
-#+begin_example
-Company: An error occurred in post-command
-Company: frontend company-pseudo-tooltip-frontend error "Invalid face" on command post-command
-#+end_example
-
-#+begin_src emacs-lisp :tangle no
-(package! mixed-pitch)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-(use-package! mixed-pitch
-  :defer
-  ;; :config
-  ;; (setq mixed-pitch-variable-pitch-cursor nil)
-  :hook
-  (text-mode . mixed-pitch-mode))
-#+end_src
-
 ** theme
 Now trying out spacemacs light theme:
 #+begin_src emacs-lisp :tangle packages.el
@@ -544,23 +522,6 @@ For now I want to disable this since tab doesn't behave to my liking.
           company-pseudo-tooltip-frontend
           company-echo-metadata-frontend))
 #+END_SRC
-
-** english chinese translation - disabled
-updated on <2021-01-18 Mon>, no longer use.
-
-[[https://github.com/manateelazycat/company-english-helper][company-english-helper]] will show the completion candidates as well as Chinese
-translation to help the writing.
-
-#+begin_src emacs-lisp :tangle no
-(package! company-english-helper :recipe (:host github :repo "manateelazycat/company-english-helper"))
-#+end_src
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package! company-english-helper
-  :defer t)
-#+END_SRC
-
-Run ~toggle-company-english-helper~ to enable it.
 
 * keybinding
 :PROPERTIES:
@@ -1431,31 +1392,6 @@ app itself.
 I found that ~sdcv~ program works better, but we need to install it first:
 #+BEGIN_SRC sh :tangle emacs-dep-once.sh
 brew install sdcv
-#+END_SRC
-
-** sdcv.el - disabled
-Then ~sdcv.el~ package will make use of the binary ~sdcv~ to do the translation:
-#+begin_src emacs-lisp :tangle no
-(package! sdcv :recipe (:host github :repo "manateelazycat/sdcv"))
-#+end_src
-
-We need to add dictionaries so ~sdcv~ will use, you can put it anywhere but we
-need to let ~sdcv.el~ know by setting this:
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq sdcv-dictionary-data-dir (expand-file-name "~/dict"))
-#+END_SRC
-
-Note the directory for dictionary needs to be fully expanded path, something like =~/dict=
-will not work.
-
-You can find out what are the dictionaries sdcv has found by using command:
-#+BEGIN_SRC sh :tangle no
-sdcv --list-dicts --data-dir=~/dict
-#+END_SRC
-
-~sdcv.el~ can also speak the word if we set this:
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq sdcv-say-word-p t)
 #+END_SRC
 
 ** lexic [fn:5]
@@ -2488,25 +2424,6 @@ However I have to change the ~org-eww~ to ~ol-eww~ and also ~org-w3m~ to
   (forward-line -1)
 )
 #+end_src
-** org brain - disabled
-I noticed I didn't use it too often.. ~org-roam~ seems more interesting..
-#+begin_src emacs-lisp :tangle no
-(use-package! org-brain
-  :defer t
-  :init
-  ;; For Evil users
-  (with-eval-after-load 'evil
-    (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
-  :config
-  (setq org-id-track-globally t)
-  (setq org-id-locations-file "~/org/brain/.org-id-locations")
-  (push '("b" "Brain" plain (function org-brain-goto-end)
-          "* %i%?" :empty-lines 1)
-        org-capture-templates)
-  (setq org-brain-visualize-default-choices 'all)
-  (setq org-brain-title-max-length 12))
-#+end_src
-
 ** custom link type
 #+begin_src emacs-lisp :tangle no
 (defcustom org-yt-url-protocol "yt"
@@ -4063,34 +3980,6 @@ This is [[http://blog.binchen.org/posts/enhance-emacs-git-gutter-with-ivy-mode.h
    (shell-command-to-string "git config --get remote.upstream.url")))
 #+end_src
 
-* Zettelkasten - disabled
-Now I prefer ~org-roam~ more, so disable this for now.
-
-#+begin_src emacs-lisp :tangle no
-(package! zetteldeft)
-#+end_src
-
-We need to first configure ~deft~ first:
-#+begin_src emacs-lisp :tangle no
-(use-package! deft
-  :config
-  (setq deft-directory "~/Zettelkasten")
-)
-#+end_src
-
-Then configure ~zetteldeft~:
-#+begin_src emacs-lisp :tangle no
-(use-package! zetteldeft
-  :after deft)
-#+end_src
-
-Create a note with zetteldeft-new-file and provide a name.
-* snails - not working
-Tried this package, it's a bit tough to install since doom emacs didn't install
-~exec-path-from-shell~ but it's required by ~snails~.
-
-After installing it, it didn't really run, got some weird error and after few
-tries it crashes my emacs, so gave up for now..
 * rss
 DOOM Emacs already have rss support built in, we just need to enable it in the
 ~init.el~ file.
@@ -5118,23 +5007,6 @@ After some searching, I find a simple but working solution [[https://emacs.stack
 With this as long as each copy outside Emacs is done 3 seconds apart, then all
 of them will appear in kill-ring, quite nice!
 
-* lentic - disabled
-To create the lentic buffer, press C-c,c or “Edit->Lentic->Create All”, followed
-by C-c,b or “Edit->Lentic->Split Below” to show both Emacs-Lisp and Org-mode
-file at the same time.
-
-#+begin_src emacs-lisp :tangle no
-(package! lentic)
-#+end_src
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package! lentic
-  :defer t)
-#+END_SRC
-
-** update on <2020-03-15 Sun>
-So far still not found much use for this package, maybe I still don't quite
-understand it.. anyway disable for now
 * pdf
 It needs a binary called ~epdfinfo~ in order for it to work.
 ** rotate pdf [fn:7]
@@ -5233,66 +5105,6 @@ print('hello world')
 To start a new kernel on the localhost and connect a REPL client to it
 ~M-x jupyter-run-repl~. Alternatively you can connect to an existing kernel by
 supplying the kernel’s connection file using ~M-x jupyter-connect-repl~.
-* hyperbole - disabled
-Disabled as of <2021-01-15 Fri> since not really use it much..
-
-From its Demo page:
-#+BEGIN_QUOTE
-Welcome to GNU Hyperbole.  Hyperbole will super-charge your GNU Emacs
-experience, allowing you to work faster, utilize fewer key bindings, recall
-more information and link it all together by learning just a few concepts and
-keys.  Invest an hour learning Hyperbole now and speed your daily information
-management for years to come.
-#+END_QUOTE
-
-#+begin_src emacs-lisp :tangle packages.el :tangle no
-(package! hyperbole)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-(use-package! hyperbole
-  :defer t)
-#+end_src
-
-By default *Action Key* is binded to ~M-RET~ and Assist Key to ~C-u M-RET~
-
-Action key invokes function ~hkey-either~ and Assit key invokes ~hkey-help~.
-
-** implicit button
-Hyperbole can automatically turn your existing, unchanged text files into
-hypertexts via its incredibly powerful feature: implicit buttons.
-
-Few useful use case I feel personally:
-
-- "${load-path}/simple.el"
-- "${load-path}/w3m.el"
-- "${load-path}/emacs-dayone2.el"
-
-** hyperbole not working
-Sometimes hyperbole stops working for some reason, not sure exactly why, but
-doing this seems to help:
-#+BEGIN_SRC sh :tangle no
-rm ~/.emacs.d/.local/straight/build/hyperbole/*.elc
-#+END_SRC
-
-** Git (Local) References
-Similarly, again for software developers, git references work on local
-git repositories.  If you have a clone of the Hyperbole git repository
-on your local system, then you can activate all of the following buttons.
-
-#+begin_example
-  git#/hyperbole            (displays the top directory of the hyperbole repository)
-  git#/hyperbole/55a1f0     (displays hyperbole git commit diff)
-  git#=hactypes.el          (displays a git-versioned file regardless of directory)
-  git#=master:kotl/kview.el (displays file in subdirectory from master branch)
-  git#55a1f0                 (when within a git repo, displays its commit diff)
-#+end_example
-
-** man page
-grep, egrep, fgrep (1) - search a file for a string or regular expression
-rm (1)                 - remove (unlink) files or directories
-touch (1)              - update the access and modification times of a file
-cat (1)                - concatenate and display
 * Clojure
 #+BEGIN_SRC emacs-lisp
 (after! org
@@ -5963,6 +5775,194 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 * weather
 https://github.com/bcbcarl/emacs-wttrin
 
+* Disabled
+** english chinese translation - disabled
+updated on <2021-01-18 Mon>, no longer use.
+
+[[https://github.com/manateelazycat/company-english-helper][company-english-helper]] will show the completion candidates as well as Chinese
+translation to help the writing.
+
+#+begin_src emacs-lisp :tangle no
+(package! company-english-helper :recipe (:host github :repo "manateelazycat/company-english-helper"))
+#+end_src
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package! company-english-helper
+  :defer t)
+#+END_SRC
+
+Run ~toggle-company-english-helper~ to enable it.
+** mixed pitch - disabled
+Just trying out, one issue so far is the font size for ETBembo seems always
+bit too small. It also seems caused problem with company package.
+
+#+begin_example
+Company: An error occurred in post-command
+Company: frontend company-pseudo-tooltip-frontend error "Invalid face" on command post-command
+#+end_example
+
+#+begin_src emacs-lisp :tangle no
+(package! mixed-pitch)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package! mixed-pitch
+  :defer
+  ;; :config
+  ;; (setq mixed-pitch-variable-pitch-cursor nil)
+  :hook
+  (text-mode . mixed-pitch-mode))
+#+end_src
+** sdcv.el - disabled
+Then ~sdcv.el~ package will make use of the binary ~sdcv~ to do the translation:
+#+begin_src emacs-lisp :tangle no
+(package! sdcv :recipe (:host github :repo "manateelazycat/sdcv"))
+#+end_src
+
+We need to add dictionaries so ~sdcv~ will use, you can put it anywhere but we
+need to let ~sdcv.el~ know by setting this:
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq sdcv-dictionary-data-dir (expand-file-name "~/dict"))
+#+END_SRC
+
+Note the directory for dictionary needs to be fully expanded path, something like =~/dict=
+will not work.
+
+You can find out what are the dictionaries sdcv has found by using command:
+#+BEGIN_SRC sh :tangle no
+sdcv --list-dicts --data-dir=~/dict
+#+END_SRC
+
+~sdcv.el~ can also speak the word if we set this:
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq sdcv-say-word-p t)
+#+END_SRC
+
+** Zettelkasten - disabled
+Now I prefer ~org-roam~ more, so disable this for now.
+
+#+begin_src emacs-lisp :tangle no
+(package! zetteldeft)
+#+end_src
+
+We need to first configure ~deft~ first:
+#+begin_src emacs-lisp :tangle no
+(use-package! deft
+  :config
+  (setq deft-directory "~/Zettelkasten")
+)
+#+end_src
+
+Then configure ~zetteldeft~:
+#+begin_src emacs-lisp :tangle no
+(use-package! zetteldeft
+  :after deft)
+#+end_src
+
+Create a note with zetteldeft-new-file and provide a name.
+** snails - not working
+Tried this package, it's a bit tough to install since doom emacs didn't install
+~exec-path-from-shell~ but it's required by ~snails~.
+
+After installing it, it didn't really run, got some weird error and after few
+tries it crashes my emacs, so gave up for now..
+** lentic - disabled
+To create the lentic buffer, press C-c,c or “Edit->Lentic->Create All”, followed
+by C-c,b or “Edit->Lentic->Split Below” to show both Emacs-Lisp and Org-mode
+file at the same time.
+
+#+begin_src emacs-lisp :tangle no
+(package! lentic)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package! lentic
+  :defer t)
+#+END_SRC
+
+*** update on <2020-03-15 Sun>
+So far still not found much use for this package, maybe I still don't quite
+understand it.. anyway disable for now
+** org brain - disabled
+I noticed I didn't use it too often.. ~org-roam~ seems more interesting..
+#+begin_src emacs-lisp :tangle no
+(use-package! org-brain
+  :defer t
+  :init
+  ;; For Evil users
+  (with-eval-after-load 'evil
+    (evil-set-initial-state 'org-brain-visualize-mode 'emacs))
+  :config
+  (setq org-id-track-globally t)
+  (setq org-id-locations-file "~/org/brain/.org-id-locations")
+  (push '("b" "Brain" plain (function org-brain-goto-end)
+          "* %i%?" :empty-lines 1)
+        org-capture-templates)
+  (setq org-brain-visualize-default-choices 'all)
+  (setq org-brain-title-max-length 12))
+#+end_src
+
+** hyperbole - disabled
+Disabled as of <2021-01-15 Fri> since not really use it much..
+
+From its Demo page:
+#+BEGIN_QUOTE
+Welcome to GNU Hyperbole.  Hyperbole will super-charge your GNU Emacs
+experience, allowing you to work faster, utilize fewer key bindings, recall
+more information and link it all together by learning just a few concepts and
+keys.  Invest an hour learning Hyperbole now and speed your daily information
+management for years to come.
+#+END_QUOTE
+
+#+begin_src emacs-lisp :tangle packages.el :tangle no
+(package! hyperbole)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package! hyperbole
+  :defer t)
+#+end_src
+
+By default *Action Key* is binded to ~M-RET~ and Assist Key to ~C-u M-RET~
+
+Action key invokes function ~hkey-either~ and Assit key invokes ~hkey-help~.
+
+** implicit button
+Hyperbole can automatically turn your existing, unchanged text files into
+hypertexts via its incredibly powerful feature: implicit buttons.
+
+Few useful use case I feel personally:
+
+- "${load-path}/simple.el"
+- "${load-path}/w3m.el"
+- "${load-path}/emacs-dayone2.el"
+
+** hyperbole not working
+Sometimes hyperbole stops working for some reason, not sure exactly why, but
+doing this seems to help:
+#+BEGIN_SRC sh :tangle no
+rm ~/.emacs.d/.local/straight/build/hyperbole/*.elc
+#+END_SRC
+
+** Git (Local) References
+Similarly, again for software developers, git references work on local
+git repositories.  If you have a clone of the Hyperbole git repository
+on your local system, then you can activate all of the following buttons.
+
+#+begin_example
+  git#/hyperbole            (displays the top directory of the hyperbole repository)
+  git#/hyperbole/55a1f0     (displays hyperbole git commit diff)
+  git#=hactypes.el          (displays a git-versioned file regardless of directory)
+  git#=master:kotl/kview.el (displays file in subdirectory from master branch)
+  git#55a1f0                 (when within a git repo, displays its commit diff)
+#+end_example
+
+** man page
+grep, egrep, fgrep (1) - search a file for a string or regular expression
+rm (1)                 - remove (unlink) files or directories
+touch (1)              - update the access and modification times of a file
+cat (1)                - concatenate and display
+* Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
 [fn:3] https://karthinks.com/blog/lazy-elfeed/
