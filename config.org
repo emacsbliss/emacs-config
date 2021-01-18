@@ -120,7 +120,7 @@ DOOM Emacs has ~hl-fill-column-mode~ but I dislike it since with my theme
 
 It's actually from package ~hl-fill-column~.
 https://github.com/laishulu/hl-fill-column
-* Package loading
+* Package management
 :PROPERTIES:
 :header-args:emacs-lisp: :tangle packages.el :comments link
 :END:
@@ -545,15 +545,17 @@ For now I want to disable this since tab doesn't behave to my liking.
           company-echo-metadata-frontend))
 #+END_SRC
 
-** english chinese translation
+** english chinese translation - disabled
+updated on <2021-01-18 Mon>, no longer use.
+
 [[https://github.com/manateelazycat/company-english-helper][company-english-helper]] will show the completion candidates as well as Chinese
 translation to help the writing.
 
-#+begin_src emacs-lisp :tangle packages.el
+#+begin_src emacs-lisp :tangle no
 (package! company-english-helper :recipe (:host github :repo "manateelazycat/company-english-helper"))
 #+end_src
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package! company-english-helper
   :defer t)
 #+END_SRC
@@ -1431,7 +1433,7 @@ I found that ~sdcv~ program works better, but we need to install it first:
 brew install sdcv
 #+END_SRC
 
-** sdcv.el
+** sdcv.el - disabled
 Then ~sdcv.el~ package will make use of the binary ~sdcv~ to do the translation:
 #+begin_src emacs-lisp :tangle no
 (package! sdcv :recipe (:host github :repo "manateelazycat/sdcv"))
@@ -1451,7 +1453,7 @@ You can find out what are the dictionaries sdcv has found by using command:
 sdcv --list-dicts --data-dir=~/dict
 #+END_SRC
 
-~sdcv.el~ can also pronunciate  the word if we set this:
+~sdcv.el~ can also speak the word if we set this:
 #+BEGIN_SRC emacs-lisp :tangle no
 (setq sdcv-say-word-p t)
 #+END_SRC
@@ -1517,9 +1519,8 @@ sdcv --list-dicts --data-dir=~/dict
   :defer t
   :commands (tldr)
   :config
-  (setq tldr-directory-path "~/tldr"
-        tldr-enabled-categories (append '("bb" "personal") tldr-enabled-categories))
-)
+  (setq tldr-directory-path (concat doom-etc-dir "tldr")
+        tldr-enabled-categories (append '("bb" "personal") tldr-enabled-categories)))
 #+end_src
 ** elisp demos
 This package injects some demos when we do help on a function.
@@ -1615,6 +1616,8 @@ So typical workflow would be:
 - When cursor is on the highlighted symbol, use =<= or =>= to find first/last
   occurrence or =n= or =p= to traverse all highlighted
 - Also use =t= to change the highlight scope
+** things it can't do yet
+It can't highlight the visual selection..
 * BDD
 #+begin_src emacs-lisp :tangle packages.el
 (package! feature-mode)
@@ -3685,7 +3688,7 @@ by default `sep' is comma(,)."
     (mapconcat (lambda (x) (format "'%s'" x)) lst sep)))
 #+END_SRC
 
-* deal with string
+** join multi-line string
 #+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
 ;;;###autoload
 (defun me/join-multiline (multi-line-str sep)
@@ -3694,7 +3697,7 @@ each line from original input is delimited by `sep'"
   (replace-regexp-in-string "[ \t]*\n" sep
      (replace-regexp-in-string "^[ \t]+" "" multi-line-str)))
 #+END_SRC
-* stackoverflow
+* stackoverflow - TODO
 https://www.reddit.com/r/emacs/comments/cs6cb4/instant_stackoverflow_solutions_in_emacs_without/
 
 It uses ~helm-google-suggest~ for auto complete, since I don't use ~helm~, I
