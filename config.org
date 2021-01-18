@@ -5302,10 +5302,10 @@ I prefer that scratch buffer use ~org-mode~ as default:
 #+end_src
 
 It turned out DOOM Emacs creates its own scratch buffer with name
-=*doom:scratch*=, so we need to set ~doom-scratch-buffer-major-mode~ instead:
+=*doom:scratch*=, so we need to set ~doom-scratch-initial-major-mode~ instead:
 
 #+begin_src emacs-lisp :tangle no
-(setq doom-scratch-buffer-major-mode 'org-mode)
+(setq doom-scratch-initial-major-mode 'org-mode)
 #+end_src
 
 ** WARNING
@@ -5314,7 +5314,7 @@ Later it turned out by adding above two lines into config file caused around
 and turn scratch buffer to org mode on demand.
 
 ** manually set major mode
-If ~doom-scratch-buffer-major-mode~ is not set, when trying to open doom scratch
+If ~doom-scratch-initial-major-mode~ is not set, when trying to open doom scratch
 buffer, we will get error like:
 
 #+begin_example
@@ -5326,7 +5326,7 @@ So I created a tiny function to set it in such case:
 ;;;###autoload
 (defun me/set-scratch-buffer ()
   (interactive)
-  (setq doom-scratch-buffer-major-mode 'org-mode)
+  (setq doom-scratch-initial-major-mode 'org-mode)
 )
 #+END_SRC
 
@@ -5336,10 +5336,12 @@ So I created a tiny function to set it in such case:
   "set doom-scratch-buffer-major-mode if not set already.
    then open the scratch buffer."
   (interactive)
-  (unless (boundp 'doom-scratch-buffer-major-mode)
-    (setq doom-scratch-buffer-major-mode 'org-mode))
+  (unless (boundp 'doom-scratch-initial-major-mode)
+    (setq doom-scratch-initial-major-mode 'org-mode))
   (doom/open-scratch-buffer))
 #+end_src
+** project wise scratch buffer
+it's bound to ~SPC p x~, also switch to scratch buffer is ~SPC b x~
 * auto line wrapping
 https://superuser.com/questions/592154/how-to-turn-off-emacss-auto-line-wrapping-for-the-current-session
 
