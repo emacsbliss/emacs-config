@@ -1554,6 +1554,10 @@ So typical workflow would be:
 - Also use =t= to change the highlight scope
 ** things it can't do yet
 It can't highlight the visual selection..
+** another one to try
+https://github.com/hl-anything/hl-anything-emacs
+** yet another to try
+https://github.com/alvarogonzalezsotillo/region-occurrences-highlighter
 * BDD
 #+begin_src emacs-lisp :tangle packages.el
 (package! feature-mode)
