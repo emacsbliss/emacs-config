@@ -5777,26 +5777,6 @@ It is usually a good idea to manually set org-icalendar-timezone
 #+END_SRC
 
 * presentation
-** emacs-reveal
-https://gitlab.com/oer/emacs-reveal
-https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
-#+begin_src emacs-lisp :tangle packages.el
-(package! emacs-reveal :recipe (:host gitlab :repo "oer/emacs-reveal"))
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! emacs-reveal
-  :init
-  (setq emacs-reveal-managed-install-p nil))
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! ox-oer-reveal
-    :after ox)
-
-(use-package! oer-reveal)
-#+end_src
-
 * weather
 https://github.com/bcbcarl/emacs-wttrin
 
@@ -5987,6 +5967,31 @@ grep, egrep, fgrep (1) - search a file for a string or regular expression
 rm (1)                 - remove (unlink) files or directories
 touch (1)              - update the access and modification times of a file
 cat (1)                - concatenate and display
+** emacs-reveal
+disabled on <2021-01-18 Mon> for few reason:
+- too heavy, it depends on things like ~helm~
+- very hard to get it working
+- cause weird issue like org mode link not rendered properly
+
+https://gitlab.com/oer/emacs-reveal
+https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
+#+begin_src emacs-lisp :tangle no
+(package! emacs-reveal :recipe (:host gitlab :repo "oer/emacs-reveal"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package! emacs-reveal
+  :init
+  (setq emacs-reveal-managed-install-p nil))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package! ox-oer-reveal
+    :after ox)
+
+(use-package! oer-reveal)
+#+end_src
+
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
