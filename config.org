@@ -1265,7 +1265,8 @@ The config is taken from [[https://www.gtrun.org/custom/init.html][here]].
   (setq bm-restore-repository-on-load t)
   :config
   (setq bm-cycle-all-buffers t
-        bm-repository-size 5000)
+        bm-repository-size 5000
+        bm-repository-file (concat doom-etc-dir "bm-repository"))
   (setq-default bm-buffer-persistence t)
 
   (defun adq/bm-save ()
