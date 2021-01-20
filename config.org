@@ -4465,10 +4465,11 @@ This somehow does not work..
 
 Need to use this one:
 #+begin_src emacs-lisp :tangle modules/lang/json/config.el
-(defvar json/printer-alist '(
+(setq json/printer-alist '(
     ("jq" . "jsons-print-path-jq")
     ("python" . "jsons-print-path-python")
-    ("list" . "me/jsons-print-path-list")))
+    ("list" . "me/jsons-print-path-list")
+    ("postgres" . "me/jsons-print-path-posgres-jsonb")))
 #+END_SRC
 
 #+begin_src emacs-lisp :tangle modules/lang/json/autoload.el
@@ -4516,6 +4517,34 @@ I have created a function to print xpath for json in a python list format:
     (setq python_str (s-replace "\"" "\'" python_str))
     (kill-new python_str)
     (princ python_str)))
+#+end_src
+** print postgres jsonb path
+When interact with PostgreSQL, it's sometimes helpful to find out a jsonb path for a jsonb field,
+so I added one:
+
+#+begin_src emacs-lisp :tangle modules/lang/json/autoload.el
+(defun me/jsons-print-path-posgres-jsonb ()
+  "Print the postgresql jsonb path to the JSON value under point, and save it in the kill ring."
+  (let* ((path (jsons-get-path))
+        (i 0)
+        (jsonb_str "")
+        (path_length (length path))
+        (length_1 (- path_length 1)))
+    (setq path (reverse path))
+    (while (< i length_1)
+      (if (numberp (elt path i))
+          (progn
+            (setq jsonb_str (format "%s->%s" jsonb_str (number-to-string (elt path i))))
+            (setq i (+ i 1)))
+        (progn
+          (setq jsonb_str (format "%s->%s" jsonb_str (elt path i) ))
+          (setq i (+ i 1)))))
+    (when (> path_length 0)
+       (setq jsonb_str (format "%s->>%s" jsonb_str (elt path i))))
+
+    (setq jsonb_str (replace-regexp-in-string "\"" "'" jsonb_str))
+    (progn (kill-new jsonb_str)
+           (princ jsonb_str))))
 #+end_src
 ** counsel-jq
 #+begin_src emacs-lisp :tangle modules/lang/json/packages.el
