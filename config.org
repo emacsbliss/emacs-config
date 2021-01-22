@@ -1524,8 +1524,8 @@ This package [[https://github.com/wolray/symbol-overlay][symbol-overlay]] is per
 (use-package! symbol-overlay
   :defer t)
 #+END_SRC
-
-** keybinding
+** symbol-overlay
+*** keybinding
 | operation                                                | key binding | function                       |
 |----------------------------------------------------------+-------------+--------------------------------|
 | toggle symbol overlay minor mode                         | =SPC j t=   | symbol-overlay-mode            |
@@ -1546,7 +1546,7 @@ When we in ~symbol overlay mode~, below key bindings are available:
 | Query replace symbol at point                  | =q=         | symbol-overlay-query-replace   |
 | copy symbol at point                           | =w=         | symbol-overlay-save-symbol     |
 | Jump back to the position before a recent jump | =e=         | symbol-overlay-echo-mark       |
-** workflow
+*** workflow
 So typical workflow would be:
 - first turn on the minor mode by =SPC j t=
 - Highlight the symbol by =SPC j h=
@@ -1555,12 +1555,30 @@ So typical workflow would be:
 - When cursor is on the highlighted symbol, use =<= or =>= to find first/last
   occurrence or =n= or =p= to traverse all highlighted
 - Also use =t= to change the highlight scope
-** things it can't do yet
+*** things it can't do yet
 It can't highlight the visual selection..
-** another one to try
+** hl-anything
+~hl-anything~ does following things which symbol-overlay can't do:
+- highlight the same thing in all buffers
+- highlight the current active region
 https://github.com/hl-anything/hl-anything-emacs
+#+begin_src emacs-lisp :tangle packages.el
+(package! hl-anything
+  :recipe (:host github :repo "hl-anything/hl-anything-emacs"))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! hl-anything)
+#+end_src
 ** yet another to try
 https://github.com/alvarogonzalezsotillo/region-occurrences-highlighter
+#+begin_src emacs-lisp :tangle packages.el
+(package! region-occurrences-highlighter)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! region-occurrences-highlighter)
+#+end_src
 * BDD
 #+begin_src emacs-lisp :tangle packages.el
 (package! feature-mode)
@@ -1792,8 +1810,8 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
 (after! org
 (add-to-list 'org-capture-templates
     `("t" "Todo [inbox]" entry
-        (file+headline "~/org/gtd/Inbox.org" "Tasks")
-        "* TODO %i%?"))
+        (file "~/org/gtd/Inbox.org")
+        "* ☛ TODO %i%?"))
 
 (add-to-list 'org-capture-templates
      `("T" "Tickler" entry
