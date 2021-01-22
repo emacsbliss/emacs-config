@@ -1846,7 +1846,7 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
 #+END_SRC
 
 ** duplicate line
-quickly dupliate a line without changing the kill-ring.
+quickly duplicate a line without changing the kill-ring.
 
 credit: http://stackoverflow.com/questions/88399/how-do-i-duplicate-a-whole-line-in-emacs
 
@@ -2494,7 +2494,7 @@ For a single org mode file, we can have line below in the file:
 #+LINK: bing    http://www.bing.com/search?q=%s
 #+END_SRC
 
-If this abbreviation will be usedd in multiple files, then we can set it
+If this abbreviation will be used in multiple files, then we can set it
 permanently:
 #+begin_src emacs-lisp :tangle no
 (setq org-link-abbrev-alist
@@ -2901,7 +2901,7 @@ the link for this two apps:
 #+begin_src emacs-lisp :tangle no
 (package! org-jira)
 #+end_src
-** utlity function
+** utility function
 #+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/autoload.el
 ;;;###autoload
 (defun extract-from-org-heading (pattern)
@@ -2930,10 +2930,11 @@ the link for this two apps:
 ** keybinding
 #+begin_src emacs-lisp :tangle keybinds.el
 (map! :map org-mode-map
-  :desc "org attach by mv"    :n ",a" #'org-attach-attach-mv
-  :desc "org attach by cp"    :n ",c" #'org-attach-attach-cp
-  :desc "open attach in emas" :n ",o" #'org-attach-open-in-emacs
-  :desc "org open attach"     :n ",O" #'org-attach-open)
+  :desc "org attach by mv"             :n ",a" #'org-attach-attach-mv
+  :desc "org attach by cp"             :n ",c" #'org-attach-attach-cp
+  :desc "attach json from killring"    :n ",j" #'me/attach-json-from-kill-ring
+  :desc "open attach in Emacs"          :n ",o" #'org-attach-open-in-emacs
+  :desc "org open attach"              :n ",O" #'org-attach-open)
 #+END_SRC
 * org export to html
 ** html theme
