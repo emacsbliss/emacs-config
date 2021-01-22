@@ -1066,6 +1066,8 @@ them to most frequently used things in Emacs.
       :desc "org roam daily date"                 "d" #'org-roam-dailies-find-date
       :desc "org roam daily capture date"         "D" #'org-roam-dailies-capture-date
       :desc "org roam daily capture tomorrow"     "C" #'org-roam-dailies-capture-tomorrow
+      :desc "org roam add tag"                    "g" #'org-roam-tag-add
+      :desc "org roam add alias"                  "a" #'org-roam-alias-add
       :desc "org roam todo"                       "o" #'me/org-roam-todo
       :desc "org roam tomorrow"                   "T" #'org-roam-dailies-find-tomorrow))
 #+END_SRC
