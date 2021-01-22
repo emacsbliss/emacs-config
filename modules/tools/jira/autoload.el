@@ -178,6 +178,20 @@ ORG-JIRA-PROJ-KEY-OVERRIDE being set before and after running."
   (my-jira/issues-from-jql jql)))
 
 ;;;###autoload
+(defun my-jira/stories-for-backlog ()
+  (interactive)
+
+  (let* ((query (format "project = \"%s\" and creator = %s and
+                        component in (\"%s\") and
+                        (sprint is EMPTY or sprint in closedSprints() and
+                        sprint not in (openSprints())) and status != Done
+                        and reporter=%s order by created desc"
+                    my-jira/project my-jira/username my-jira/username))
+          (jql `(:jql ,query :limit 30 :filename "backlog")))
+
+  (my-jira/issues-from-jql jql)))
+
+;;;###autoload
 (defun my-jira/last-N-created (n)
   (interactive "nHow many stories:")
 
