@@ -9,7 +9,7 @@
       (error "Must provide all information!"))
 
   (let* ((project-components (jiralib-get-components project))
-         (core '(id . "21636"))
+         (core '(id . my-jira/component-id))
          (ticket-struct
           `((fields
              (project (key . ,project))
@@ -34,7 +34,7 @@
 (defun my-jira/create-story (project type summary description epic labels priority assignee)
   "Create an issue in PROJECT, of type TYPE, with given SUMMARY and DESCRIPTION."
   (interactive
-   (let* ((project my-jira/project)
+   (let* ((project my-jira/project-id)
           (type "Story")
           (labels "")
           (summary (read-string "Summary: "))
