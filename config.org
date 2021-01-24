@@ -5915,26 +5915,31 @@ Then configure ~zetteldeft~:
 #+end_src
 
 Create a note with zetteldeft-new-file and provide a name.
-** snails - not working
-Tried this package, it's a bit tough to install since doom emacs didn't install
-~exec-path-from-shell~ but it's required by ~snails~.
+** snails - experimenting
+update on <2021-01-23 Sat>:
+it started working after some tweak, but still got error with snails-quit function..
 
-After installing it, it didn't really run, got some weird error and after few
-tries it crashes my emacs, so gave up for now..
-
-#+begin_src emacs-lisp :tangle no
-(package! snails :recipe (:host github
-                            :repo "manateelazycat/snails"
-                            :files ("*.el")
-                            :no-byte-compile t))
+#+begin_src emacs-lisp :tangle packages.el
+  (package! snails :recipe (:host github
+            :repo "manateelazycat/snails"
+            :files (:defaults "*.sh" "*.el")
+            :no-byte-compile t
+            :no-autoloads t))
 #+end_src
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
 (use-package! snails
   :init
+  (evil-set-initial-state 'snails-mode-map 'insert)
   (setq snails-use-exec-path-from-shell nil)
-  :config
-  (define-key snails-mode-map [remap next-line] #'snails-select-next-item))
+  :commands snails)
+#+end_src
+
+#+begin_src emacs-lisp
+(map! :map snails-mode-map
+  :desc "show bookmkar" :in "C-j" #'snails-select-next-item
+  :desc "show bookmkar" :in "C-k" #'snails-select-prev-item
+  :desc "show bookmkar" :in "C-g" #'snails-kill)
 #+end_src
 ** lentic - disabled
 To create the lentic buffer, press C-c,c or “Edit->Lentic->Create All”, followed
