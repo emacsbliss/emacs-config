@@ -5921,6 +5921,21 @@ Tried this package, it's a bit tough to install since doom emacs didn't install
 
 After installing it, it didn't really run, got some weird error and after few
 tries it crashes my emacs, so gave up for now..
+
+#+begin_src emacs-lisp :tangle no
+(package! snails :recipe (:host github
+                            :repo "manateelazycat/snails"
+                            :files ("*.el")
+                            :no-byte-compile t))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package! snails
+  :init
+  (setq snails-use-exec-path-from-shell nil)
+  :config
+  (define-key snails-mode-map [remap next-line] #'snails-select-next-item))
+#+end_src
 ** lentic - disabled
 To create the lentic buffer, press C-c,c or “Edit->Lentic->Create All”, followed
 by C-c,b or “Edit->Lentic->Split Below” to show both Emacs-Lisp and Org-mode
