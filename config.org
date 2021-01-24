@@ -50,7 +50,7 @@ Also for the variable pitch font, [[https://edwardtufte.github.io/et-book/][ET B
       doom-big-font (font-spec :family "SF Mono Powerline" :size 30))
 #+END_SRC
 
-Intestingly we can adjust font either on per buffer basis or frame basis.
+Interestingly we can adjust font either on per buffer basis or frame basis.
 #+begin_src emacs-lisp :tangle keybinds.el
 (map!
   :n "C-;"    #'doom/reset-font-size
@@ -646,7 +646,8 @@ them to most frequently used things in Emacs.
       :desc "help"                  "h"    help-map
 
       :desc "rg"                    "/"    #'counsel-rg
-      :desc "M-x"                   "SPC"  #'counsel-M-x
+      ;; :desc "M-x"                   "SPC"  #'counsel-M-x
+      :desc "M-x"                   "SPC"  #'snails
       :desc "jump char 2"           "k"    #'evil-avy-goto-char-2
 
       (:when (featurep! :ui popup)
@@ -5918,10 +5919,11 @@ Create a note with zetteldeft-new-file and provide a name.
 ** snails - experimenting
 update on <2021-01-23 Sat>:
 it started working after some tweak, but still got error with snails-quit function..
+did some hacking to patch it after forking it..
 
 #+begin_src emacs-lisp :tangle packages.el
   (package! snails :recipe (:host github
-            :repo "manateelazycat/snails"
+            :repo "emacsbliss/snails"
             :files (:defaults "*.sh" "*.el")
             :no-byte-compile t
             :no-autoloads t))
@@ -5930,17 +5932,47 @@ it started working after some tweak, but still got error with snails-quit functi
 #+begin_src emacs-lisp
 (use-package! snails
   :init
-  (evil-set-initial-state 'snails-mode-map 'insert)
   (setq snails-use-exec-path-from-shell nil)
+  (setq snails-backends '(snails-backend-buffer
+                          snails-backend-recentf
+                          snails-backend-directory-files
+                          snails-backend-bookmark))
+
   :commands snails)
+#+end_src
+
+Again need this to patch the issue where snails still active after choosing a candidate:
+#+begin_src emacs-lisp
+;;;###autoload
+(defun me/snails-candidate-do ()
+  (interactive)
+  (snails-candidate-do)
+  (snails-quit))
 #+end_src
 
 #+begin_src emacs-lisp
 (map! :map snails-mode-map
-  :desc "show bookmkar" :in "C-j" #'snails-select-next-item
-  :desc "show bookmkar" :in "C-k" #'snails-select-prev-item
-  :desc "show bookmkar" :in "C-g" #'snails-kill)
+  :desc "next candidate" :in "C-j" #'snails-select-next-item
+  :desc "prev candidate" :in "C-k" #'snails-select-prev-item
+  :desc "select candidate" :in "RET" #'me/snails-candidate-do
+  :desc "snails quit" :in "C-g" #'snails-quit)
 #+end_src
+*** support fuzzy matching
+#+begin_src emacs-lisp :tangle packages.el
+  (package! fuz :recipe (:host github
+            :repo "rustify-emacs/fuz.el"
+            :files (:defaults "*.sh*.el")))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! fuz)
+#+end_src
+
+we also need the dynamic lib built for this to work..
+
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+cp resource/fuz-core.so ~
+#+END_SRC
 ** lentic - disabled
 To create the lentic buffer, press C-c,c or “Edit->Lentic->Create All”, followed
 by C-c,b or “Edit->Lentic->Split Below” to show both Emacs-Lisp and Org-mode
@@ -6062,6 +6094,9 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 (use-package! oer-reveal)
 #+end_src
 
+* TODO
+** command log mode
+https://github.com/lewang/command-log-mode
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
