@@ -646,8 +646,7 @@ them to most frequently used things in Emacs.
       :desc "help"                  "h"    help-map
 
       :desc "rg"                    "/"    #'counsel-rg
-      ;; :desc "M-x"                   "SPC"  #'counsel-M-x
-      :desc "M-x"                   "SPC"  #'snails
+      :desc "M-x"                   "SPC"  #'counsel-M-x
       :desc "jump char 2"           "k"    #'evil-avy-goto-char-2
 
       (:when (featurep! :ui popup)
@@ -5916,12 +5915,11 @@ Then configure ~zetteldeft~:
 #+end_src
 
 Create a note with zetteldeft-new-file and provide a name.
-** snails - experimenting
-update on <2021-01-23 Sat>:
+** snails - disabled
 it started working after some tweak, but still got error with snails-quit function..
 did some hacking to patch it after forking it..
 
-#+begin_src emacs-lisp :tangle packages.el
+#+begin_src emacs-lisp :tangle no
   (package! snails :recipe (:host github
             :repo "emacsbliss/snails"
             :files (:defaults "*.sh" "*.el")
@@ -5929,7 +5927,7 @@ did some hacking to patch it after forking it..
             :no-autoloads t))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package! snails
   :init
   (setq snails-use-exec-path-from-shell nil)
@@ -5942,7 +5940,7 @@ did some hacking to patch it after forking it..
 #+end_src
 
 Again need this to patch the issue where snails still active after choosing a candidate:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 ;;;###autoload
 (defun me/snails-candidate-do ()
   (interactive)
@@ -5950,7 +5948,7 @@ Again need this to patch the issue where snails still active after choosing a ca
   (snails-quit))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (map! :map snails-mode-map
   :desc "next candidate" :in "C-j" #'snails-select-next-item
   :desc "prev candidate" :in "C-k" #'snails-select-prev-item
@@ -5958,23 +5956,20 @@ Again need this to patch the issue where snails still active after choosing a ca
   :desc "snails quit" :in "C-g" #'snails-quit)
 #+end_src
 *** support fuzzy matching
-#+begin_src emacs-lisp :tangle packages.el
+#+begin_src emacs-lisp :tangle no
   (package! fuz :recipe (:host github
             :repo "rustify-emacs/fuz.el"
             :files (:defaults "*.sh*.el")))
 #+end_src
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package! fuz)
 #+end_src
 
 we also need the dynamic lib built for this to work..
 
-#+BEGIN_SRC sh :tangle emacs-dep-once.sh
-cp resource/fuz-core.so ~
-#+END_SRC
 *** evil integration
-#+begin_src elisp
+#+begin_src elisp :tangle no
 ;;;###autoload
 (defun snails/evil-setup ()
 (if (fboundp 'evil-insert)
@@ -5982,7 +5977,7 @@ cp resource/fuz-core.so ~
 #+end_src
 
 Need to do this so when snails is active, it's in insert mode:
-#+begin_src elisp
+#+begin_src elisp :tangle no
 (add-hook 'snails-mode-hook #'snails/evil-setup)
 #+end_src
 
