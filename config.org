@@ -6119,6 +6119,14 @@ https://github.com/lewang/command-log-mode
 #+begin_src emacs-lisp
 (use-package! 2048-game)
 #+end_src
+** speed type
+#+begin_src emacs-lisp :tangle packages.el
+(package! speed-type)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! speed-type)
+#+end_src
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
