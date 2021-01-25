@@ -5973,6 +5973,19 @@ we also need the dynamic lib built for this to work..
 #+BEGIN_SRC sh :tangle emacs-dep-once.sh
 cp resource/fuz-core.so ~
 #+END_SRC
+*** evil integration
+#+begin_src elisp
+;;;###autoload
+(defun snails/evil-setup ()
+(if (fboundp 'evil-insert)
+      (evil-insert 1)))
+#+end_src
+
+Need to do this so when snails is active, it's in insert mode:
+#+begin_src elisp
+(add-hook 'snails-mode-hook #'snails/evil-setup)
+#+end_src
+
 ** lentic - disabled
 To create the lentic buffer, press C-c,c or “Edit->Lentic->Create All”, followed
 by C-c,b or “Edit->Lentic->Split Below” to show both Emacs-Lisp and Org-mode
@@ -6097,6 +6110,15 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 * TODO
 ** command log mode
 https://github.com/lewang/command-log-mode
+* MISC
+** 2048
+#+begin_src emacs-lisp :tangle packages.el
+(package! 2048-game)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! 2048-game)
+#+end_src
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
