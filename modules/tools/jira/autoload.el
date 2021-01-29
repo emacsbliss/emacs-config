@@ -9,12 +9,13 @@
       (error "Must provide all information!"))
 
   (let* ((project-components (jiralib-get-components project))
-         (core '(id . my-jira/component-id))
+         ;; (core '(id . ,my-jira/component-id))
          (ticket-struct
           `((fields
              (project (key . ,project))
              (parent (key . ,parent-id))
-             (components (,core))
+             ;; (components (,core))
+             (components ((id . ,my-jira/component-id)))
              (customfield_10005 . ,epic)
              (labels ,labels)
              (issuetype (id . ,(car (rassoc type (if (and (boundp 'parent-id) parent-id)
@@ -81,13 +82,12 @@
                  (qa-board (or (org-entry-get (point) "QA") qa-board))
                  (created (or (org-entry-get (point) "CREATED") "N"))
                  (struct)
-                 (level (car (org-heading-components))))
+                 (level (car (org-heading-components)))
+                 (response nil)
+                 (story-id nil))
             (when (eq level 1)
               (if (not (string-equal created "N"))
                   (message "story: %s already created before, skip." summary)
-
-                (org-set-property "CREATED" "Y")
-                (save-buffer)
 
                 (message "process: %s" summary)
                 ;; translate priority from string to number in jira
@@ -96,8 +96,18 @@
                 (setq description (buffer-string*  "*Org GFM Export*"))
                 (kill-buffer "*Org GFM Export*")
 
-                (message "response for create story: %s"
-                         (my-jira/create-story my-jira/project "Story" summary description epic labels priority assignee))
+                (setq response
+                      (my-jira/create-story
+                       my-jira/project-id "Story" summary
+                       description epic labels priority assignee))
+                (when response
+                   (setq story-id (assoc 'key response))
+                   (message "story-id: %s" story-id)
+                   (message "summary: %s" (assoc 'summary (assoc 'fields response)))
+                   (org-set-property "CREATED" "Y")
+                   (save-buffer))
+
+                (message "response for create story: %s" response)
             ))
     )))
 ))
