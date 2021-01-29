@@ -101,10 +101,11 @@
                        my-jira/project-id "Story" summary
                        description epic labels priority assignee))
                 (when response
-                   (setq story-id (assoc 'key response))
+                   (setq story-id (cdr (assoc 'key response)))
                    (message "story-id: %s" story-id)
                    (message "summary: %s" (assoc 'summary (assoc 'fields response)))
                    (org-set-property "CREATED" "Y")
+                   (org-set-property "STORY-ID" story-id)
                    (save-buffer))
 
                 (message "response for create story: %s" response)
