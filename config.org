@@ -632,7 +632,8 @@ them to most frequently used things in Emacs.
 ** leader keybinding
 #+begin_src emacs-lisp
 (map! :leader
-      :desc "Eval expression"       ";"    #'pp-eval-expression
+      :desc "symbol overlay"        ";"    #'symbol-overlay-put
+      :desc "Eval expression"       "y"    #'pp-eval-expression
       :desc "M-x"                   ":"    #'execute-extended-command
       ;; :desc "Pop up scratch buffer" "x"    #'doom/open-scratch-buffer
       :desc "Pop up scratch buffer" "x"    #'me/open-scratch-buffer
