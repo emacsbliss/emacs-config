@@ -2686,7 +2686,7 @@ upfront, not using defer:
       (org-roam-dailies-capture-templates
          '(("d" "daily" plain (function org-roam-capture--get-point) ""
          :immediate-finish t
-         :file-name "journals/%<%Y-%m-%d>"
+         :file-name "journals/%<%Y_%m_%d>"
          :head "#+TITLE: %<%Y-%m-%d>")))
       (org-roam-capture-templates
         '(("d" "default" plain (function org-roam-capture--get-point)
@@ -2775,7 +2775,7 @@ to achieve multiple org-roam, but this seems still works:
       (setq unread-command-events (listify-key-sequence (kbd "C-c C-o M->")))
       (counsel-rg regex org-roam-directory "--sort modified"))))
 #+end_src
-** Exporting presentations as PDF
+* Exporting presentations as PDF
 It's taken from [[https://geeksocket.in/posts/presentations-org-emacs/][here]].
 
 In order to save the presentation as PDF file we have to host the HTML file
@@ -2795,7 +2795,7 @@ Open the presentation in Chrome browser and add ~?print-pdf~ at the end of URL.
 (use-package! zpresent
   :defer t)
 #+end_src
-** MacOS integration
+* MacOS integration
 I use ~Devonthink~ and ~MarginNote~ on MacOS, below is to make org mode support
 the link for this two apps:
 

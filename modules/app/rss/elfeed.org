@@ -28,6 +28,9 @@
 *** [[http://feeds.feedburner.com/zhihua-xblog][doctor-lai]]
 *** [[http://feeds.feedburner.com/ruanyifeng][ruanyifeng]] :chinese:
 *** [[https://news.ycombinator.com/rss][ycombinator]]
+*** [[https://shreyas.ragavan.co/post/index.xml][Shreyas Ragavan]]
 ** clojure :clojure:
 *** [[https://www.reddit.com/r/Clojure/.rss][r/Clojure]]
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg][ClojureTV]] :youtube:
+** life
+*** [[https://xkcd.com/rss.xml][xkcd]]
