@@ -32,7 +32,7 @@
     :group 'elfeed)
 
   :config
-  (setq elfeed-search-filter "@2-week-ago +unread"
+  (setq elfeed-search-filter "@6-months-ago +unread"
         elfeed-db-directory (concat doom-local-dir "elfeed/db/")
         elfeed-enclosure-default-dir (concat doom-local-dir "elfeed/enclosures/")
         elfeed-search-print-entry-function '+rss/elfeed-search-print-entry

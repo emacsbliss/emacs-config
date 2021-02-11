@@ -25,12 +25,20 @@
 ** Tech Blog :blog:
 *** [[https://paulmck.livejournal.com/data/rss][Paul E. McKenney's Journal]]
 *** [[https://eli.thegreenplace.net/feeds/all.atom.xml][Eli Bendersky's website]]
-*** [[http://feeds.feedburner.com/zhihua-xblog][doctor-lai]]
+*** [[http://feeds.feedburner.com/zhihua-xblog][doctor-lai]] :chinese:
 *** [[http://feeds.feedburner.com/ruanyifeng][ruanyifeng]] :chinese:
 *** [[https://news.ycombinator.com/rss][ycombinator]]
+*** [[https://rsshub.app/blogs/paulgraham][Paul Graham]]
 *** [[https://shreyas.ragavan.co/post/index.xml][Shreyas Ragavan]]
+*** [[https://rsshub.app/blogs/wangyin][wangyin]] :chinese:
 ** clojure :clojure:
 *** [[https://www.reddit.com/r/Clojure/.rss][r/Clojure]]
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg][ClojureTV]] :youtube:
 ** life
-*** [[https://xkcd.com/rss.xml][xkcd]]
+*** [[https://xkcd.com/rss.xml][xkcd]] :comic:
+*** [[http://feed.dilbert.com/dilbert/daily_strip][dilbert]] :comic:
+*** [[https://www.reddit.com/r/synology/.rss][r/synology]]
+*** [[http://feeds.appinn.com/appinns/][appinns]] :chinese:
+** Apple :Apple:
+*** [[http://www.mac52ipod.cn/feed.php][apple fans]] :chinese:
+*** [[http://www.waerfa.com/feed][Mac]] :chinese:
