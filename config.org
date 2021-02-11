@@ -2665,6 +2665,16 @@ tried yet..
 (after! org
   (setq org-export-show-temporary-export-buffer nil))
 #+END_SRC
+* Org Babel
+** org babel library
+#+begin_src elisp
+(org-babel-lob-ingest "~/org/roam/org_babel_library.org")
+#+end_src
+
+** python
+#+begin_src elisp
+(setq org-babel-python-command "python3")
+#+end_src
 * org roam
 https://github.com/jethrokuan/org-roam
 
@@ -6143,6 +6153,11 @@ https://github.com/lewang/command-log-mode
   (add-hook 'eww-after-render-hook #'shrface-mode)
   :config
   (require 'shrface))
+#+end_src
+* auth
+Don't ask for saving auth, sometime it hangs Emacs
+#+begin_src emacs-lisp
+(setq auth-source-save-behavior nil)
 #+end_src
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
