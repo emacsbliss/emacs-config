@@ -5831,7 +5831,7 @@ It is usually a good idea to manually set org-icalendar-timezone
 * Note Taking workflow [fn:8] [fn:9] [fn:10]
 ** env setup
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(setq zot_bib "~/bib/master.bib")
+(setq zot_bib (concat org-roam-directory "/master.bib"))
 #+end_src
 
 ** org-ref
@@ -5876,8 +5876,8 @@ Org ref lets you manage your cite: links
 (setq
       bibtex-completion-pdf-field "file"
       bibtex-completion-bibliography
-      '("~/bib/master.bib")
-      bibtex-completion-library-path '("~/bib/")
+      (list (concat org-roam-directory "/master.bib"))
+      bibtex-completion-library-path (list org-roam-directory)
       ;; not needed as I take notes in org-roam
       ; bibtex-completion-notes-path "articles.org"
 )
@@ -5899,7 +5899,7 @@ Org ref lets you manage your cite: links
            ""
            :file-name "${slug}"
            :head "#+TITLE: ${title}\n#+ROAM_KEY: ${ref}
-\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n  :NOTER_PAGE: \n  :END:\n\n"
+\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: ${file}\n  :NOTER_PAGE: \n  :END:\n\n"
            :unnarrowed t))))
 #+end_src
 ** take notes
