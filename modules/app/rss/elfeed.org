@@ -34,6 +34,7 @@
 ** clojure :clojure:
 *** [[https://www.reddit.com/r/Clojure/.rss][r/Clojure]]
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg][ClojureTV]] :youtube:
+*** [[https://insideclojure.org/feed.xml][Inside Clojure]]
 ** life
 *** [[https://xkcd.com/rss.xml][xkcd]] :comic:
 *** [[http://feed.dilbert.com/dilbert/daily_strip][dilbert]] :comic:

@@ -2581,16 +2581,6 @@ It took me a little while to figure out there is this variable
 
 then this behavior goes away.
 
-** take notes while reading
-#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! org-noter)
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(use-package! org-noter
-  :defer t)
-#+end_src
-
 ** diagrams
 I created a simple package to simplify the diagram generation from org-mode. It
 depends on the tool from https://github.com/francoislaberge/diagrams to generate
@@ -5828,6 +5818,98 @@ It is usually a good idea to manually set org-icalendar-timezone
 #+END_SRC
 
 * presentation
+* Note Taking workflow [fn:8] [fn:9] [fn:10]
+** env setup
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(setq zot_bib "~/bib/master.bib")
+#+end_src
+
+** org-ref
+Org ref lets you manage your cite: links
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-ref)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-ref
+    :config
+    (setq
+         org-ref-completion-library 'org-ref-ivy-cite
+         org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
+         org-ref-default-bibliography (list zot_bib)
+         org-ref-bibliography-notes (concat org-roam-directory "/bibnotes.org")
+         org-ref-note-title-format "* TODO %y - %t\n :PROPERTIES:\n  :Custom_ID: %k\n  :NOTER_DOCUMENT: %F\n :ROAM_KEY: cite:%k\n  :AUTHOR: %9a\n  :JOURNAL: %j\n  :YEAR: %y\n  :VOLUME: %v\n  :PAGES: %p\n  :DOI: %D\n  :URL: %U\n :END:\n\n"
+         org-ref-notes-directory org-roam-directory
+         org-ref-notes-function 'orb-edit-notes
+))
+#+end_src
+
+** Helm-Bibtex
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! helm-bibtex)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! helm-bibtex
+  :after org
+  :init
+  ; blah blah
+  :config
+  ;blah blah
+  )
+
+(setq bibtex-format-citation-functions
+      '((org-mode . (lambda (x) (insert (concat
+                                         "\\cite{"
+                                         (mapconcat 'identity x ",")
+                                         "}")) ""))))
+(setq
+      bibtex-completion-pdf-field "file"
+      bibtex-completion-bibliography
+      '("~/bib/master.bib")
+      bibtex-completion-library-path '("~/bib/")
+      ;; not needed as I take notes in org-roam
+      ; bibtex-completion-notes-path "articles.org"
+)
+#+end_src
+** Org Roam Bibtex (ORB)
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-roam-bibtex)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-roam-bibtex
+  :after (org-roam)
+  :hook (org-roam-mode . org-roam-bibtex-mode)
+  :config
+  (setq orb-preformat-keywords
+   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+  (setq orb-templates
+        '(("r" "ref" plain (function org-roam-capture--get-point)
+           ""
+           :file-name "${slug}"
+           :head "#+TITLE: ${title}\n#+ROAM_KEY: ${ref}
+\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n  :NOTER_PAGE: \n  :END:\n\n"
+           :unnarrowed t))))
+#+end_src
+** take notes
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-noter)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-noter
+:after (:any org pdf-view)
+    :config
+    (setq
+         ;; Please stop opening frames
+         org-noter-always-create-frame nil
+         ;; I want to see the whole file
+         org-noter-hide-other nil
+         ;; Everything is relative to the main notes file
+         org-noter-notes-search-path (list org-roam-directory)))
+#+end_src
+
 * weather
 https://github.com/bcbcarl/emacs-wttrin
 
@@ -6152,3 +6234,6 @@ https://github.com/lewang/command-log-mode
 [fn:5] https://tecosaur.github.io/emacs-config/config.html#dictionary
 [fn:6] https://github.com/abo-abo/oremacs/blob/15e6a33d314121ea0b3f1659dbc3ee8181dce854/modes/ora-org-roam.el
 [fn:7] https://github.com/politza/pdf-tools/issues/347
+[fn:8] https://www.ianjones.us/org-roam-bibtex
+[fn:9] https://rgoswami.me/posts/org-note-workflow/
+[fn:10] https://github.com/sunnyhasija/Academic-Doom-Emacs-Config
