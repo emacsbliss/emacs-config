@@ -712,6 +712,7 @@ them to most frequently used things in Emacs.
         :desc "list all bookmarks"         "l" #'bookmark-bmenu-list
         :desc "align-regexp"               "r" #'align-regexp
         :desc "bookmark a snippet"         "s" #'bmkp-set-snippet-bookmark
+        :desc "treemacs"                   "t" #'treemacs
         :desc "bookmark a URL"             "u" #'bmkp-url-target-set
         :desc "avy-copy-region"            "v" #'avy-copy-region))
 #+END_SRC
@@ -2676,7 +2677,7 @@ I like it better than org-brain, feels more natural to me..
 Given the frequency I use org-roam, I think it makes sense to always load it
 upfront, not using defer:
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(use-package org-roam
+(use-package! org-roam
       :hook
       (after-init . org-roam-mode)
       :custom
@@ -5831,7 +5832,8 @@ It is usually a good idea to manually set org-icalendar-timezone
 * Note Taking workflow [fn:8] [fn:9] [fn:10]
 ** env setup
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(setq zot_bib (concat org-roam-directory "/master.bib"))
+(after! org-roam
+    (setq zot_bib (concat org-roam-directory "/master.bib")))
 #+end_src
 
 ** org-ref
@@ -5842,6 +5844,7 @@ Org ref lets you manage your cite: links
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (use-package! org-ref
+    :after org-roam
     :config
     (setq
          org-ref-completion-library 'org-ref-ivy-cite
@@ -5861,14 +5864,12 @@ Org ref lets you manage your cite: links
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (use-package! helm-bibtex
-  :after org
+  :after org-roam
   :init
   ; blah blah
   :config
   ;blah blah
-  )
-
-(setq bibtex-format-citation-functions
+  (setq bibtex-format-citation-functions
       '((org-mode . (lambda (x) (insert (concat
                                          "\\cite{"
                                          (mapconcat 'identity x ",")
@@ -5880,7 +5881,7 @@ Org ref lets you manage your cite: links
       bibtex-completion-library-path (list org-roam-directory)
       ;; not needed as I take notes in org-roam
       ; bibtex-completion-notes-path "articles.org"
-)
+))
 #+end_src
 ** Org Roam Bibtex (ORB)
 #+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
@@ -5909,7 +5910,7 @@ Org ref lets you manage your cite: links
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (use-package! org-noter
-:after (:any org pdf-view)
+:after (org-roam pdf-view)
     :config
     (setq
          ;; Please stop opening frames
@@ -6241,6 +6242,17 @@ Don't ask for saving auth, sometime it hangs Emacs
 #+begin_src emacs-lisp
 (setq auth-source-save-behavior nil)
 #+end_src
+* disk usage
+#+begin_src emacs-lisp :tangle packages.el
+(package! disk-usage)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! disk-usage
+  :defer t)
+#+end_src
+
+https://gitlab.com/ambrevar/emacs-disk-usage
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
