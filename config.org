@@ -6253,6 +6253,16 @@ Don't ask for saving auth, sometime it hangs Emacs
 #+end_src
 
 https://gitlab.com/ambrevar/emacs-disk-usage
+
+* read epub files
+#+begin_src emacs-lisp :tangle packages.el
+(package! nov)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! nov
+  :defer t)
+#+end_src
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
