@@ -5632,11 +5632,11 @@ brew install xapian
 #+END_SRC
 
 ** show git commits on calendar
-#+BEGIN_SRC elisp :tangle modules/app/calendar/packages.el
+#+BEGIN_SRC elisp :tangle no
 (package! calfw-git :recipe (:local-repo "~/.doom.d/lisp" :no-byte-compile t))
 #+END_SRC
 
-#+BEGIN_SRC elisp :tangle modules/app/calendar/config.el
+#+BEGIN_SRC elisp :tangle no
 (use-package! calfw-git)
 #+END_SRC
 
