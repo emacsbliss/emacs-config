@@ -1908,10 +1908,11 @@ and caused problem:
     (setq web-mode-enable-auto-indentation t))
 #+END_SRC
 * vterm
+** vterm config
 Best terminal emulator for Emacs so far.
 #+begin_src emacs-lisp :tangle modules/term/vterm/packages.el :mkdirp yes
 (package! vterm
-  :pin "a670b786539d3c886...")
+  :pin "e19da6166878...")
 #+end_src
 
 #+begin_src emacs-lisp :tangle modules/term/vterm/config.el :mkdirp yes
@@ -1922,6 +1923,8 @@ Best terminal emulator for Emacs so far.
   :commands vterm-mode
   :hook (vterm-mode . doom-mark-buffer-as-real-h)
   :hook (vterm-mode . hide-mode-line-mode) ; modeline serves no purpose in vterm
+  :hook (vterm-mode . my-vterm-hook)
+
   :config
   (set-popup-rule! "^vterm" :size 0.25 :vslot -4 :select t :quit nil :ttl 0)
 
@@ -1937,7 +1940,26 @@ Best terminal emulator for Emacs so far.
     confirm-kill-processes nil
     ;; Prevent premature horizontal scrolling
     hscroll-margin 0)
-)
+
+  (map!
+  :map vterm-mode-map
+    [remap whole-line-or-region-yank]     #'vterm-yank
+    :desc "to normal mode" :i "C-;"       #'evil-normal-state
+    ;; bad idea
+    ;; :desc "to normal mode" :i "jf"     #'evil-normal-state
+    :desc "yank"           :n "p"         #'vterm-yank
+    :desc "up"             :in "C-k"      #'vterm-send-up
+    :desc "down"           :in "C-j"      #'vterm-send-down
+    :desc "yank"           :i  "C-y"      #'vterm-yank
+    :desc "window up"      :i "C-c C-k"   #'evil-window-up
+    :desc "window down"    :i "C-c C-j"   #'evil-window-down
+    "C-c C-e"                        (lambda ()
+                                        (interactive)
+                                        (vterm-send-key "<escape>" nil t nil))
+    "C-c C-q"                        (lambda ()
+                                        (interactive)
+                                        (vterm-send-key ":" nil t nil))
+))
 #+end_src
 
 We need to disable this hook from DOOM Emacs since it causes weird cursor issue when move cursor in normal mode then start inserting:
@@ -1976,32 +1998,8 @@ since I'm using evil mode, esc button will be intercepted by Emacs so vterm will
 not be able to pass it to vim, so I use ~C-c C-e~ for ~Esc~ and ~C-c C-q~ for ex
 mode.
 
-It turned out bad idea to bind ~jf~ in insert mode to switch to normal mode, that will cause ~j~ can't be entered at all..
-
-#+begin_src emacs-lisp :tangle modules/term/vterm/config.el :mkdirp yes
-(add-hook 'vterm-mode-hook 'my-vterm-hook)
-
-(map!
-  (:map vterm-mode-map
-
-    [remap whole-line-or-region-yank] #'vterm-yank
-    :desc "to normal mode" :i "C-;"   #'evil-normal-state
-    ;; bad idea
-    ;; :desc "to normal mode" :i "jf"    #'evil-normal-state
-    :desc "yank"           :n "p"    #'vterm-yank
-    :desc "up"             :in "C-k"              #'vterm-send-up
-    :desc "down"           :in "C-j"            #'vterm-send-down
-    :desc "window up"      :i "C-c C-k"    #'evil-window-up
-    :desc "window down"    :i "C-c C-j"  #'evil-window-down
-    "C-c C-e"                        (lambda ()
-                                        (interactive)
-                                        (vterm-send-key "<escape>" nil t nil))
-    "C-c C-q"                        (lambda ()
-                                        (interactive)
-                                        (vterm-send-key ":" nil t nil))
-))
-#+end_src
-
+It turned out bad idea to bind ~jf~ in insert mode to switch to normal mode,
+that will cause ~j~ can't be entered at all..
 ** autoloads
 #+begin_src emacs-lisp :tangle modules/term/vterm/autoload.el :mkdirp yes
 ;;; term/vterm/autoload.el -*- lexical-binding: t; -*-
@@ -6166,11 +6164,6 @@ on your local system, then you can activate all of the following buttons.
   git#55a1f0                 (when within a git repo, displays its commit diff)
 #+end_example
 
-** man page
-grep, egrep, fgrep (1) - search a file for a string or regular expression
-rm (1)                 - remove (unlink) files or directories
-touch (1)              - update the access and modification times of a file
-cat (1)                - concatenate and display
 ** emacs-reveal
 disabled on <2021-01-18 Mon> for few reason:
 - too heavy, it depends on things like ~helm~
