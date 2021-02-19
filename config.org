@@ -2323,6 +2323,19 @@ Following is taken from [[https://tecosaur.github.io/emacs-config/config.html][H
     :em_dash       "---"))
 (plist-put +pretty-code-symbols :name "⁍") ; or › could be good?
 #+END_SRC
+** convert to org file
+[[https://github.com/tecosaur/org-pandoc-import][org-pandoc-import]] could help with this, it depends on pandoc.
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-pandoc-import
+  :recipe (:host github
+           :repo "tecosaur/org-pandoc-import"
+           :files ("*.el" "filters" "preprocessors")))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-pandoc-import :after org)
+#+end_src
 ** journal
 I use [[https://github.com/bastibe/org-journal][org-journal]] to write journal and then with some customized functions these
 journals are also exported to [[https://dayone.me/][DayOne]] on MacOs.
@@ -2734,7 +2747,7 @@ upfront, not using defer:
         (goto-char (point-max))
         (insert (concat "\n* Backlinks\n") links)))))
 
-(add-hook 'org-export-before-processing-hook 'my/org-export-preprocessor)
+;;(add-hook 'org-export-before-processing-hook 'my/org-export-preprocessor)
 #+END_SRC
 ** multiple org-roam
 Now with latest version of org-roam, they have switched to use dir local variable
@@ -6251,8 +6264,7 @@ https://gitlab.com/ambrevar/emacs-disk-usage
 #+end_src
 
 #+begin_src emacs-lisp
-(use-package! nov
-  :defer t)
+(use-package! nov :defer t)
 #+end_src
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
