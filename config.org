@@ -3369,17 +3369,15 @@ Specifically, I begin work on a task, and designate it the focus of my attention
 
 To trigger org-capture outside emacs, we can run shell command:
 #+BEGIN_SRC sh :tangle no
-/usr/local/opt/emacs-plus/bin/emacsclient -n -e '(yequake-toggle "org-capture")'
+/usr/local/bin/emacsclient -n -e '(yequake-toggle "org-capture")'
 #+END_SRC
 
-For MacOS, I also use [[https://www.keyboardmaestro.com/][keyboardmaestro]] to trigger global capture.
+For MacOS, I also use [[https://github.com/Hammerspoon/hammerspoon][hammerspoon]] to trigger global capture.
 So far it's just a simple macro setup.
 
 Basically workflow would be:
 - select some text
-- press ~C-t~ to trigger this macro
-
-[[file:files/keyboard_maestro_capture.png]]
+- press ~Alt-Cmd-t~ to trigger this macro
 
 ** capture the code
 I found this capture template quite helpful when I read code when working on
