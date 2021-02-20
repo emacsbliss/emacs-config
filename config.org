@@ -6275,15 +6275,24 @@ https://github.com/lewang/command-log-mode
 ** weather
 https://github.com/bcbcarl/emacs-wttrin
 
-* Games
+* Fun
 ** 2048
 #+begin_src emacs-lisp :tangle packages.el
 (package! 2048-game)
 #+end_src
 
 #+begin_src emacs-lisp
-(use-package! 2048-game)
+(use-package! 2048-game :defer t)
 #+end_src
+** pacmacs
+#+begin_src emacs-lisp :tangle packages.el
+(package! pacmacs)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! pacmacs :defer t)
+#+end_src
+
 * read epub files
 #+begin_src emacs-lisp :tangle packages.el
 (package! nov)
