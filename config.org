@@ -5468,6 +5468,28 @@ brew install gifsicle
 
 They should all reside under ~/usr/local/bin~ after install.
 
+* keystroke visualizer
+https://github.com/chuntaro/emacs-keypression
+
+#+begin_src emacs-lisp :tangle packages.el
+(package! keypression)
+#+end_src
+
+#+BEGIN_SRC emacs-lisp
+(use-package! keypression
+  :defer t
+  :config
+  (setq
+      keypression-use-child-frame nil
+      keypression-fade-out-delay 1.0
+      keypression-frame-justify 'keypression-right-justified
+      ;; keypression-cast-command-name t
+      ;; keypression-cast-command-name-format "%s  %s"
+      keypression-combine-same-keystrokes t
+      keypression-font-face-attribute '(:width normal :height 400 :weight bold)
+      keypression-x-offset 100
+      keypression-y-offset 100))
+#+END_SRC
 * window management
 #+begin_src emacs-lisp :tangle packages.el
 (package! zoom)
