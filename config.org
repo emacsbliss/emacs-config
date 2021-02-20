@@ -529,7 +529,7 @@ For now I want to disable this since tab doesn't behave to my liking.
 :END:
 
 Need to disable this otherwise will cause problem:
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (setq doom-localleader-key ",")
 #+END_SRC
 ** most frequent
@@ -706,6 +706,8 @@ them to most frequently used things in Emacs.
       (:prefix-map ("a" . "applications")
         :desc "avy-copy-line"              "c" #'avy-copy-line
         :desc "bookmark Dired buffer"      "d" #'bookmark-set
+        :desc "end screen recording"       "e" #'gif-screencast-stop
+        :desc "pause/resume recording"     "p" #'gif-screencast-toggle-pause
         :desc "bookmark a file"            "f" #'bmkp-file-target-set
         :desc "new org journal entry"      "j" #'org-journal-new-entry
         :desc "bookmark current buffer"    "k" #'bmkp-bookmark-set-confirm-overwrite
@@ -1507,11 +1509,11 @@ better since I don't have to add ~.dir-locals.el~ to the repo where I want to
 have the format kicks in.
 
 Later it turns out there is a [[https://github.com/SavchenkoValeriy/emacs-clang-format-plus][package]] already provides this functionality:
-#+BEGIN_SRC elisp :tangle packages.el
+#+BEGIN_SRC emacs-lisp :tangle packages.el
 (package! clang-format+ :recipe (:host github :repo "SavchenkoValeriy/emacs-clang-format-plus"))
 #+END_SRC
 
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (use-package! clang-format+)
 (add-hook 'c-mode-common-hook #'clang-format+-mode)
 #+END_SRC
@@ -1903,7 +1905,7 @@ credit: http://stackoverflow.com/questions/88399/how-do-i-duplicate-a-whole-line
 
 Sometimes web-mode will perform auto-indent which screws up the existing file
 and caused problem:
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (after! web-mode
     (setq web-mode-enable-auto-indentation t))
 #+END_SRC
@@ -2195,7 +2197,7 @@ https://github.com/manateelazycat/nox
 (add-hook hook '(lambda () (nox-ensure))))
 #+END_SRC
 
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (setq nox-python-path "/usr/local/Cellar/python@3.8/3.8.2/bin/python3")
 #+END_SRC
 
@@ -2268,7 +2270,7 @@ buffer, so change the setting a bit:
 #+end_src
 
 Following is taken from [[https://tecosaur.github.io/emacs-config/config.html][Here]]:
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (after! org
   (appendq! +pretty-code-symbols
             `(:checkbox      "☐"
@@ -2674,15 +2676,16 @@ tried yet..
 #+end_src
 
 ** python
-#+begin_src elisp
-(setq org-babel-python-command "python3")
+#+begin_src emacs-lisp
+(after! org
+  (setq org-babel-python-command "python3"))
 #+end_src
 * org roam
 https://github.com/jethrokuan/org-roam
 
 I like it better than org-brain, feels more natural to me..
 #+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! org-roam :recipe (:host github :repo "jethrokuan/org-roam"))
+(package! org-roam)
 #+end_src
 
 Given the frequency I use org-roam, I think it makes sense to always load it
@@ -2962,7 +2965,7 @@ Most of the tweaks below are taken from [[https://tecosaur.github.io/emacs-confi
 I made few tweaks to the below code:
 - use local version of css/js file for readtheorg theme
 - fix table export issue (two vertical lines on both sides of page)
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (defun org-inline-css-hook (exporter)
   "Insert custom inline css to automatically set the
    background of code to whatever theme I'm using's background"
@@ -3183,7 +3186,7 @@ I made few tweaks to the below code:
         (verbatim . "<kbd>%s</kbd>")))
 #+end_src
 ** Change checkbox type
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (after! org
 (appendq! org-html-checkbox-types '((html-span .
     ((on . "<span class='checkbox'></span>")
@@ -3203,7 +3206,7 @@ issue which breaks the auto-scroll of TOC so it doesn't reflect the cursor
 location for the readtheorg theme from this [[https://github.com/fniessen/org-html-themes][repo]].
 
 Later I discovered [[https://tecosaur.github.io/emacs-config/config.html#behaviour][this]] config which solves both problem, really nice!
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (defvar org-heading-contraction-max-words 3
   "Maximum number of words in a heading")
 (defvar org-heading-contraction-max-length 35
@@ -3258,7 +3261,7 @@ truncated to fit within the limit"
                                     heading-words))))
     (string-join heading-words "-")))
 #+END_SRC
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (define-minor-mode unpackaged/org-export-html-with-useful-ids-mode
   "Attempt to export Org as HTML with useful link IDs.
 Instead of random IDs like \"#orga1b2c3\", use heading titles,
@@ -3873,7 +3876,7 @@ brew install w3m
 #+end_src
 
 To use *Emacs-w3m* as default browser, do this:
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (setq browse-url-browser-function  'w3m-goto-url-new-session)
 #+END_SRC
 
@@ -4057,7 +4060,7 @@ it in different location:
  # :bind (:map elfeed-search-mode-map
  #              ("B" . ar/elfeed-search-browse-background-url))
 
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun ar/elfeed-search-browse-background-url ()
     "Open current `elfeed' entry (or region entries) in browser without losing focus."
     (interactive)
@@ -4074,7 +4077,7 @@ it in different location:
 #+END_SRC
 
 ** Open feeds in Emacs [fn:3]
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun elfeed-show-eww-open (&optional use-generic-p)
   "open with eww"
   (interactive "P")
@@ -4092,7 +4095,7 @@ it in different location:
 #+END_SRC
 
 ** multiple browsers [fn:4]
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (defun elfeed-eww-open (&optional use-generic-p)
   "open with eww"
   (interactive "P")
@@ -5427,7 +5430,7 @@ https://github.com/tarsius/keycast
 (package! keycast :recipe (:host github :repo "tarsius/keycast"))
 #+end_src
 
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (use-package! keycast
   :defer t)
 #+END_SRC
@@ -5441,16 +5444,17 @@ found in mode-line-format. Try customizing keycast-insert-after.
 (package! gif-screencast :recipe (:host gitlab :repo "ambrevar/emacs-gif-screencast"))
 #+end_src
 
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (use-package! gif-screencast
   :defer t
-  :config
+  :custom
   ;; To shut up the shutter sound of `screencapture' (see `gif-screencast-command').
-  (setq gif-screencast-args '("-x"))
-  ;; Optional: Used to crop the capture to the Emacs frame.
-  (setq gif-screencast-cropping-program "mogrify")
-  ;; Optional: Required to crop captured images.
-  (setq gif-screencast-capture-format "ppm"))
+  (gif-screencast-args '("-x" "-o"))
+  ;; argument "-layers" "OptimizeFrame" caused my problem on MacOS
+  ;; for eg, example error looks like below:
+  ;; convert: image pages are not coalesced <image-file> @ error/layer.c/OptimizeLayerFrames/995.
+  (gif-screencast-convert-args '("-delay" "100" "-loop" "0" "-dither" "None" "-colors" "80" "-fuzz" "40%"))
+)
 #+END_SRC
 
 There are some dependencies as well and can be installed using homebrew:
@@ -5459,17 +5463,8 @@ brew install mogrify
 brew install gifsicle
 #+END_SRC
 
-After install you should see:
-#+begin_example :tangle no
-❯ which mogrify
-/usr/local/bin/mogrify
+They should all reside under ~/usr/local/bin~ after install.
 
-❯ which convert
-/usr/local/bin/convert
-
-❯ which gifsicle
-/usr/local/bin/gifsicle
-#+end_example
 * window management
 #+begin_src emacs-lisp :tangle packages.el
 (package! zoom)
@@ -5496,7 +5491,7 @@ After install you should see:
 : me/handle-files-from-dir
 
 For eg, to print all org files under current directory:
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (me/handle-files-from-dir "." "\\.org$"
                           '(lambda (x) (message "file: %s" x)))
 #+END_SRC
@@ -5550,7 +5545,7 @@ brew install xapian
   :desc "rebuild index" :n "R" #'notdeft-reindex)
 #+end_src
 * Calendar
-#+BEGIN_SRC elisp
+#+BEGIN_SRC emacs-lisp
 (use-package! calendar
   :defer t
   :config
@@ -5577,7 +5572,7 @@ brew install xapian
 #+END_SRC
 
 ** calfw
-#+BEGIN_SRC elisp :tangle modules/app/calendar/packages.el
+#+BEGIN_SRC emacs-lisp :tangle modules/app/calendar/packages.el
 ;; -*- no-byte-compile: t; -*-
 ;;; app/calendar/packages.el
 
@@ -5586,7 +5581,7 @@ brew install xapian
 (package! org-gcal)
 #+END_SRC
 
-#+BEGIN_SRC elisp :tangle modules/app/calendar/config.el
+#+BEGIN_SRC emacs-lisp :tangle modules/app/calendar/config.el
 ;;; app/calendar/config.el -*- lexical-binding: t; -*-
 
 (defvar +calendar-org-gcal-secret-file
@@ -5643,22 +5638,22 @@ brew install xapian
 #+END_SRC
 
 ** show git commits on calendar
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (package! calfw-git :recipe (:local-repo "~/.doom.d/lisp" :no-byte-compile t))
 #+END_SRC
 
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC emacs-lisp :tangle no
 (use-package! calfw-git)
 #+END_SRC
 
 ** caldav
 https://github.com/dengste/org-caldav
 
-#+BEGIN_SRC elisp :tangle modules/app/calendar/packages.el
+#+BEGIN_SRC emacs-lisp :tangle modules/app/calendar/packages.el
 (package! org-caldav)
 #+END_SRC
 
-#+BEGIN_SRC elisp :tangle modules/app/calendar/config.el
+#+BEGIN_SRC emacs-lisp :tangle modules/app/calendar/config.el
 (use-package! org-caldav
   :defer t
   :config
@@ -6072,7 +6067,7 @@ Again need this to patch the issue where snails still active after choosing a ca
 we also need the dynamic lib built for this to work..
 
 *** evil integration
-#+begin_src elisp :tangle no
+#+begin_src emacs-lisp :tangle no
 ;;;###autoload
 (defun snails/evil-setup ()
 (if (fboundp 'evil-insert)
@@ -6080,7 +6075,7 @@ we also need the dynamic lib built for this to work..
 #+end_src
 
 Need to do this so when snails is active, it's in insert mode:
-#+begin_src elisp :tangle no
+#+begin_src emacs-lisp :tangle no
 (add-hook 'snails-mode-hook #'snails/evil-setup)
 #+end_src
 
