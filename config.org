@@ -5893,9 +5893,6 @@ Org ref lets you manage your cite: links
          org-noter-notes-search-path (list org-roam-directory)))
 #+end_src
 
-* weather
-https://github.com/bcbcarl/emacs-wttrin
-
 * Disabled
 ** eacl
 update on <2020-03-23 Mon>:
@@ -6226,26 +6223,6 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 (use-package! oer-reveal)
 #+end_src
 
-* TODO
-** command log mode
-https://github.com/lewang/command-log-mode
-* MISC
-** 2048
-#+begin_src emacs-lisp :tangle packages.el
-(package! 2048-game)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! 2048-game)
-#+end_src
-** speed type
-#+begin_src emacs-lisp :tangle packages.el
-(package! speed-type)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! speed-type)
-#+end_src
 * shrface
 #+begin_src emacs-lisp :tangle packages.el
 (package! shrface)
@@ -6272,7 +6249,8 @@ Don't ask for saving auth, sometime it hangs Emacs
 #+begin_src emacs-lisp
 (setq auth-source-save-behavior nil)
 #+end_src
-* disk usage
+* Utilties
+** disk usage
 #+begin_src emacs-lisp :tangle packages.el
 (package! disk-usage)
 #+end_src
@@ -6284,6 +6262,28 @@ Don't ask for saving auth, sometime it hangs Emacs
 
 https://gitlab.com/ambrevar/emacs-disk-usage
 
+** speed type
+#+begin_src emacs-lisp :tangle packages.el
+(package! speed-type)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! speed-type :defer t)
+#+end_src
+** command log mode
+https://github.com/lewang/command-log-mode
+** weather
+https://github.com/bcbcarl/emacs-wttrin
+
+* Games
+** 2048
+#+begin_src emacs-lisp :tangle packages.el
+(package! 2048-game)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! 2048-game)
+#+end_src
 * read epub files
 #+begin_src emacs-lisp :tangle packages.el
 (package! nov)
