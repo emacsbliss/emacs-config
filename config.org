@@ -5428,20 +5428,6 @@ Use ~pandoc~, command line is:
 pandoc -f html -t epub -o test.epub test.html
 #+END_SRC
 * Record Screencasts
-https://github.com/tarsius/keycast
-#+begin_src emacs-lisp :tangle packages.el
-(package! keycast :recipe (:host github :repo "tarsius/keycast"))
-#+end_src
-
-#+BEGIN_SRC emacs-lisp
-(use-package! keycast
-  :defer t)
-#+END_SRC
-So far keycast is not working yet, having the error:
-#+begin_example
-user-error: Cannot turn on keycast-mode. mode-line-buffer-identification not
-found in mode-line-format. Try customizing keycast-insert-after.
-#+end_example
 
 #+begin_src emacs-lisp :tangle packages.el
 (package! gif-screencast :recipe (:host gitlab :repo "ambrevar/emacs-gif-screencast"))
@@ -5954,6 +5940,23 @@ Org ref lets you manage your cite: links
 https://github.com/bcbcarl/emacs-wttrin
 
 * Disabled
+** keycast
+I think keypression is a better alternative and that works, so disable keycast.
+
+https://github.com/tarsius/keycast
+#+begin_src emacs-lisp :tangle no
+(package! keycast :recipe (:host github :repo "tarsius/keycast"))
+#+end_src
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package! keycast :defer t)
+#+END_SRC
+So far keycast is not working yet, having the error:
+#+begin_example
+user-error: Cannot turn on keycast-mode. mode-line-buffer-identification not
+found in mode-line-format. Try customizing keycast-insert-after.
+#+end_example
+
 ** english chinese translation - disabled
 updated on <2021-01-18 Mon>, no longer use.
 
