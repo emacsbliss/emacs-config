@@ -2671,8 +2671,11 @@ tried yet..
 #+END_SRC
 * Org Babel
 ** org babel library
-#+begin_src elisp
-(org-babel-lob-ingest "~/org/roam/org_babel_library.org")
+For now not loading it here otherwise it will prompt for safe local variable
+everytime on startup
+#+begin_src emacs-lisp :tangle no
+(after! org
+  (org-babel-lob-ingest "~/org/roam/org_babel_library.org"))
 #+end_src
 
 ** python
