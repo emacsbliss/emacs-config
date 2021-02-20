@@ -412,8 +412,7 @@ By default I use three consecutive ~$~ as separator in the files used by
 #+BEGIN_SRC emacs-lisp
 (after! org
 (set-company-backend! '(org-mode)
-  '(:separate company-english-helper-search
-              company-tabnine
+  '(:separate company-tabnine
               company-files
               company-yasnippet
               ))
@@ -423,8 +422,7 @@ By default I use three consecutive ~$~ as separator in the files used by
 Do not use ~company-ispell~ as backend, too much noise most of the time.
 #+BEGIN_SRC emacs-lisp
 (set-company-backend! '(prog-mode)
-  '(:separate company-english-helper-search
-              company-tabnine
+  '(:separate company-tabnine
               company-files
               company-yasnippet
               ))
@@ -465,20 +463,6 @@ Do not use ~company-ispell~ as backend, too much noise most of the time.
   (:after comint :map comint-mode-map
     "TAB" #'company-complete
     [tab] #'company-complete)))
-#+END_SRC
-** eacl - disable
-update on <2020-03-23 Mon>:
-
-Now with TabNine and company-tabnine, I felt I don't really use this package
-much, disable for now.
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(package! eacl)
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(use-package! eacl
-  :defer t)
 #+END_SRC
 ** tabnine
 #+begin_src emacs-lisp :tangle packages.el
@@ -5913,6 +5897,20 @@ Org ref lets you manage your cite: links
 https://github.com/bcbcarl/emacs-wttrin
 
 * Disabled
+** eacl
+update on <2020-03-23 Mon>:
+
+Now with TabNine and company-tabnine, I felt I don't really use this package
+much, disable for now.
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(package! eacl)
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package! eacl
+  :defer t)
+#+END_SRC
 ** vc-msg
 update on <2021-02-19 Fri>:
 I found myself hardly use this package, so disable for now..
@@ -5962,7 +5960,7 @@ user-error: Cannot turn on keycast-mode. mode-line-buffer-identification not
 found in mode-line-format. Try customizing keycast-insert-after.
 #+end_example
 
-** english chinese translation - disabled
+** english chinese translation
 updated on <2021-01-18 Mon>, no longer use.
 
 [[https://github.com/manateelazycat/company-english-helper][company-english-helper]] will show the completion candidates as well as Chinese
@@ -5978,7 +5976,7 @@ translation to help the writing.
 #+END_SRC
 
 Run ~toggle-company-english-helper~ to enable it.
-** mixed pitch - disabled
+** mixed pitch
 Just trying out, one issue so far is the font size for ETBembo seems always
 bit too small. It also seems caused problem with company package.
 
@@ -5999,7 +5997,7 @@ Company: frontend company-pseudo-tooltip-frontend error "Invalid face" on comman
   :hook
   (text-mode . mixed-pitch-mode))
 #+end_src
-** sdcv.el - disabled
+** sdcv.el
 Then ~sdcv.el~ package will make use of the binary ~sdcv~ to do the translation:
 #+begin_src emacs-lisp :tangle no
 (package! sdcv :recipe (:host github :repo "manateelazycat/sdcv"))
@@ -6024,7 +6022,7 @@ sdcv --list-dicts --data-dir=~/dict
 (setq sdcv-say-word-p t)
 #+END_SRC
 
-** Zettelkasten - disabled
+** Zettelkasten
 Now I prefer ~org-roam~ more, so disable this for now.
 
 #+begin_src emacs-lisp :tangle no
@@ -6046,7 +6044,7 @@ Then configure ~zetteldeft~:
 #+end_src
 
 Create a note with zetteldeft-new-file and provide a name.
-** snails - disabled
+** snails
 it started working after some tweak, but still got error with snails-quit function..
 did some hacking to patch it after forking it..
 
@@ -6112,7 +6110,7 @@ Need to do this so when snails is active, it's in insert mode:
 (add-hook 'snails-mode-hook #'snails/evil-setup)
 #+end_src
 
-** lentic - disabled
+** lentic
 To create the lentic buffer, press C-c,c or “Edit->Lentic->Create All”, followed
 by C-c,b or “Edit->Lentic->Split Below” to show both Emacs-Lisp and Org-mode
 file at the same time.
