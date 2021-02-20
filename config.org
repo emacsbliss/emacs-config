@@ -6292,6 +6292,14 @@ https://github.com/bcbcarl/emacs-wttrin
 #+begin_src emacs-lisp
 (use-package! pacmacs :defer t)
 #+end_src
+** sudoku
+#+begin_src emacs-lisp :tangle packages.el
+(package! sudoku)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! sudoku :defer t)
+#+end_src
 
 * read epub files
 #+begin_src emacs-lisp :tangle packages.el
