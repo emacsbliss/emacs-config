@@ -3938,33 +3938,6 @@ Also my python3 is in this location after brew install:
 
 * git
 ~Magit~ is excellent git client for Emacs.
-** git blame
-We can do ~magit-blame~, there is also package [[https://github.com/redguardtoo/vc-msg][vc-msg]] which provides more
-accurate commit information, like the case there is multiple commits to the same line.
-#+begin_src emacs-lisp :tangle modules/app/git/packages.el
-(package! vc-msg)
-#+end_src
-
-You can run vc-msg-show from magit blame buffer any time and you can trigger any
-magit command from this program out of the box.
-
-You could also use magit show the code of commit, Here is configuration to use
-magit-find-file and magit-show-commit,
-#+begin_src emacs-lisp :tangle modules/app/git/config.el
-(eval-after-load 'vc-msg-git
-  '(progn
-     ;; show code of commit
-     (setq vc-msg-git-show-commit-function 'magit-show-commit)
-     ;; open file of certain revision
-     (push '("m"
-             "[m]agit-find-file"
-             (lambda ()
-               (let* ((info vc-msg-previous-commit-info)
-                      (git-dir (locate-dominating-file default-directory ".git")))
-                 (magit-find-file (plist-get info :id )
-                                  (concat git-dir (plist-get info :filename))))))
-           vc-msg-git-extra)))
-#+end_src
 ** git time machine enhanced
 I like this [[http://blog.binchen.org/posts/new-git-timemachine-ui-based-on-ivy-mode.html][enhancement]] better than original version:
 
@@ -5940,6 +5913,38 @@ Org ref lets you manage your cite: links
 https://github.com/bcbcarl/emacs-wttrin
 
 * Disabled
+** vc-msg
+update on <2021-02-19 Fri>:
+I found myself hardly use this package, so disable for now..
+
+-------------------------------
+We can do ~magit-blame~, there is also package [[https://github.com/redguardtoo/vc-msg][vc-msg]] which provides more
+accurate commit information, like the case there is multiple commits to the same line.
+#+begin_src emacs-lisp :tangle no
+(package! vc-msg)
+#+end_src
+
+You can run vc-msg-show from magit blame buffer any time and you can trigger any
+magit command from this program out of the box.
+
+You could also use magit show the code of commit, Here is configuration to use
+magit-find-file and magit-show-commit,
+#+begin_src emacs-lisp :tangle no
+(eval-after-load 'vc-msg-git
+  '(progn
+     ;; show code of commit
+     (setq vc-msg-git-show-commit-function 'magit-show-commit)
+     ;; open file of certain revision
+     (push '("m"
+             "[m]agit-find-file"
+             (lambda ()
+               (let* ((info vc-msg-previous-commit-info)
+                      (git-dir (locate-dominating-file default-directory ".git")))
+                 (magit-find-file (plist-get info :id )
+                                  (concat git-dir (plist-get info :filename))))))
+           vc-msg-git-extra)))
+#+end_src
+
 ** keycast
 I think keypression is a better alternative and that works, so disable keycast.
 
