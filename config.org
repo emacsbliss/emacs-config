@@ -2326,61 +2326,6 @@ Following is taken from [[https://tecosaur.github.io/emacs-config/config.html][H
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (use-package! org-pandoc-import :after org)
 #+end_src
-** journal
-I use [[https://github.com/bastibe/org-journal][org-journal]] to write journal and then with some customized functions these
-journals are also exported to [[https://dayone.me/][DayOne]] on MacOs.
-
-DOOM Emacs has already support it, just need to add:
-#+begin_example
-+journal
-#+end_example
-for Org package in init.el.
-
-However I found some funny issues when using DOOM emacs config for org-journal,
-so I'll put in my own config for now.
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! org-journal)
-#+end_src
-
-Also currently I have made org-roam also use the same directory where journals
-are stored..
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(use-package! org-journal
-  :bind
-  ("C-c n j" . org-journal-new-entry)
-  ("C-c n t" . org-journal-today)
-  :custom
-  (org-journal-date-prefix "#+TITLE: ")
-  (org-journal-file-format "%Y-%m-%d.org")
-  (org-journal-dir "~/repo/life")
-  (org-journal-carryover-items nil)
-  (org-journal-date-format "%Y-%m-%d")
-  (org-journal-time-prefix "* "))
-#+end_src
-
-*** key binding
-Currently I have bound ~SPC a j~ to invoke ~org-journal-new-entry~ command which
-will start a new journal entry for current date.
-
-To search the journal for a string, use ~C-c C-s~.
-
-It's integrated with Emacs calendar, so after we run ~calendar~, in the calendar
-mode we can do following things. We need to get into insert mode by doing ~i~
-first before any of those key bindings due to evil mode.
-
-| key   | operation                                                             |
-|-------+-----------------------------------------------------------------------|
-| =j=   | view an entry in a new buffer.                                        |
-| =C-j= | view an entry but do not switch to it                                 |
-| =i j= | add a new entry into the day’s file (creates the file if not present) |
-| =f w= | search in all entries of the current week                             |
-| =f m= | search in all entries of the current month                            |
-| =f y= | search in all entries of the current year                             |
-| =f f= | search in all entries of all time                                     |
-| =f F= | search in all entries in the future                                   |
-| =[=   | go to previous day with journal entries                               |
-| =]=   | go to next day with journal entries                                   |
 ** capture webpage
 There are multiple ways to capture a webpage into org mode file.
 *** org-web-tools
@@ -5898,6 +5843,64 @@ Org ref lets you manage your cite: links
 #+end_src
 
 * Disabled
+** org-journal
+updated on <2021-02-21 Sun>:
+I have switched to use org-roam for journal as well, so disable org-journal.
+
+I use [[https://github.com/bastibe/org-journal][org-journal]] to write journal and then with some customized functions these
+journals are also exported to [[https://dayone.me/][DayOne]] on MacOs.
+
+DOOM Emacs has already support it, just need to add:
+#+begin_example
++journal
+#+end_example
+for Org package in init.el.
+
+However I found some funny issues when using DOOM emacs config for org-journal,
+so I'll put in my own config for now.
+
+#+begin_src emacs-lisp :tangle no
+(package! org-journal)
+#+end_src
+
+Also currently I have made org-roam also use the same directory where journals
+are stored..
+#+begin_src emacs-lisp :tangle no
+(use-package! org-journal
+  :bind
+  ("C-c n j" . org-journal-new-entry)
+  ("C-c n t" . org-journal-today)
+  :custom
+  (org-journal-date-prefix "#+TITLE: ")
+  (org-journal-file-format "%Y-%m-%d.org")
+  (org-journal-dir "~/repo/life")
+  (org-journal-carryover-items nil)
+  (org-journal-date-format "%Y-%m-%d")
+  (org-journal-time-prefix "* "))
+#+end_src
+
+*** key binding
+Currently I have bound ~SPC a j~ to invoke ~org-journal-new-entry~ command which
+will start a new journal entry for current date.
+
+To search the journal for a string, use ~C-c C-s~.
+
+It's integrated with Emacs calendar, so after we run ~calendar~, in the calendar
+mode we can do following things. We need to get into insert mode by doing ~i~
+first before any of those key bindings due to evil mode.
+
+| key   | operation                                                             |
+|-------+-----------------------------------------------------------------------|
+| =j=   | view an entry in a new buffer.                                        |
+| =C-j= | view an entry but do not switch to it                                 |
+| =i j= | add a new entry into the day’s file (creates the file if not present) |
+| =f w= | search in all entries of the current week                             |
+| =f m= | search in all entries of the current month                            |
+| =f y= | search in all entries of the current year                             |
+| =f f= | search in all entries of all time                                     |
+| =f F= | search in all entries in the future                                   |
+| =[=   | go to previous day with journal entries                               |
+| =]=   | go to next day with journal entries                                   |
 ** eacl
 update on <2020-03-23 Mon>:
 
