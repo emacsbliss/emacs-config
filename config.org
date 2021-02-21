@@ -38,16 +38,20 @@ I have heavily customized my keybindings and put them into a separate file:
 #+END_SRC
 * Visual Settings
 ** font
-I like use ~SF Mono~ font from MacOS. However In order to make certain symbols
-displayed properly, we need powerline patched SF Mono font.
+Update on <2021-02-21 Sun>:
 
-Also for the variable pitch font, [[https://edwardtufte.github.io/et-book/][ET Book]] font is very pretty.
+Started to try the [[https://www.jetbrains.com/lp/mono/][JetBrains Mono]] font which claims to be very friendly to developer.
+
++I like use ~SF Mono~ font from MacOS. However In order to make certain symbols+
++displayed properly, we need powerline patched SF Mono font.+
+
++Also for the variable pitch font, [[https://edwardtufte.github.io/et-book/][ET Book]] font is very pretty.+
 
 #+BEGIN_SRC emacs-lisp
-(setq doom-font (font-spec :family "SF Mono Powerline" :size 22)
-      doom-variable-pitch-font (font-spec :family "ETBembo" :size 30)
-      doom-unicode-font (font-spec :family "SF Mono Powerline")
-      doom-big-font (font-spec :family "SF Mono Powerline" :size 30))
+(setq doom-font (font-spec :family "JetBrains Mono" :size 22)
+      doom-variable-pitch-font (font-spec :family "JetBrains Mono" :size 30)
+      doom-unicode-font (font-spec :family "JetBrains Mono")
+      doom-big-font (font-spec :family "JetBrains Mono" :size 30))
 #+END_SRC
 
 Interestingly we can adjust font either on per buffer basis or frame basis.
