@@ -2617,6 +2617,7 @@ everytime on startup
   (setq org-babel-python-command "python3"))
 #+end_src
 * org roam
+** basic setup
 https://github.com/jethrokuan/org-roam
 
 I like it better than org-brain, feels more natural to me..
@@ -2638,12 +2639,12 @@ upfront, not using defer:
          '(("d" "daily" plain (function org-roam-capture--get-point) ""
          :immediate-finish t
          :file-name "journals/%<%Y_%m_%d>"
-         :head "#+TITLE: %<%Y-%m-%d>")))
+         :head "%(format-time-string \"%a, %Y/%m/%d\" (current-time) t)")))
       (org-roam-capture-templates
         '(("d" "default" plain (function org-roam-capture--get-point)
             "%?"
             :immediate-finish t
-            :file-name "${slug}"
+            :file-name "pages/${slug}"
             :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n"
             :unnarrowed t)
 
