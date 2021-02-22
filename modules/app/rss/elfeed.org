@@ -29,6 +29,7 @@
 *** [[http://feeds.feedburner.com/ruanyifeng][ruanyifeng]] :chinese:
 *** [[https://news.ycombinator.com/rss][ycombinator]]
 *** [[https://rsshub.app/blogs/paulgraham][Paul Graham]]
+*** [[http://blog.acolyer.org/feed/][the morning paper]]
 *** [[https://shreyas.ragavan.co/post/index.xml][Shreyas Ragavan]]
 *** [[https://rsshub.app/blogs/wangyin][wangyin]] :chinese:
 ** clojure :clojure:
