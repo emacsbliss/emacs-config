@@ -2651,7 +2651,7 @@ upfront, not using defer:
           ("j" "jira" plain (function org-roam-capture--get-point)
             "%?"
             :immediate-finish t
-            :file-name "${slug}"
+            :file-name "pages/${slug}"
             :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n#+KEYWORDS: \n#+TYPE: \n#+STATUS: Q\n#+JIRA: \n#+SPRINT: \n#+EPIC: \n#+POINTS: \n"
             :unnarrowed t)))
       :bind (:map org-mode-map
@@ -5852,6 +5852,23 @@ Org ref lets you manage your cite: links
 (use-package! mpv
   :defer t)
 #+end_src
+* org-media-note
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! pretty-hydra)  ;; dependency
+(package! org-media-note :recipe (:host github :repo "yuchen-lea/org-media-note"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-media-note
+  :hook (org-mode .  org-media-note-setup-org-ref)
+  :bind (
+         ("H-v" . org-media-note-hydra/body))  ;; Main entrance
+  :config
+  (setq org-media-note-screenshot-image-dir "~/org/imgs/")  ;; Folder to save screenshot
+  ;; use videocite link instead of video link if possible
+  (setq org-media-note-use-refcite-first t))
+#+end_src
+
 * Disabled
 ** org-journal
 updated on <2021-02-21 Sun>:
