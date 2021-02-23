@@ -5843,6 +5843,15 @@ Org ref lets you manage your cite: links
          org-noter-notes-search-path (list org-roam-directory)))
 #+end_src
 
+* mpv
+#+begin_src emacs-lisp :tangle packages.el
+(package! mpv)
+#+end_src
+
+#+begin_src emacs-lisp :tangle packages.el
+(use-package! mpv
+  :defer t)
+#+end_src
 * Disabled
 ** org-journal
 updated on <2021-02-21 Sun>:
