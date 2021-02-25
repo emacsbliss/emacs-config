@@ -5114,6 +5114,21 @@ supplying the kernel’s connection file using ~M-x jupyter-connect-repl~.
 (after! org
     (setq org-babel-clojure-backend 'cider))
 #+END_SRC
+** clojure-lsp [fn:11]
+First need to install the language server:
+#+BEGIN_SRC sh :tangle emacs-dep-once.sh
+brew install clojure-lsp
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+; disable clj-refactor adding ns to blank files
+(setq cljr-add-ns-to-blank-clj-files nil)
+#+end_src
+
+#+begin_src emacs-lisp
+(after! lsp
+  (setq lsp-lens-enable t))
+#+end_src
 * scratch buffer
 I prefer that scratch buffer use ~org-mode~ as default:
 #+begin_src emacs-lisp :tangle no
@@ -6362,3 +6377,4 @@ https://github.com/bcbcarl/emacs-wttrin
 [fn:8] https://www.ianjones.us/org-roam-bibtex
 [fn:9] https://rgoswami.me/posts/org-note-workflow/
 [fn:10] https://github.com/sunnyhasija/Academic-Doom-Emacs-Config
+[fn:11] https://emacs-lsp.github.io/lsp-mode/tutorials/clojure-guide/
