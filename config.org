@@ -5870,7 +5870,7 @@ Org ref lets you manage your cite: links
 * org-media-note
 #+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
 (package! pretty-hydra)  ;; dependency
-(package! org-media-note :recipe (:host github :repo "yuchen-lea/org-media-note"))
+(package! org-media-note :recipe (:host github :branch "fix-attach" :repo "emacsbliss/org-media-note"))
 #+end_src
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
@@ -5879,7 +5879,8 @@ Org ref lets you manage your cite: links
   :bind (
          ("H-v" . org-media-note-hydra/body))  ;; Main entrance
   :config
-  (setq org-media-note-screenshot-image-dir "~/org/imgs/")  ;; Folder to save screenshot
+  ;; Folder to save screenshot
+  (setq org-media-note-screenshot-image-dir "~/org/roam/medias")
   ;; use videocite link instead of video link if possible
   (setq org-media-note-use-refcite-first t))
 #+end_src
