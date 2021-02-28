@@ -5835,7 +5835,7 @@ Org ref lets you manage your cite: links
   (setq orb-templates
         '(("r" "ref" plain (function org-roam-capture--get-point)
            ""
-           :file-name "${slug}"
+           :file-name "pages/${slug}"
            :head "#+TITLE: ${title}\n#+ROAM_KEY: ${ref}
 \n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: ${file}\n  :NOTER_PAGE: \n  :END:\n\n"
            :unnarrowed t))))
@@ -5877,7 +5877,7 @@ Org ref lets you manage your cite: links
 (use-package! org-media-note
   :hook (org-mode .  org-media-note-setup-org-ref)
   :bind (
-         ("H-v" . org-media-note-hydra/body))  ;; Main entrance
+         ("M-o" . org-media-note-hydra/body))  ;; Main entrance
   :config
   ;; Folder to save screenshot
   (setq org-media-note-screenshot-image-dir "~/org/roam/medias")
