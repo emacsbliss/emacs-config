@@ -5776,7 +5776,7 @@ It is usually a good idea to manually set org-icalendar-timezone
 ** org-ref
 Org ref lets you manage your cite: links
 #+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! org-ref)
+(package! org-ref :recipe (:host github :branch "non-pdf-entry" :repo "emacsbliss/org-ref"))
 #+end_src
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
