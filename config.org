@@ -5822,7 +5822,7 @@ Org ref lets you manage your cite: links
 #+end_src
 ** Org Roam Bibtex (ORB)
 #+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! org-roam-bibtex)
+(package! org-roam-bibtex :recipe (:host github :branch "abbreviate-file" :repo "emacsbliss/org-roam-bibtex"))
 #+end_src
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
@@ -5832,6 +5832,7 @@ Org ref lets you manage your cite: links
   :config
   (setq orb-preformat-keywords
    '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+  (setq orb-file-field-extensions '("pdf" "epub" "html" "mp4" "mp3"))
   (setq orb-templates
         '(("r" "ref" plain (function org-roam-capture--get-point)
            ""
