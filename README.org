@@ -1,0 +1,5 @@
+#+TITLE:   EmacsConfig
+
+This is my literate configuration for [[https://github.com/hlissner/doom-emacs][DOOM Emacs]].
+
+It mainly targets MacOS, probably will not work properly on Linux/Windows.
