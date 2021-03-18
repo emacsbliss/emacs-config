@@ -2639,7 +2639,7 @@ upfront, not using defer:
          '(("d" "daily" plain (function org-roam-capture--get-point) ""
          :immediate-finish t
          :file-name "journals/%<%Y_%m_%d>"
-         :head "%(format-time-string \"%a, %Y/%m/%d\" (current-time) t)")))
+         :head "%<%a, %Y/%m/%d>")))
       (org-roam-capture-templates
         '(("d" "default" plain (function org-roam-capture--get-point)
             "%?"
