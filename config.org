@@ -5886,6 +5886,14 @@ Org ref lets you manage your cite: links
   (setq org-media-note-use-refcite-first t))
 #+end_src
 
+* Literate Calc Mode
+#+begin_src emacs-lisp :tangle packages.el
+(package! literate-calc-mode)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! literate-calc-mode :defer t)
+#+end_src
 * Disabled
 ** org-journal
 updated on <2021-02-21 Sun>:
