@@ -1616,9 +1616,7 @@ this is =template file system= ~DOOM~ supports:
     '(
         ("\\.feature$" :trigger "__" :mode feature-mode)
         ("\\reveal.org$" :trigger "__reveal.org" :mode org-mode)
-        ;; ("\\.org$" :trigger "__" :mode org-mode)
-     )
-)
+     ))
 #+END_SRC
 
 * dired
@@ -5894,6 +5892,100 @@ Org ref lets you manage your cite: links
 #+begin_src emacs-lisp
 (use-package! literate-calc-mode :defer t)
 #+end_src
+* shrface
+#+begin_src emacs-lisp :tangle packages.el
+(package! shrface)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! shrface
+  :defer t
+  :config
+  (shrface-basic)
+  (shrface-trial)
+  (shrface-default-keybindings) ; setup default keybindings
+  (setq shrface-href-versatile t))
+
+(use-package eww
+  :defer t
+  :init
+  (add-hook 'eww-after-render-hook #'shrface-mode)
+  :config
+  (require 'shrface))
+#+end_src
+* auth
+Don't ask for saving auth, sometime it hangs Emacs
+#+begin_src emacs-lisp
+(setq auth-source-save-behavior nil)
+#+end_src
+* Utilties
+** disk usage
+#+begin_src emacs-lisp :tangle packages.el
+(package! disk-usage)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! disk-usage
+  :defer t)
+#+end_src
+
+https://gitlab.com/ambrevar/emacs-disk-usage
+
+** speed type
+#+begin_src emacs-lisp :tangle packages.el
+(package! speed-type)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! speed-type :defer t)
+#+end_src
+** command log mode
+https://github.com/lewang/command-log-mode
+** weather
+https://github.com/bcbcarl/emacs-wttrin
+
+* Fun
+** 2048
+#+begin_src emacs-lisp :tangle packages.el
+(package! 2048-game)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! 2048-game :defer t)
+#+end_src
+** pacmacs
+#+begin_src emacs-lisp :tangle packages.el
+(package! pacmacs)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! pacmacs :defer t)
+#+end_src
+** sudoku
+#+begin_src emacs-lisp :tangle packages.el
+(package! sudoku)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! sudoku :defer t)
+#+end_src
+** typit
+#+begin_src emacs-lisp :tangle packages.el
+(package! typit)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! typit :defer t)
+#+end_src
+
+* read epub files
+#+begin_src emacs-lisp :tangle packages.el
+(package! nov)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! nov :defer t)
+#+end_src
 * Disabled
 ** org-journal
 updated on <2021-02-21 Sun>:
@@ -6282,100 +6374,6 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 (use-package! oer-reveal)
 #+end_src
 
-* shrface
-#+begin_src emacs-lisp :tangle packages.el
-(package! shrface)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! shrface
-  :defer t
-  :config
-  (shrface-basic)
-  (shrface-trial)
-  (shrface-default-keybindings) ; setup default keybindings
-  (setq shrface-href-versatile t))
-
-(use-package eww
-  :defer t
-  :init
-  (add-hook 'eww-after-render-hook #'shrface-mode)
-  :config
-  (require 'shrface))
-#+end_src
-* auth
-Don't ask for saving auth, sometime it hangs Emacs
-#+begin_src emacs-lisp
-(setq auth-source-save-behavior nil)
-#+end_src
-* Utilties
-** disk usage
-#+begin_src emacs-lisp :tangle packages.el
-(package! disk-usage)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! disk-usage
-  :defer t)
-#+end_src
-
-https://gitlab.com/ambrevar/emacs-disk-usage
-
-** speed type
-#+begin_src emacs-lisp :tangle packages.el
-(package! speed-type)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! speed-type :defer t)
-#+end_src
-** command log mode
-https://github.com/lewang/command-log-mode
-** weather
-https://github.com/bcbcarl/emacs-wttrin
-
-* Fun
-** 2048
-#+begin_src emacs-lisp :tangle packages.el
-(package! 2048-game)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! 2048-game :defer t)
-#+end_src
-** pacmacs
-#+begin_src emacs-lisp :tangle packages.el
-(package! pacmacs)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! pacmacs :defer t)
-#+end_src
-** sudoku
-#+begin_src emacs-lisp :tangle packages.el
-(package! sudoku)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! sudoku :defer t)
-#+end_src
-** typit
-#+begin_src emacs-lisp :tangle packages.el
-(package! typit)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! typit :defer t)
-#+end_src
-
-* read epub files
-#+begin_src emacs-lisp :tangle packages.el
-(package! nov)
-#+end_src
-
-#+begin_src emacs-lisp
-(use-package! nov :defer t)
-#+end_src
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
