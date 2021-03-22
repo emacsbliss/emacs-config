@@ -5986,6 +5986,46 @@ https://github.com/bcbcarl/emacs-wttrin
 #+begin_src emacs-lisp
 (use-package! nov :defer t)
 #+end_src
+* Blog
+#+begin_src emacs-lisp :tangle packages.el
+(package! org-static-blog)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! org-static-blog
+  :config
+    (setq org-static-blog-publish-title "EmacsBliss")
+    (setq org-static-blog-publish-url "https://emacsbliss.com/")
+    (setq org-static-blog-publish-directory "~/project/blog/")
+    (setq org-static-blog-posts-directory "~/project/blog/posts/")
+    (setq org-static-blog-drafts-directory "~/project/blog/drafts/")
+    (setq org-static-blog-enable-tags t)
+    (setq org-export-with-toc nil)
+    (setq org-export-with-section-numbers nil)
+    (setq org-static-blog-page-preamble
+        "<div class=\"header\">
+           <a href=\"https://emacsbliss.com\">Emacs Bliss</a>
+           <div class=\"sitelinks\">
+             <a href=\"https://github.com/emacsbliss\">Github</a>
+           </div>
+        </div>")
+    (setq org-static-blog-page-postamble
+        "<div id=\"archive\">
+        <a href=\"https://staticblog.org/archive.html\">Other posts</a>
+        </div>
+        <center><a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\"><img alt=\"Creative Commons License\" style=\"border-width:0\" src=\"https://i.creativecommons.org/l/by-sa/3.0/88x31.png\" /></a><br /><span xmlns:dct=\"https://purl.org/dc/terms/\" href=\"https://purl.org/dc/dcmitype/Text\" property=\"dct:title\" rel=\"dct:type\">EmacsBliss</span> by <a xmlns:cc=\"https://creativecommons.org/ns#\" href=\"https://emacsbliss.com\" property=\"cc:attributionName\" rel=\"cc:attributionURL\">EmacsBliss</a> is licensed under a <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-sa/3.0/\">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.</center>")
+
+    (setq org-static-blog-page-header
+        "<meta name=\"author\" content=\"EmacsBliss\">
+        <meta name=\"referrer\" content=\"no-referrer\">
+        <link href= \"static/org-notes-style.css\" rel=\"stylesheet\" type=\"text/css\" />
+        <link rel=\"icon\" href=\"static/favicon.ico\">")
+
+    (setq org-static-blog-index-front-matter
+    "<h1> Welcome to Emacs Bliss</h1>\n")
+    :defer t
+)
+#+end_src
 * Disabled
 ** org-journal
 updated on <2021-02-21 Sun>:
