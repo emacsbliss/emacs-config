@@ -2600,6 +2600,13 @@ tried yet..
 (after! org
   (setq org-export-show-temporary-export-buffer nil))
 #+END_SRC
+
+We also need to set this otherwise bib entry won't appear in pdf file:
+#+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+  (setq org-latex-pdf-process (list "latexmk -shell-escape -bibtex -f -pdf %f")))
+#+END_SRC
+
 * Org Babel
 ** org babel library
 For now not loading it here otherwise it will prompt for safe local variable
