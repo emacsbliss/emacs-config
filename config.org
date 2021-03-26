@@ -3865,6 +3865,15 @@ Doom Emacs already have add support for lsp, we just need to put this in
 (python +lsp)
 #+end_src
 
+** pytest
+#+begin_src emacs-lisp
+(after! python-pytest
+  (setq python-pytest-executable "python3 -m pytest"))
+#+end_src
+
+** lsp
+deprecated, now use pyright for lsp server..
+
 In order to get the lsp server for python need by [[https://github.com/emacs-lsp/lsp-python-ms][lsp-python-ms]], we need to run
 ~M-x lsp-python-ms-setup~ to download the server which will be put at ~./emacs.d/.local/etc/lsp/mspyls~.
 
