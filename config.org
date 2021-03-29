@@ -6042,6 +6042,14 @@ https://github.com/bcbcarl/emacs-wttrin
     :defer t
 )
 #+end_src
+* browse-at-remote
+#+begin_src emacs-lisp :tangle packages.el
+(package! browse-at-remote)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! browse-at-remote :defer t)
+#+end_src
 * Disabled
 ** org-journal
 updated on <2021-02-21 Sun>:
