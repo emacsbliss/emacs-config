@@ -2607,6 +2607,26 @@ We also need to set this otherwise bib entry won't appear in pdf file:
   (setq org-latex-pdf-process (list "latexmk -shell-escape -bibtex -f -pdf %f")))
 #+END_SRC
 
+* pomodoro
+We need to add ~+pomodoro~ to the init file for org-mode.
+
+It uses https://github.com/jwiegley/alert to display notification.
+However due to [[https://github.com/julienXX/terminal-notifier][terminal-notifier]] does not support sticky notification,
+I'm using [[https://github.com/vjeantet/alerter][alerter]] instead, it has very similar CLI, so we can replace it
+in alert:
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! alert
+    (setq alert-notifier-command (executable-find "alerter")))
+#+end_src
+
+also 25 minutes pomodoro is a bit shorter for me, extend it a bit:
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org-pomodoro
+    (setq org-pomodoro-length 30)
+    (setq org-pomodoro-long-break-length 15))
+#+end_src
+
 * Org Babel
 ** org babel library
 For now not loading it here otherwise it will prompt for safe local variable
