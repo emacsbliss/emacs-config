@@ -169,7 +169,7 @@ ORG-JIRA-PROJ-KEY-OVERRIDE being set before and after running."
      (list sprint)))
 
   (let* ((query (format "project = \"%s\"
-                    and creator = %s and component in (\"%s\") and Sprint in (\"%s\")
+                    and assignee = %s and component in (\"%s\") and Sprint in (\"%s\")
                     order by created desc"
                     my-jira/project my-jira/username my-jira/component sprint))
           (jql `(:jql ,query :limit 30 :filename ,sprint)))
@@ -181,7 +181,7 @@ ORG-JIRA-PROJ-KEY-OVERRIDE being set before and after running."
   (interactive)
 
   (let* ((query (format "project = \"%s\"
-                    and creator = %s and component in (\"%s\") and Sprint in openSprints()
+                    and assignee = %s and component in (\"%s\") and Sprint in openSprints()
                     order by created desc"
                     my-jira/project my-jira/username my-jira/component))
           (jql `(:jql ,query :limit 30 :filename "current-sprint")))
