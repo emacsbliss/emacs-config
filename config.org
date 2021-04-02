@@ -958,10 +958,7 @@ them to most frequently used things in Emacs.
     :desc "REPL"               "r"  #'+eval/open-repl-other-window
     :desc "REPL (same window)" "R"  #'+eval/open-repl-same-window
     :desc "rss(elfeed)"        "s"  #'=rss
-    :desc "Dired"              "-"  #'dired-jump
-    (:when (featurep! :ui neotree)
-      :desc "Project sidebar"              "p" #'+neotree/open
-      :desc "Find file in project sidebar" "P" #'+neotree/find-this-file)
+    :desc "Dired"              "."  #'dired-jump
     (:when (featurep! :ui treemacs)
       :desc "Project sidebar" "p" #'+treemacs/toggle
       :desc "Find file in project sidebar" "P" #'+treemacs/find-file)
@@ -1096,12 +1093,13 @@ them to most frequently used things in Emacs.
   ;;; <leader> t --- toggle
   (:prefix-map ("t" . "toggle")
     :desc "Big mode"                     "b" #'doom-big-font-mode
-    ;; :desc "visual-fill-column-mode"      "c" #'visual-fill-column-mode
-    :desc "visual line mode"             "v" #'visual-line-mode
-
-    :desc "Flymake"                      "f" #'flymake-mode
-    (:when (featurep! :tools flycheck)
-      :desc "Flycheck"                   "f" #'flycheck-mode)
+    ;; :desc "visual-fill-column-mode"   "c" #'visual-fill-column-mode
+    :desc "view mode"                    "v" #'view-mode
+    :desc "visual line mode"             "V" #'visual-line-mode
+    :desc "follow mode"                  "f" #'follow-mode
+    ;; :desc "Flymake"                      "f" #'flymake-mode
+    ;; (:when (featurep! :tools flycheck)
+    ;;   :desc "Flycheck"                   "f" #'flycheck-mode)
     :desc "Frame fullscreen"             "F" #'toggle-frame-fullscreen
     :desc "Evil goggles"                 "g" #'evil-goggles-mode
     (:when (featurep! :ui indent-guides)
@@ -1664,18 +1662,25 @@ to sort dired buffer in different way..
 (setq dired-recursive-deletes 'always)
 #+END_SRC
 
-do NOT put =--group-directories-first= otherwise will trigger error:
++do NOT put =--group-directories-first= otherwise will trigger error+:
+I think we need ls from gnu:
 #+BEGIN_QUOTE
 Listing directory failed but 'access-file' worked
 #+END_QUOTE
 
+this setting will put directories first:
 #+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
-(setq dired-listing-switches "-aBhl")
+(setq dired-listing-switches "-agho --group-directories-first")
 #+END_SRC
 
 #+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
 (map! :map dired-mode-map
-  :desc "open"  :n "z" #'me/mac-open)
+  :desc "open"  :n "z" #'me/mac-open
+  :desc "up directory" :n "h" #'dired-up-directory
+  :desc "directory" :n "l" #'dired-find-file
+  :desc "kill line" :n ",k" #'dired-kill-line
+  :desc "kill lines" :v ",k" #'dired-do-kill-lines
+  :desc "toggle details mode" :nv ",d" #'dired-hide-details-mode)
 #+END_SRC
 * Do NOT use
 ** auto revert tail mode
