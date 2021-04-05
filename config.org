@@ -802,7 +802,7 @@ them to most frequently used things in Emacs.
     :desc "Sudo find file"              "u"   #'doom/sudo-find-file
     :desc "Sudo this file"              "U"   #'doom/sudo-this-file
     :desc "Yank file name"              "y"   #'copy-file-name-to-clipboard
-    :desc "Yank file full path"         "Y"   #'+default/yank-buffer-filename
+    :desc "Yank file full path"         "Y"   #'+default/yank-buffer-path
     :desc "find file with fzf"          "z"   #'prot/counsel-fzf-rg-files))
 #+END_SRC
 ** keybinding - git
@@ -1033,7 +1033,7 @@ them to most frequently used things in Emacs.
     :desc "Restart & restore Emacs"      "r" #'doom/restart-and-restore
     :desc "Restart Emacs"                "R" #'doom/restart))
 #+END_SRC
-** keybinding - remote
+** keybinding - remote (disabled)
 #+begin_src emacs-lisp
 (map! :leader
   ;;; <leader> r --- remote
@@ -1053,13 +1053,15 @@ them to most frequently used things in Emacs.
     (:prefix-map ("r" . "org-roam")
       :desc "org roam today"                      "t" #'org-roam-dailies-find-today
       :desc "org roam capture today"              "c" #'org-roam-dailies-capture-today
-      :desc "org roam yesterday"                  "y" #'org-roam-dailies-find-yesterday
+      :desc "org roam daily capture tomorrow"     "C" #'org-roam-dailies-capture-tomorrow
       :desc "org roam daily date"                 "d" #'org-roam-dailies-find-date
       :desc "org roam daily capture date"         "D" #'org-roam-dailies-capture-date
-      :desc "org roam daily capture tomorrow"     "C" #'org-roam-dailies-capture-tomorrow
+      :desc "org roam yesterday"                  "y" #'org-roam-dailies-find-yesterday
       :desc "org roam add tag"                    "g" #'org-roam-tag-add
       :desc "org roam add alias"                  "a" #'org-roam-alias-add
+      ;; find todo items within org-roam
       :desc "org roam todo"                       "o" #'me/org-roam-todo
+      :desc "helm-bibtex"                         "x" #'helm-bibtex
       :desc "org roam tomorrow"                   "T" #'org-roam-dailies-find-tomorrow))
 #+END_SRC
 ** keybinding - search
@@ -2915,10 +2917,12 @@ the link for this two apps:
 ** keybinding
 #+begin_src emacs-lisp :tangle keybinds.el
 (map! :map org-mode-map
-  :desc "org attach by mv"             :n ",a" #'org-attach-attach-mv
+  :desc "org agenda"                   :n ",a" #'org-agenda
+  :desc "org schedule"                 :n ",s" #'org-schedule
+  :desc "org attach by mv"             :n ",m" #'org-attach-attach-mv
   :desc "org attach by cp"             :n ",c" #'org-attach-attach-cp
   :desc "attach json from killring"    :n ",j" #'me/attach-json-from-kill-ring
-  :desc "open attach in Emacs"          :n ",o" #'org-attach-open-in-emacs
+  :desc "open attach in Emacs"         :n ",o" #'org-attach-open-in-emacs
   :desc "org open attach"              :n ",O" #'org-attach-open)
 #+END_SRC
 * org export to html
