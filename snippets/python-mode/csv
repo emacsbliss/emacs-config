@@ -1,0 +1,28 @@
+# -*- mode: snippet -*-
+# name: csv
+# key: csv
+# condition: t
+# --
+
+from csv import DictReader, DictWriter
+from collections import defaultdict
+
+$0
+input = 'foo.csv'
+output = 'bar.csv'
+
+candidates = defaultdict(list)
+field_names = []
+
+with open(input) as f:
+    reader = DictReader(f)
+    field_names = reader.fieldnames
+    for row in reader:
+    # do something here
+    pass
+
+with open(output, 'w') as csvfile:
+    writer = DictWriter(csvfile, fieldnames=field_names)
+    writer.writeheader()
+    # total should be a list of dict
+    writer.writerows(total)

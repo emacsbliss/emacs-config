@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: print()
+# key: p
+# condition: t
+# --
+print('${1:item}', $1)
