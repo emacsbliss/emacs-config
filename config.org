@@ -1771,7 +1771,7 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
 #+begin_src emacs-lisp
 (use-package! org-gtd
   :after org
-  :demand t
+  :demand t ;; without this, the package won't be loaded, so org-agenda won't be configured
   :custom
   ;; where org-gtd will put its files. This value is also the default one.
   (org-gtd-directory "~/org/gtd/")
@@ -1785,19 +1785,29 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
   ;; the next TODO is automatically changed to NEXT.
   (org-edna-use-inheritance t)
   :config
-  (org-edna-load))
+  (org-edna-load)
+  ;; :bind
+  ;; (("C-c d c" . org-gtd-capture) ;; add item to inbox
+  ;; ("C-c d a" . org-agenda-list) ;; see what's on your plate today
+  ;; ("C-c d p" . org-gtd-process-inbox) ;; process entire inbox
+  ;; ("C-c d n" . org-gtd-show-all-next) ;; see all NEXT items
+  ;; ("C-c d s" . org-gtd-show-stuck-projects)) ;; see projects that don't have a NEXT item
+  ; :init
+  ;; do NOT use C-c C-c, it has meaning:
+  ;; Set tags in headline, or update according to changed information at point.
+  (bind-key "C-c c" 'org-gtd-clarify-finalize)
+) ;; the keybinding to hit when you're done editing an item in the processing phase
 #+end_src
 
 ** capture
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
 (after! org
-    (setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "✔ DONE(d)")
-                                (sequence "⚑ WAITING(w)" "|")
-                                (sequence "|" "✘ CANCELED(c)")))
+    ;; these fancy characters caused problem with org-gtd package
+    ;; (setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "NEXT" "|" "✔ DONE(d)")
+    ;;                             (sequence "⚑ WAITING(w)" "|")
+    ;;                             (sequence "|" "✘ CANCELED(c)")))
 
-    (setq org-agenda-files '("~/org/gtd/gtd.org"
-                            "~/org/gtd/Inbox.org"
-                            "~/org/gtd/tickler.org"))
+    (setq org-agenda-files '("~/org/gtd"))
 
     (setq org-capture-templates '())
     (setq org-refile-targets
@@ -1809,9 +1819,9 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
 (after! org
 (add-to-list 'org-capture-templates
-    `("t" "Todo [inbox]" entry
+    `("t" "Todo [Inbox]" entry
         (file "~/org/gtd/Inbox.org")
-        "* ☛ TODO %i%?"))
+        "* TODO %i%?"))
 
 (add-to-list 'org-capture-templates
      `("T" "Tickler" entry
@@ -2919,6 +2929,7 @@ the link for this two apps:
 #+begin_src emacs-lisp :tangle keybinds.el
 (map! :map org-mode-map
   :desc "org agenda"                   :n ",a" #'org-agenda
+  :desc "org gtd finalize"             :n ",f" #'org-gtd-clarify-finalize
   :desc "org schedule"                 :n ",s" #'org-schedule
   :desc "org attach by mv"             :n ",m" #'org-attach-attach-mv
   :desc "org attach by cp"             :n ",c" #'org-attach-attach-cp
@@ -4418,7 +4429,7 @@ With this below we can use org capture workflow to capture an email message from
 (after! org
   (add-to-list 'org-capture-templates
                '("e" "Email Todo" entry
-        (file+headline "~/org/inbox.org" "Task")
+        (file+headline "~/org/Inbox.org" "Task")
         "* TODO %^{Brief Description}\nEmail: %a\nFrom: %:from \nTo: %:to \n%?Added: %U\n" :prepend t)))
 #+end_src
 
