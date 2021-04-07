@@ -1104,6 +1104,7 @@ them to most frequently used things in Emacs.
     ;;   :desc "Flycheck"                   "f" #'flycheck-mode)
     :desc "Frame fullscreen"             "F" #'toggle-frame-fullscreen
     :desc "Evil goggles"                 "g" #'evil-goggles-mode
+    :desc "horizontal scroll bar"        "h" #'horizontal-scroll-bar-mode
     (:when (featurep! :ui indent-guides)
       :desc "Indent guides"              "i" #'highlight-indent-guides-mode)
     :desc "Indent style"                 "I" #'doom/toggle-indent-style
@@ -4743,6 +4744,7 @@ for xml/xsd file so let's first stop Emacs using nxml-mode for xml file:
   :desc "xpath" :n ",xp" #'nxml-where)
 #+end_src
 * csv
+** csv mode
 #+begin_src emacs-lisp :tangle modules/lang/csv/packages.el
 (package! csv-mode :pin "635337407c")
 #+end_src
@@ -4758,6 +4760,19 @@ for xml/xsd file so let's first stop Emacs using nxml-mode for xml file:
       "k" #'csv-kill-fields
       "t" #'csv-transpose)
 #+END_SRC
+** xsv.el
+Sometimes csv mode can't cut it, so I wrote the xsv.el to achieve things
+I can't get from csv mode with the help from xsv.
+
+Need to install xsv first before using this package.
+#+begin_src emacs-lisp :tangle modules/lang/csv/packages.el
+(package! xsv :recipe (:host github :repo "emacsbliss/xsv.el"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/lang/csv/config.el
+(use-package! xsv)
+#+end_src
+
 * diff
 ** emacs vdiff
 [[https://github.com/justbur/emacs-vdiff][emacs-vdiff]] behaves similarly to vimdiff and I found it more intuitive than ediff.
