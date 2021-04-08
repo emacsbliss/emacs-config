@@ -1685,19 +1685,6 @@ this setting will put directories first:
   :desc "kill lines" :v ",k" #'dired-do-kill-lines
   :desc "toggle details mode" :nv ",d" #'dired-hide-details-mode)
 #+END_SRC
-* Do NOT use
-** auto revert tail mode
-disable it since it seems caused some undesired side effect
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq auto-revert-tail-mode nil)
-#+END_SRC
-
-** global visual line mode
-Have to disable it because it causes issue for magit
-#+BEGIN_SRC emacs-lisp :tangle no
-(global-visual-line-mode 1)
-#+END_SRC
-
 * evil
 https://emacsbliss.com/annoyance-with-paste-in-evil-visual-mode/
 #+BEGIN_SRC emacs-lisp
@@ -1762,84 +1749,6 @@ then move cursor to a word and replace it with register ~a~ by ~"agriw~.
   (require 'vlf-setup)
 )
 #+END_SRC
-* GTD
-** packages
-#+BEGIN_SRC emacs-lisp :tangle packages.el
-(package! org-gtd :recipe (:host github :repo "Trevoke/org-gtd.el"))
-#+END_SRC
-
-#+begin_src emacs-lisp
-(use-package! org-gtd
-  :after org
-  :demand t ;; without this, the package won't be loaded, so org-agenda won't be configured
-  :custom
-  ;; where org-gtd will put its files. This value is also the default one.
-  (org-gtd-directory "~/org/gtd/")
-  ;; package: https://github.com/Malabarba/org-agenda-property
-  ;; this is so you can see who an item was delegated to in the agenda
-  (org-agenda-property-list '("DELEGATED_TO"))
-  ;; I think this makes the agenda easier to read
-  (org-agenda-property-position 'next-line)
-  ;; package: https://www.nongnu.org/org-edna-el/
-  ;; org-edna is used to make sure that when a project task gets DONE,
-  ;; the next TODO is automatically changed to NEXT.
-  (org-edna-use-inheritance t)
-  :config
-  (org-edna-load)
-  ;; :bind
-  ;; (("C-c d c" . org-gtd-capture) ;; add item to inbox
-  ;; ("C-c d a" . org-agenda-list) ;; see what's on your plate today
-  ;; ("C-c d p" . org-gtd-process-inbox) ;; process entire inbox
-  ;; ("C-c d n" . org-gtd-show-all-next) ;; see all NEXT items
-  ;; ("C-c d s" . org-gtd-show-stuck-projects)) ;; see projects that don't have a NEXT item
-  ; :init
-  ;; do NOT use C-c C-c, it has meaning:
-  ;; Set tags in headline, or update according to changed information at point.
-  (bind-key "C-c c" 'org-gtd-clarify-finalize)
-) ;; the keybinding to hit when you're done editing an item in the processing phase
-#+end_src
-
-** capture
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
-(after! org
-    ;; these fancy characters caused problem with org-gtd package
-    ;; (setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "NEXT" "|" "✔ DONE(d)")
-    ;;                             (sequence "⚑ WAITING(w)" "|")
-    ;;                             (sequence "|" "✘ CANCELED(c)")))
-
-    (setq org-agenda-files '("~/org/gtd"))
-
-    (setq org-capture-templates '())
-    (setq org-refile-targets
-          '(("~/org/gtd/gtd.org" :maxlevel . 3)
-            ("~/org/gtd/someday.org" :level . 1)
-            ("~/org/gtd/tickler.org" :maxlevel . 2))))
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
-(after! org
-(add-to-list 'org-capture-templates
-    `("t" "Todo [Inbox]" entry
-        (file "~/org/gtd/Inbox.org")
-        "* TODO %i%?"))
-
-(add-to-list 'org-capture-templates
-     `("T" "Tickler" entry
-        (file+headline "~/gtd/tickler.org" "Tickler")
-         "* %i%? \n %U"))
-)
-#+end_src
-
-** setup
-- directory is =~/org/gtd=
-- inbox is ~inbox.org~
-- if it's someday, goes into ~someday.org~
-- tickler file is ~tickler.org~
-- appointment goes into ~appt.org~?
-- how to surface entries tickler file?
-- all project related goes into ~project.org~
-- later once done, manually refile into file within ~org roam directory~
-- if it's reference, first refile into ~reference.org~, then at some point manually refile them into corresponding org file
 * editing
 ** super save
 #+begin_src emacs-lisp :tangle packages.el
@@ -2232,21 +2141,19 @@ Find definition or references not give me any result..
 * org mode
 ** basic setup
 #+begin_src emacs-lisp
-(setq +org-dir (concat (substitute-in-file-name "$HOME/") "org"))
-(setq +notes-dir (concat (substitute-in-file-name "$HOME/") "notes"))
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! ox-gfm)
+(setq +org-dir (expand-file-name "~/org"))
+(setq +notes-dir (expand-file-name "~/org/roam"))
+(setq org-default-notes-file (expand-file-name "~/org/gtd/notes.org"))
 #+end_src
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (after! org
-    (require 'ox-gfm nil t)
-    ; Targets include this file and any file contributing to the agenda
-    ; - up to 9 levels deep
-    (setq org-refile-targets (quote ((nil :maxlevel . 9)
-                                (org-agenda-files :maxlevel . 9))))
+    ;; https://emacs.stackexchange.com/questions/5889/how-to-highlight-text-permanently-in-org-mode
+    (add-to-list 'org-emphasis-alist
+        '("*" (:emphasis t :foreground "red")))
+
+    ;; prettify the exported table in HTML, add border and column divider etc
+    (setq org-html-table-default-attributes '(:border "2" :rules "all" :frame "border"))
     (evil-add-command-properties #'org-open-at-point :jump t))
 #+end_src
 
@@ -2264,73 +2171,6 @@ buffer, so change the setting a bit:
     (setq org-src-window-setup 'split-window-below))
 #+END_SRC
 
-** look and feel
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(after! org
-    ;; https://emacs.stackexchange.com/questions/5889/how-to-highlight-text-permanently-in-org-mode
-    (add-to-list 'org-emphasis-alist
-        '("*" (:emphasis t :foreground "red")))
-
-    ;; prettify the exported table in HTML, add border and column divider etc
-    (setq org-html-table-default-attributes '(:border "2" :rules "all" :frame "border")))
-#+end_src
-
-Following is taken from [[https://tecosaur.github.io/emacs-config/config.html][Here]]:
-#+BEGIN_SRC emacs-lisp :tangle no
-(after! org
-  (appendq! +pretty-code-symbols
-            `(:checkbox      "☐"
-              :pending       "◼"
-              :checkedbox    "☑"
-              :list_property "∷"
-              :results       "🠶"
-              :property      "☸"
-              :properties    "⚙"
-              :end           "∎"
-              :options       "⌥"
-              :title         "𝙏"
-              :author        "𝘼"
-              :date          "𝘿"
-              :latex_header  "⇥"
-              :latex_class   "🄲"
-              :begin_quote   "❮"
-              :end_quote     "❯"
-              :begin_export  "⯮"
-              :end_export    "⯬"
-              :priority_a   ,(propertize "⚑" 'face 'all-the-icons-red)
-              :priority_b   ,(propertize "⬆" 'face 'all-the-icons-orange)
-              :priority_c   ,(propertize "■" 'face 'all-the-icons-yellow)
-              :priority_d   ,(propertize "⬇" 'face 'all-the-icons-green)
-              :priority_e   ,(propertize "❓" 'face 'all-the-icons-blue)
-              :em_dash       "—"))
-  (set-pretty-symbols! 'org-mode
-    :merge t
-    :checkbox      "[ ]"
-    :pending       "[-]"
-    :checkedbox    "[X]"
-    :list_property "::"
-    :results       "#+RESULTS:"
-    :property      "#+PROPERTY:"
-    :property      ":PROPERTIES:"
-    :end           ":END:"
-    :options       "#+OPTIONS:"
-    :title         "#+TITLE:"
-    :author        "#+AUTHOR:"
-    :date          "#+DATE:"
-    :latex_class   "#+LATEX_CLASS:"
-    :latex_header  "#+LATEX_HEADER:"
-    :begin_quote   "#+BEGIN_QUOTE"
-    :end_quote     "#+END_QUOTE"
-    :begin_export  "#+BEGIN_EXPORT"
-    :end_export    "#+END_EXPORT"
-    :priority_a    "[#A]"
-    :priority_b    "[#B]"
-    :priority_c    "[#C]"
-    :priority_d    "[#D]"
-    :priority_e    "[#E]"
-    :em_dash       "---"))
-(plist-put +pretty-code-symbols :name "⁍") ; or › could be good?
-#+END_SRC
 ** convert to org file
 [[https://github.com/tecosaur/org-pandoc-import][org-pandoc-import]] could help with this, it depends on pandoc.
 
@@ -2343,102 +2183,6 @@ Following is taken from [[https://tecosaur.github.io/emacs-config/config.html][H
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (use-package! org-pandoc-import :after org)
-#+end_src
-** capture webpage
-There are multiple ways to capture a webpage into org mode file.
-*** org-web-tools
-#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! org-web-tools)
-#+END_SRC
-
-https://github.com/alphapapa/org-web-tools
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(use-package! org-web-tools
-  :defer t)
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(after! org
-(add-to-list 'org-capture-templates
-    `("w" "Website with org-web-tools" entry
-        (file "~/org/websites.org")
-        (function my/website-to-org-entry)
-        :immediate-finish t))
-)
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
-;;;###autoload
-(defun my/website-to-org-entry ()
-"Convert clipboard's URL content to org entry."
-  (org-web-tools-insert-web-page-as-entry (org-get-x-clipboard 'PRIMARY)))
-#+END_SRC
-*** capture via eww
-Here is one I discovered at
-http://www.bobnewell.net/publish/35years/webclipper.html.
-
-I uses org-capture by adding a new capture template with entry key ~w~ and a support function.
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(after! org
-(add-to-list 'org-capture-templates
-    `("W" "Website with w3m/eww" plain
-        (function org-website-clipper)
-        "* %a\n%T\n" :immediate-finish t))
-)
-#+end_src
-
-However I have to change the ~org-eww~ to ~ol-eww~ and also ~org-w3m~ to
-~ol-w3m~ to get it working (my ~org-version~ shows it's org mode 9.3).
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-;; org-eww and org-w3m should be in your org distribution, but see
-;; note below on patch level of org-eww.
-(require 'ol-eww)
-(require 'ol-w3m)
-(defvar org-website-page-archive-file "~/org/websites.org")
-(defun org-website-clipper ()
-  "When capturing a website page, go to the right place in capture file,
-   but do sneaky things. Because it's a w3m or eww page, we go
-   ahead and insert the fixed-up page content, as I don't see a
-   good way to do that from an org-capture template alone. Requires
-   Emacs 25 and the 2017-02-12 or later patched version of org-eww.el."
- (interactive)
-
-  ;; Check for acceptable major mode (w3m or eww) and set up a couple of
-  ;; browser specific values. Error if unknown mode.
-
-  (cond
-   ((eq major-mode 'w3m-mode)
-     (org-w3m-copy-for-org-mode))
-   ((eq major-mode 'eww-mode)
-     (org-eww-copy-for-org-mode))
-   (t
-     (error "Not valid -- must be in w3m or eww mode")))
-
-  ;; Check if we have a full path to the archive file.
-  ;; Create any missing directories.
-
-  (unless (file-exists-p org-website-page-archive-file)
-    (let ((dir (file-name-directory org-website-page-archive-file)))
-      (unless (file-exists-p dir)
-        (make-directory dir))))
-
-  ;; Open the archive file and yank in the content.
-  ;; Headers are fixed up later by org-capture.
-
-  (find-file org-website-page-archive-file)
-  (goto-char (point-max))
-  ;; Leave a blank line for org-capture to fill in
-  ;; with a timestamp, URL, etc.
-  (insert "\n\n")
-  ;; Insert the web content but keep our place.
-  (save-excursion (yank))
-  ;; Don't keep the page info on the kill ring.
-  ;; Also fix the yank pointer.
-  (setq kill-ring (cdr kill-ring))
-  (setq kill-ring-yank-pointer kill-ring)
-  ;; Final repositioning.
-  (forward-line -1)
-)
 #+end_src
 ** custom link type
 #+begin_src emacs-lisp :tangle no
@@ -2582,7 +2326,7 @@ Emacs can help you cook too! https://github.com/Chobbes/org-chef
 (use-package! org-chef
   :commands (org-chef-insert-recipe org-chef-get-recipe-from-url))
 #+END_SRC
-** clocking with org mode
+** clocking
 An excellent [[https://writequit.org/denver-emacs/presentations/2017-04-11-time-clocking-with-org.html][guide]] about clocking in org mode.
 
 https://github.com/atheriel/org-clock-csv
@@ -2621,12 +2365,353 @@ tried yet..
   (setq org-export-show-temporary-export-buffer nil))
 #+END_SRC
 
+*** support GitHub Flavored Markdown
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! ox-gfm)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (require 'ox-gfm nil t))
+#+end_src
+*** export to pdf
 We also need to set this otherwise bib entry won't appear in pdf file:
 #+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/config.el
 (after! org
   (setq org-latex-pdf-process (list "latexmk -shell-escape -bibtex -f -pdf %f")))
 #+END_SRC
 
+* org capture
+This [[http://howardism.org/Technical/Emacs/capturing-content.html][blog post]] is an excellent resource for capturing content in Emacs, I
+borrowed a lot of capture templates and related functions from it.
+
+From that blog post, it says:
+#+BEGIN_QUOTE
+I have found the (clock) reference ideal for altering a default destination.
+Specifically, I begin work on a task, and designate it the focus of my attention
+(i.e. the destination of my work)
+#+END_QUOTE
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+    (setq org-capture-templates '()))
+#+end_src
+
+** global capture
+#+begin_src emacs-lisp  :tangle modules/emacs/org/packages.el
+(package! yequake :recipe (:host github :repo "alphapapa/yequake"))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! yequake
+  :custom
+  (yequake-frames
+   '(
+     ("org-capture"
+      (buffer-fns . (yequake-org-capture))
+      (width . 0.75)
+      (height . 0.5)
+      (alpha . 0.95)
+      (frame-parameters . ((undecorated . t)
+                           (skip-taskbar . t)
+                            (sticky . t))))
+)))
+#+END_SRC
+
+To trigger org-capture outside emacs, we can run shell command:
+#+BEGIN_SRC sh :tangle no
+/usr/local/bin/emacsclient -n -e '(yequake-toggle "org-capture")'
+#+END_SRC
+
+For MacOS, I also use [[https://github.com/Hammerspoon/hammerspoon][hammerspoon]] to trigger global capture.
+So far it's just a simple macro setup.
+
+Basically workflow would be:
+- select some text
+- press ~Alt-Cmd-t~ to trigger this macro
+
+** capture the code
+I found this capture template quite helpful when I read code when working on
+some stories, so I just use ~C-c c F~ which will put the code I selected into a
+org mode src block under current clocked task and add add a link point back to
+the code in the source file.
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (add-to-list 'org-capture-templates
+                 `("C" "Code Reference with Comments to Current Task"
+                   plain (clock)
+                   "%(ha/org-capture-code-snippet \"%F\")\n\n   %?"
+                   :empty-lines 1))
+    (add-to-list 'org-capture-templates
+                 `("c" "Code Reference to Current Task"
+                   plain (clock)
+                   "%(ha/org-capture-code-snippet \"%F\")"
+                   :empty-lines 1 :immediate-finish t)))
+#+end_src
+
+In order to support these two capture templates, we need following functions:
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun ha/org-capture-code-snippet (f)
+  "Given a file, F, this captures the currently selected text
+within an Org SRC block with a language based on the current mode
+and a backlink to the function and the file."
+  (with-current-buffer (find-buffer-visiting f)
+    (let ((org-src-mode (replace-regexp-in-string "-mode" "" (format "%s" major-mode)))
+          (func-name (which-function)))
+      (ha/org-capture-fileref-snippet f "SRC" org-src-mode func-name))))
+
+;;;###autoload
+(defun ha/org-capture-fileref-snippet (f type headers func-name)
+  (let* ((code-snippet
+          (buffer-substring-no-properties (mark) (- (point) 1)))
+         (file-name   (buffer-file-name))
+         (file-base   (file-name-nondirectory file-name))
+         (line-number (line-number-at-pos (region-beginning)))
+         (initial-txt (if (null func-name)
+                          (format "From [[file:%s::%s][%s]]:"
+                                  file-name line-number file-base)
+                        (format "From ~%s~ (in [[file:%s::%s][%s]]):"
+                                func-name file-name line-number
+                                file-base))))
+    (format "
+   %s
+
+#+BEGIN_%s %s
+%s
+#+END_%s" initial-txt type headers code-snippet type)))
+#+end_src
+
+** capture web page
+There are multiple ways to capture a web page into org mode file.
+*** org-web-tools
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-web-tools)
+#+END_SRC
+
+https://github.com/alphapapa/org-web-tools
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-web-tools
+  :defer t)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+(add-to-list 'org-capture-templates
+    `("w" "Website with org-web-tools" entry
+        (file "~/org/websites.org")
+        (function my/website-to-org-entry)
+        :immediate-finish t))
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun my/website-to-org-entry ()
+"Convert clipboard's URL content to org entry."
+  (org-web-tools-insert-web-page-as-entry (org-get-x-clipboard 'PRIMARY)))
+#+END_SRC
+*** capture via eww
+Here is one I discovered at
+http://www.bobnewell.net/publish/35years/webclipper.html.
+
+I uses org-capture by adding a new capture template with entry key ~w~ and a support function.
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+(add-to-list 'org-capture-templates
+    `("W" "Website with w3m/eww" plain
+        (function org-website-clipper)
+        "* %a\n%T\n" :immediate-finish t))
+)
+#+end_src
+
+However I have to change the ~org-eww~ to ~ol-eww~ and also ~org-w3m~ to
+~ol-w3m~ to get it working (my ~org-version~ shows it's org mode 9.3).
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+;; org-eww and org-w3m should be in your org distribution, but see
+;; note below on patch level of org-eww.
+(require 'ol-eww)
+(require 'ol-w3m)
+(defvar org-website-page-archive-file "~/org/websites.org")
+(defun org-website-clipper ()
+  "When capturing a website page, go to the right place in capture file,
+   but do sneaky things. Because it's a w3m or eww page, we go
+   ahead and insert the fixed-up page content, as I don't see a
+   good way to do that from an org-capture template alone. Requires
+   Emacs 25 and the 2017-02-12 or later patched version of org-eww.el."
+ (interactive)
+
+  ;; Check for acceptable major mode (w3m or eww) and set up a couple of
+  ;; browser specific values. Error if unknown mode.
+
+  (cond
+   ((eq major-mode 'w3m-mode)
+     (org-w3m-copy-for-org-mode))
+   ((eq major-mode 'eww-mode)
+     (org-eww-copy-for-org-mode))
+   (t
+     (error "Not valid -- must be in w3m or eww mode")))
+
+  ;; Check if we have a full path to the archive file.
+  ;; Create any missing directories.
+
+  (unless (file-exists-p org-website-page-archive-file)
+    (let ((dir (file-name-directory org-website-page-archive-file)))
+      (unless (file-exists-p dir)
+        (make-directory dir))))
+
+  ;; Open the archive file and yank in the content.
+  ;; Headers are fixed up later by org-capture.
+
+  (find-file org-website-page-archive-file)
+  (goto-char (point-max))
+  ;; Leave a blank line for org-capture to fill in
+  ;; with a timestamp, URL, etc.
+  (insert "\n\n")
+  ;; Insert the web content but keep our place.
+  (save-excursion (yank))
+  ;; Don't keep the page info on the kill ring.
+  ;; Also fix the yank pointer.
+  (setq kill-ring (cdr kill-ring))
+  (setq kill-ring-yank-pointer kill-ring)
+  ;; Final repositioning.
+  (forward-line -1)
+)
+#+end_src
+** capture other things
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+    (add-to-list 'org-capture-templates
+                 `("f" "Contents to Current Task"
+                   plain (clock)
+                   "%i"
+                   :empty-lines 1 :immediate-finish t))
+
+    (add-to-list 'org-capture-templates
+                 `("k" "Kill-ring to Current Clocked Task" plain
+                   (clock)
+                   "%c" :immediate-finish t :empty-lines 1))
+
+    (add-to-list 'org-capture-templates
+                 '("n" "Thought or Note (from kill-ring)"  entry
+                   (file org-default-notes-file)
+                   "* %?\n\n  %c\n\n  See: %a" :empty-lines 1))
+
+    (add-to-list 'org-capture-templates
+                 '("N" "Thought or Note (from active region)"  entry
+                   (file org-default-notes-file)
+                   "* %?\n\n  %i\n\n  See: %a" :empty-lines 1)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+;;;###autoload
+(defun ha/org-capture-clip-snippet (f)
+  "Given a file, F, this captures the currently selected text
+within an Org EXAMPLE block and a backlink to the file."
+  (with-current-buffer (find-buffer-visiting f)
+    (ha/org-capture-fileref-snippet f "EXAMPLE" "" nil)))
+#+end_src
+** quickly capture selected text
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun region-to-clocked-task (start end)
+"Copies the selected text to the currently clocked in org-mode task."
+(interactive "r")
+  (org-capture-string (buffer-substring-no-properties start end) "f"))
+#+END_SRC
+
+* GTD
+The GTD system is mostly based on org mode with some tweaks.
+
+Borrowed lots of ideas from [fn:12].
+** packages
+#+BEGIN_SRC emacs-lisp :tangle packages.el
+(package! org-gtd :recipe (:host github :repo "Trevoke/org-gtd.el"))
+#+END_SRC
+
+#+begin_src emacs-lisp
+(use-package! org-gtd
+  :after org
+  :demand t ;; without this, the package won't be loaded, so org-agenda won't be configured
+  :custom
+  ;; where org-gtd will put its files. This value is also the default one.
+  (org-gtd-directory "~/org/gtd/")
+  ;; package: https://github.com/Malabarba/org-agenda-property
+  ;; this is so you can see who an item was delegated to in the agenda
+  (org-agenda-property-list '("DELEGATED_TO"))
+  ;; I think this makes the agenda easier to read
+  (org-agenda-property-position 'next-line)
+  ;; package: https://www.nongnu.org/org-edna-el/
+  ;; org-edna is used to make sure that when a project task gets DONE,
+  ;; the next TODO is automatically changed to NEXT.
+  (org-edna-use-inheritance t)
+  :config
+  (org-edna-load)
+  ;; :bind
+  ;; (("C-c d c" . org-gtd-capture) ;; add item to inbox
+  ;; ("C-c d a" . org-agenda-list) ;; see what's on your plate today
+  ;; ("C-c d p" . org-gtd-process-inbox) ;; process entire inbox
+  ;; ("C-c d n" . org-gtd-show-all-next) ;; see all NEXT items
+  ;; ("C-c d s" . org-gtd-show-stuck-projects)) ;; see projects that don't have a NEXT item
+  ; :init
+  ;; do NOT use C-c C-c, it has meaning:
+  ;; Set tags in headline, or update according to changed information at point.
+  (bind-key "C-c c" 'org-gtd-clarify-finalize)
+) ;; the keybinding to hit when you're done editing an item in the processing phase
+#+end_src
+
+** agenda
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+    ;; these fancy characters caused problem with org-gtd package
+    ;; (setq org-todo-keywords '((sequence "☛ TODO(t)" "|" "NEXT" "|" "✔ DONE(d)")
+    ;;                             (sequence "⚑ WAITING(w)" "|")
+    ;;                             (sequence "|" "✘ CANCELED(c)")))
+    (setq org-agenda-files '("~/org/gtd")))
+#+end_src
+** capture
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+(add-to-list 'org-capture-templates
+    `("t" "Todo [Inbox]" entry
+        (file "~/org/gtd/Inbox.org")
+        "* TODO %i%?"))
+
+(add-to-list 'org-capture-templates
+     `("T" "Tickler" entry
+        (file+headline "~/org/gtd/tickler.org" "Tickler")
+         "* %i%? \n %U"))
+
+(add-to-list 'org-capture-templates
+   `("m" "Meeting" entry
+     (file+headline "~/org/gtd/agenda.org" "Future")
+        (concat "* %? :meeting:\n"
+           "<%<%Y-%m-%d %a %H:00>>")))
+)
+#+end_src
+
+#+begin_quote
+However, if you capture a note while your cursor is on the same line of an agenda entry, the content will be filled with this entry. This is super convenient to link your note with the agenda entry. [fn:12]
+#+end_quote
+
+** refile
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+    ; Targets include this file and any file contributing to the agenda
+    ; - up to 9 levels deep
+    (setq org-refile-targets (quote ((nil :maxlevel . 9)
+                                (org-agenda-files :maxlevel . 9)))))
+#+end_src
+** workflow
+- directory is =~/org/gtd=
+- inbox is ~Inbox.org~
+- if it's someday, goes into ~someday.org~
+- tickler file is ~tickler.org~
+- appointment/meeting goes into ~agenda.org~
+- how to surface entries tickler file?
+- all project related goes into ~project.org~
+- For reference, first refile into ~reference.org~, then at some point manually refile them into corresponding org file in org roam
 * pomodoro
 We need to add ~+pomodoro~ to the init file for org-mode.
 
@@ -2772,171 +2857,6 @@ to achieve multiple org-roam, but this seems still works:
       (setq unread-command-events (listify-key-sequence (kbd "C-c C-o M->")))
       (counsel-rg regex org-roam-directory "--sort modified"))))
 #+end_src
-* Exporting presentations as PDF
-It's taken from [[https://geeksocket.in/posts/presentations-org-emacs/][here]].
-
-In order to save the presentation as PDF file we have to host the HTML file
-somewhere or start a local HTTP server. This can be done by running this command
-in the directory where the HTML file is:
-#+BEGIN_SRC sh :tangle no
-python3 -m http.server
-#+END_SRC
-
-Open the presentation in Chrome browser and add ~?print-pdf~ at the end of URL.
-** zpresent
-#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! zpresent)
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(use-package! zpresent
-  :defer t)
-#+end_src
-* MacOS integration
-I use ~Devonthink~ and ~MarginNote~ on MacOS, below is to make org mode support
-the link for this two apps:
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(after! org
-    (require 'org-mac-link)
-
-    (org-link-set-parameters
-    "marginnote3app"
-    :export (lambda (path desc backend)
-        (cl-case backend
-        (md (format "[%s](%s)" (or desc "")
-                    (concat  "marginnote3app:" path))))))
-
-    (org-link-set-parameters
-    "x-devonthink-item"
-    :export (lambda (path desc backend)
-        (cl-case backend
-        (md (format "[%s](%s)" (or desc "")
-                    (concat  "x-devonthink-item:" path))))))
-)
-#+end_src
-** spreadsheet
-#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
-;;;###autoload
-(defun me/org-sum-rows (begin-row)
-  "insert a org-table formula for sum all the rows for current column
-    at the cell under cursor"
-  (interactive "p")
-  (cond ((or (<= begin-row 0)
-             (>= begin-row (org-table-current-dline)) )
-         (error "invalid row!"))
-        (t
-         (let ((cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column))))
-           (if (= begin-row 1)
-               (me/org-append-formula cell
-                                      (format "vsum(@2..@%d)" (- (org-table-current-dline) 1)))
-             (me/org-append-formula cell
-                                    (format "vsum(@%d..@%d)" begin-row (- (org-table-current-dline) 1)))
-             )
-           )
-         )
-        ))
-
-;;;###autoload
-(defun me/org-sum-cols (begin-column)
-  "insert a org-table formula for sum columns begin-column -- current-column -1
-   for current row at the cell under cursor"
-  (interactive "p")
-  (cond ((or (<= begin-column 0)
-             (>= begin-column (org-table-current-column)) )
-         (error "invalid column!"))
-        (t
-         (let (
-               (cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column)) )
-               (sum-formula (format "vsum($%d..$%d)" begin-column (- (org-table-current-column) 1) )))
-           (me/org-append-formula cell sum-formula)
-           )
-         )
-        )
-  )
-
-;;;###autoload
-(defun me/org-append-formula (cell formula)
-  "build a alist (cell . formula) and append to existing formulas of the table
-   also recalculate the whole table."
-   (setq exist-formulas (org-table-get-stored-formulas))
-   (setq new-formulas (add-to-list 'exist-formulas (cons cell formula)))
-   (org-table-store-formulas new-formulas)
-   ;; need to pass 'all so all rows are recalculated, not just current row
-   (org-table-recalculate 'all)
-)
-
-;;;###autoload
-(defun me/org-add-index-column ()
-  "insert a index column to the table under cursor.
-   index starting from 1. Also a hline is expected
-   to exist for table for index to work properly."
-  (interactive)
-  (org-table-goto-column 0)
-  (org-table-insert-column)
-  (org-table-move-column-left)
-  (me/org-append-formula "$1" "@#-1")
-)
-
-;;;###autoload
-(defun me/create-org-table-from-clipboard ()
-  "create a table in org mode with content from clipboard"
-  (interactive)
-  (let* ((buf (current-buffer)))
-    (with-temp-buffer
-      (switch-to-buffer (current-buffer) nil t)
-      (insert (get-kill-ring))
-      (mark-whole-buffer)
-      (org-table-create-or-convert-from-region nil)
-      (org-table-insert-hline)
-      (goto-char (point-min))
-      (open-line 1)
-      (insert "#+tblname:")
-      (append-to-buffer buf (point-min) (point-max))
-      )))
-#+end_src
-** jira
-#+begin_src emacs-lisp :tangle no
-(package! org-jira)
-#+end_src
-** utility function
-#+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/autoload.el
-;;;###autoload
-(defun extract-from-org-heading (pattern)
-  (interactive)
-  "go to top level heading from current position and try to extract
-   using pattern"
-  (let ((result nil))
-    (save-excursion
-      (while (org-up-heading-safe))
-      (setq result (search-current-line pattern))
-      (kill-new result))
-      (if result
-        (message "saved to kill-ring: %s" result)
-        (message "no match found!"))
-))
-
-;;;###autoload
-(defun search-current-line(pattern)
-  "search current line using pattern, return captured group, should
-   be only 1."
-  (interactive)
-  (re-search-forward pattern (line-end-position))
-  (match-string 1)
-)
-#+END_SRC
-** keybinding
-#+begin_src emacs-lisp :tangle keybinds.el
-(map! :map org-mode-map
-  :desc "org agenda"                   :n ",a" #'org-agenda
-  :desc "org gtd finalize"             :n ",f" #'org-gtd-clarify-finalize
-  :desc "org schedule"                 :n ",s" #'org-schedule
-  :desc "org attach by mv"             :n ",m" #'org-attach-attach-mv
-  :desc "org attach by cp"             :n ",c" #'org-attach-attach-cp
-  :desc "attach json from killring"    :n ",j" #'me/attach-json-from-kill-ring
-  :desc "open attach in Emacs"         :n ",o" #'org-attach-open-in-emacs
-  :desc "org open attach"              :n ",O" #'org-attach-open)
-#+END_SRC
 * org export to html
 ** html theme
 This [[https://github.com/fniessen/org-html-themes][repo]] provides few themes which makes exported html looks really nice.
@@ -3337,144 +3257,172 @@ made unique when necessary."
 
 (add-hook 'org-load-hook #'unpackaged/org-export-html-with-useful-ids-mode)
 #+END_SRC
-* org capture
-This [[http://howardism.org/Technical/Emacs/capturing-content.html][blog post]] is an excellent resource for capturing content in Emacs, I
-borrowed a lot of capture templates and related functions from it.
+* presentation
+** Exporting presentations as PDF
+It's taken from [[https://geeksocket.in/posts/presentations-org-emacs/][here]].
 
-From that blog post, it says:
-#+BEGIN_QUOTE
-I have found the (clock) reference ideal for altering a default destination.
-Specifically, I begin work on a task, and designate it the focus of my attention
-(i.e. the destination of my work)
-#+END_QUOTE
-** global capture
-#+begin_src emacs-lisp  :tangle modules/emacs/org/packages.el
-(package! yequake :recipe (:host github :repo "alphapapa/yequake"))
-#+END_SRC
-
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(use-package! yequake
-  :custom
-  (yequake-frames
-   '(
-     ("org-capture"
-      (buffer-fns . (yequake-org-capture))
-      (width . 0.75)
-      (height . 0.5)
-      (alpha . 0.95)
-      (frame-parameters . ((undecorated . t)
-                           (skip-taskbar . t)
-                            (sticky . t))))
-)))
-#+END_SRC
-
-To trigger org-capture outside emacs, we can run shell command:
+In order to save the presentation as PDF file we have to host the HTML file
+somewhere or start a local HTTP server. This can be done by running this command
+in the directory where the HTML file is:
 #+BEGIN_SRC sh :tangle no
-/usr/local/bin/emacsclient -n -e '(yequake-toggle "org-capture")'
+python3 -m http.server
 #+END_SRC
 
-For MacOS, I also use [[https://github.com/Hammerspoon/hammerspoon][hammerspoon]] to trigger global capture.
-So far it's just a simple macro setup.
+Open the presentation in Chrome browser and add ~?print-pdf~ at the end of URL.
+*** zpresent
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! zpresent)
+#+end_src
 
-Basically workflow would be:
-- select some text
-- press ~Alt-Cmd-t~ to trigger this macro
-
-** capture the code
-I found this capture template quite helpful when I read code when working on
-some stories, so I just use ~C-c c F~ which will put the code I selected into a
-org mode src block under current clocked task and add add a link point back to
-the code in the source file.
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! zpresent
+  :defer t)
+#+end_src
+* MacOS integration
+I use ~Devonthink~ and ~MarginNote~ on MacOS, below is to make org mode support
+the link for this two apps:
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (after! org
-    (add-to-list 'org-capture-templates
-                 `("C" "Code Reference with Comments to Current Task"
-                   plain (clock)
-                   "%(ha/org-capture-code-snippet \"%F\")\n\n   %?"
-                   :empty-lines 1))
-    (add-to-list 'org-capture-templates
-                 `("c" "Code Reference to Current Task"
-                   plain (clock)
-                   "%(ha/org-capture-code-snippet \"%F\")"
-                   :empty-lines 1 :immediate-finish t)))
-#+end_src
+    (require 'org-mac-link)
 
-In order to support these two capture templates, we need following functions:
+    (org-link-set-parameters
+    "marginnote3app"
+    :export (lambda (path desc backend)
+        (cl-case backend
+        (md (format "[%s](%s)" (or desc "")
+                    (concat  "marginnote3app:" path))))))
+
+    (org-link-set-parameters
+    "x-devonthink-item"
+    :export (lambda (path desc backend)
+        (cl-case backend
+        (md (format "[%s](%s)" (or desc "")
+                    (concat  "x-devonthink-item:" path))))))
+)
+#+end_src
+** spreadsheet
 #+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
 ;;;###autoload
-(defun ha/org-capture-code-snippet (f)
-  "Given a file, F, this captures the currently selected text
-within an Org SRC block with a language based on the current mode
-and a backlink to the function and the file."
-  (with-current-buffer (find-buffer-visiting f)
-    (let ((org-src-mode (replace-regexp-in-string "-mode" "" (format "%s" major-mode)))
-          (func-name (which-function)))
-      (ha/org-capture-fileref-snippet f "SRC" org-src-mode func-name))))
+(defun me/org-sum-rows (begin-row)
+  "insert a org-table formula for sum all the rows for current column
+    at the cell under cursor"
+  (interactive "p")
+  (cond ((or (<= begin-row 0)
+             (>= begin-row (org-table-current-dline)) )
+         (error "invalid row!"))
+        (t
+         (let ((cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column))))
+           (if (= begin-row 1)
+               (me/org-append-formula cell
+                                      (format "vsum(@2..@%d)" (- (org-table-current-dline) 1)))
+             (me/org-append-formula cell
+                                    (format "vsum(@%d..@%d)" begin-row (- (org-table-current-dline) 1)))
+             )
+           )
+         )
+        ))
 
 ;;;###autoload
-(defun ha/org-capture-fileref-snippet (f type headers func-name)
-  (let* ((code-snippet
-          (buffer-substring-no-properties (mark) (- (point) 1)))
-         (file-name   (buffer-file-name))
-         (file-base   (file-name-nondirectory file-name))
-         (line-number (line-number-at-pos (region-beginning)))
-         (initial-txt (if (null func-name)
-                          (format "From [[file:%s::%s][%s]]:"
-                                  file-name line-number file-base)
-                        (format "From ~%s~ (in [[file:%s::%s][%s]]):"
-                                func-name file-name line-number
-                                file-base))))
-    (format "
-   %s
+(defun me/org-sum-cols (begin-column)
+  "insert a org-table formula for sum columns begin-column -- current-column -1
+   for current row at the cell under cursor"
+  (interactive "p")
+  (cond ((or (<= begin-column 0)
+             (>= begin-column (org-table-current-column)) )
+         (error "invalid column!"))
+        (t
+         (let (
+               (cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column)) )
+               (sum-formula (format "vsum($%d..$%d)" begin-column (- (org-table-current-column) 1) )))
+           (me/org-append-formula cell sum-formula)
+           )
+         )
+        )
+  )
 
-#+BEGIN_%s %s
-%s
-#+END_%s" initial-txt type headers code-snippet type)))
+;;;###autoload
+(defun me/org-append-formula (cell formula)
+  "build a alist (cell . formula) and append to existing formulas of the table
+   also recalculate the whole table."
+   (setq exist-formulas (org-table-get-stored-formulas))
+   (setq new-formulas (add-to-list 'exist-formulas (cons cell formula)))
+   (org-table-store-formulas new-formulas)
+   ;; need to pass 'all so all rows are recalculated, not just current row
+   (org-table-recalculate 'all)
+)
+
+;;;###autoload
+(defun me/org-add-index-column ()
+  "insert a index column to the table under cursor.
+   index starting from 1. Also a hline is expected
+   to exist for table for index to work properly."
+  (interactive)
+  (org-table-goto-column 0)
+  (org-table-insert-column)
+  (org-table-move-column-left)
+  (me/org-append-formula "$1" "@#-1")
+)
+
+;;;###autoload
+(defun me/create-org-table-from-clipboard ()
+  "create a table in org mode with content from clipboard"
+  (interactive)
+  (let* ((buf (current-buffer)))
+    (with-temp-buffer
+      (switch-to-buffer (current-buffer) nil t)
+      (insert (get-kill-ring))
+      (mark-whole-buffer)
+      (org-table-create-or-convert-from-region nil)
+      (org-table-insert-hline)
+      (goto-char (point-min))
+      (open-line 1)
+      (insert "#+tblname:")
+      (append-to-buffer buf (point-min) (point-max))
+      )))
 #+end_src
-
-** capture other things
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
-(after! org
-    (add-to-list 'org-capture-templates
-                 `("f" "Contents to Current Task"
-                   plain (clock)
-                   "%i"
-                   :empty-lines 1 :immediate-finish t))
-
-    (add-to-list 'org-capture-templates
-                 `("k" "Kill-ring to Current Clocked Task" plain
-                   (clock)
-                   "%c" :immediate-finish t :empty-lines 1))
-
-    (add-to-list 'org-capture-templates
-                 '("n" "Thought or Note (from kill-ring)"  entry
-                   (file org-default-notes-file)
-                   "* %?\n\n  %c\n\n  See: %a" :empty-lines 1))
-
-    (add-to-list 'org-capture-templates
-                 '("N" "Thought or Note (from active region)"  entry
-                   (file org-default-notes-file)
-                   "* %?\n\n  %i\n\n  See: %a" :empty-lines 1)))
-#+end_src
-
+** jira
 #+begin_src emacs-lisp :tangle no
-;;;###autoload
-(defun ha/org-capture-clip-snippet (f)
-  "Given a file, F, this captures the currently selected text
-within an Org EXAMPLE block and a backlink to the file."
-  (with-current-buffer (find-buffer-visiting f)
-    (ha/org-capture-fileref-snippet f "EXAMPLE" "" nil)))
+(package! org-jira)
 #+end_src
-** quickly capture selected text
-#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+** utility function
+#+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/autoload.el
 ;;;###autoload
-(defun region-to-clocked-task (start end)
-"Copies the selected text to the currently clocked in org-mode task."
-(interactive "r")
-  (org-capture-string (buffer-substring-no-properties start end) "f"))
-#+END_SRC
+(defun extract-from-org-heading (pattern)
+  (interactive)
+  "go to top level heading from current position and try to extract
+   using pattern"
+  (let ((result nil))
+    (save-excursion
+      (while (org-up-heading-safe))
+      (setq result (search-current-line pattern))
+      (kill-new result))
+      (if result
+        (message "saved to kill-ring: %s" result)
+        (message "no match found!"))
+))
 
+;;;###autoload
+(defun search-current-line(pattern)
+  "search current line using pattern, return captured group, should
+   be only 1."
+  (interactive)
+  (re-search-forward pattern (line-end-position))
+  (match-string 1)
+)
+#+END_SRC
+** keybinding
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map org-mode-map
+  :desc "org agenda"                   :n ",a" #'org-agenda
+  :desc "org gtd finalize"             :n ",f" #'org-gtd-clarify-finalize
+  :desc "org schedule"                 :n ",s" #'org-schedule
+  :desc "org attach by mv"             :n ",m" #'org-attach-attach-mv
+  :desc "org attach by cp"             :n ",c" #'org-attach-attach-cp
+  :desc "attach json from killring"    :n ",j" #'me/attach-json-from-kill-ring
+  :desc "open attach in Emacs"         :n ",o" #'org-attach-open-in-emacs
+  :desc "org open attach"              :n ",O" #'org-attach-open)
+#+END_SRC
 * regex
 #+begin_src emacs-lisp :tangle no
 (package! visual-regexp)
@@ -5844,7 +5792,6 @@ https://github.com/dengste/org-caldav
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 #+END_SRC
 
-* presentation
 * Note Taking workflow [fn:8] [fn:9] [fn:10]
 ** env setup
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
@@ -6503,6 +6450,19 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 (use-package! oer-reveal)
 #+end_src
 
+* Do NOT use
+** auto revert tail mode
+disable it since it seems caused some undesired side effect
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq auto-revert-tail-mode nil)
+#+END_SRC
+
+** global visual line mode
+Have to disable it because it causes issue for magit
+#+BEGIN_SRC emacs-lisp :tangle no
+(global-visual-line-mode 1)
+#+END_SRC
+
 * Footnotes
 [fn:1] https://gitlab.com/justinekizhak/dotfiles/-/tree/master/emacs/doom.d
 [fn:2] http://xenodium.com/open-emacs-elfeed-links-in-background/
@@ -6515,3 +6475,4 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 [fn:9] https://rgoswami.me/posts/org-note-workflow/
 [fn:10] https://github.com/sunnyhasija/Academic-Doom-Emacs-Config
 [fn:11] https://emacs-lsp.github.io/lsp-mode/tutorials/clojure-guide/
+[fn:12] https://github.com/rougier/emacs-gtd/blob/master/GTD.org
