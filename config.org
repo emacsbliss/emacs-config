@@ -4042,347 +4042,9 @@ I have read through few options for email in Emacs, they are:
 - notmuch
 - mu4e
 
-Other than Gnus, both notmuch and mu4e requires email messages are downloaed
-locally by using tool like ~offlineimap~ then they work on that local copy.
-
-I felt that's a bit too annoying in terms setting up, so I landed ~WanderLust~
-since it doesn't require that offline setup.
-
-Invoke ~wanderlust~ by running ~M-x wl~.
-
-Wanderlust has four basic buffers: Folder buffer, summary buffer, message
-buffer/view, and draft buffer.
-
-Wanderlust starts in folder buffer.
-
-update on <2020-02-17 Mon>:
-I decide to have my own email module config which I copy from doom emacs and
-make some customizatio on top of that.
-** packages
-There is issue when I tried to get wanderLust uses w3m to display html email, so
-I did a patch to ~semi~ and use my patched version.
-
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
-;; HACK These are wanderlust's dependencies (wanderlust depends on semi, semi
-;;      depends on flim, flim on apel), but they all have non-standard default
-;;      branches which straight cannot detect without our help.
-(package! apel :recipe (:branch "apel-wl") :pin "d146ddbf88")
-(package! flim :recipe (:branch "flim-1_14-wl") :pin "e4bd54fd7d")
-;; (package! semi :recipe (:branch "semi-1_14-wl") :pin "16228dc2d1")
-(package! semi :recipe (:host github :repo "emacsbliss/semi" :branch "semi-1_14-wl"))
-
-(package! wanderlust :pin "7a919e422a")
-#+end_src
-
-** basic config
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(use-package! wl
-  :defer t
-  :config
-  (setq mail-user-agent 'wl-user-agent
-        pgg-scheme 'gpg
-        mime-edit-split-message nil)
-
-  (when (fboundp 'define-mail-user-agent)
-    (define-mail-user-agent
-      'wl-user-agent
-      'wl-user-agent-compose
-      'wl-draft-send
-      'wl-draft-kill
-      'mail-send-hook))
-
-  (setq wl-demo nil
-        ;; to avoid annoying confirmation when open a message
-        ;; it's in byte. let's make it 10M
-        elmo-message-fetch-threshold 10000000
-        wl-stay-folder-window t
-        ;; wl-init-file (expand-file-name "wl.el" doom-private-dir)
-        wl-folders-file "~/.folders")
-        ;; wl-folders-file (expand-file-name "folders.wl" doom-private-dir)
-
-  (setq wl-message-truncate-lines t
-        wl-summary-width 120)
-  (setq wl-message-id-domain wl-local-domain)
-  (add-hook 'mime-edit-mode-hook #'auto-fill-mode)
-#+end_src
-** gmail support
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(when (featurep! +gmail)
-    (setq elmo-imap4-default-server "imap.gmail.com"
-          elmo-imap4-default-port 993
-          elmo-imap4-default-authenticate-type 'clear ; CRAM-MD5
-          elmo-imap4-default-user user-mail-address
-          elmo-imap4-default-stream-type 'ssl
-          elmo-imap4-set-seen-flag-explicitly t)
-
-    (setq wl-smtp-connection-type 'starttls
-          wl-smtp-posting-port 587
-          wl-smtp-authenticate-type "plain"
-          wl-smtp-posting-user user-mail-address
-          wl-smtp-posting-server "smtp.gmail.com"
-          wl-local-domain "gmail.com")
-
-    (setq wl-default-folder "%inbox"
-          wl-draft-folder "%[Gmail]/Drafts"
-          wl-trash-folder "%[Gmail]/Trash"
-          wl-fcc-force-as-read t
-          wl-default-spec "%"))
-#+end_src
-** summary buffer
-in summary buffer:
-#+begin_example
-- d to mark an message to be deleted (go to trash), then x to perform it
-- D to mark an message to be deleted (NOT go through trash), then x to perform it
-- RET to read a message
-- w - compose a message
-- m - wl-summary-target-mark-thread
-#+end_example
-** save password
-Find the clue from this [[http://walfield.org/blog/2008/04/24/saving-passwords-with-wanderlust.html][link]].
-
-Run ~elmo-passwd-alist-save~ will save all of your Wanderlust passwords to
-~~/.elmo/passwd~. When Wanderlust first needs a password, it calls
-~elmo-passwd-alist-load~ which loads this file.
-
-In my case password was generated to file ~~/passwd~ and it doesn't work. I have
-to manually move the file to ~~/.elmo/passwd~ then it starts to work.
-
-After password is saved, file looks like this:
-#+begin_example
-(("IMAP:<your gmail account>/clear@imap.gmail.com:993" . "top secret")
- ("SMTP:<your gmail account>/PLAIN@smtp.gmail.com" . "top secret"))
-#+end_example
-
-It turned out there is entry for receiving (IMAP) and outgoing (SMTP). However
-it's a bit different between these two. For SMTP, we can't put port number also
-we need to use ~PLAIN~ instead of ~clear~.
-
-** folders setup
-#+begin_src emacs-lisp :tangle no
-(setq wl-folders-file "~/.folders")
-#+end_src
-
-To work with gmail, we need to generate a app-specific password first.
-
-this is not working for me for sent emails:
-#+begin_example
-%[Gmail]/Sent:"<my gmail account>"/clear@imap.gmail.com:993!  "Sent"
-#+end_example
-
-Instead I have to use this:
-#+begin_example
-%[Gmail]/Sent Mail:"<my gmail account>"/clear@imap.gmail.com:993!  "Sent mail"
-#+end_example
-
-A example setup for gmail looks like this:
-#+begin_example
-GMAIL{
-   %INBOX:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!         "In"
-   %[Gmail]/Drafts:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993! "Draft"
-   %[Gmail]/Trash:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993! "Trash"
-   %[Gmail]/Spam:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Spam"
-   %[Gmail]/Starred:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Starred"
-   %[Gmail]/Important:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Important"
-   %[Gmail]/All Mail:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "All"
-   %[Gmail]/Sent Mail:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Sent mail"
-}
-#+end_example
-
-update on <2020-01-30 Thu>:
-Having ~Drafts~ defined in ~.folders~ file seems causing frequent lagging when
-writing email due to Wanderlust keeps syncing the draft to server, remove that
-seems improving the situation.
-
-** better display
-Taken from [[https://github.com/LdBeth/Emacs-for-Noobs/blob/master/WanderLust.org][Here]].
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(setq wl-message-ignored-field-list
-      '(".")
-      wl-message-visible-field-list
-      '("^\\(To\\|Cc\\):"
-        "^Subject:"
-        "^\\(From\\|Reply-To\\):"
-        "^\\(Posted\\|Date\\):"
-        "^Organization:"
-        "^X-\\(Face\\(-[0-9]+\\)?\\|Weather\\|Fortune\\|Now-Playing\\):")
-      wl-message-sort-field-list
-      (append wl-message-sort-field-list
-              '("^Reply-To" "^Posted" "^Date" "^Organization")))
-#+end_src
-
-** How can I stop wl from autosaving my draft every second I make a change
-https://www.emacswiki.org/emacs/WlFaq
-
-Wanderlust automatically saves the draft every second there’s a change. If your
-draft folder is an IMAP, this gets tiresome fast.
-
-Doing this below will only save draft when I tell it to (C-x C-s or C-c C-s):
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(setq wl-auto-save-drafts-interval nil)
-#+end_src
-
-Alternatively, you can use a local folder for draft by saying something like
-#+begin_src emacs-lisp :tangle no
-(setq wl-draft-folder "+drafts")
-#+end_src
-
-** save attachments from email
-use ~M-x wl-summary-extract-attachments~, note cursor needs to be on the email
-in summary buffer, not in message buffer
-** add attachment to email
-In ~wl-draft-mode~ press ~C-c C-x TAB mime-edit-insert-file~
-** send html email with org-mode
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(setq org-mime-library 'semi)
-#+end_src
-
-In org-mode after writing email then run ~M-x org-mime-org-buffer-htmlize~
-** only list the unread email
-In folder view, type ~g~, then enter ~/flag:unread/%inbox~,
-then a virtual folder will be created which lists all unread emails.
-
-Following flags can be used:
-
-#+begin_example
-unread    -> unread
-important -> important
-answered  -> replied
-forwarded -> forwarded
-digest    -> unread or important
-any       -> unread or replied or forwarded or global-flag.
-#+end_example
-** display html email
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(after! wl
-    (setq mime-view-text/html-previewer 'mime-w3m))
-#+end_src
-
-However I got errors like this:
-#+begin_example
-(void-function w3-region)
-mime-display-text/html: Symbol’s value as variable is void: w3-mode-map
-#+end_example
-
-Turned out it's using:
-~/.emacs.d/.local/straight/repos/semi/mime-w3.el
-
-and I have to manually change ~w3-mode-map~ to ~w3m-mode-map~, also ~w3-region~
-to ~w3m-region~.
-
-Not sure why this file is not used instead:
-~/.emacs.d/.local/straight/repos/emacs-w3m/mime-w3m.el
-
-By default inline images in the email are not shown automatically, we need to
-set this, however this seems not working..
-#+begin_src emacs-lisp :tangle no
-(after! w3m
-    (setq w3m-default-display-inline-images t))
-#+end_src
-** save message content
-wl-message-extract-content
-** save message as eml file
-Need to do it from ~summary buffer~ with command ~wl-summary-save~.
-** filter email
-#+begin_example
-/from:xyz/%inbox
-/body:foo/%inbox
-#+end_example
-** key binding
-We need to activate evil normal state when enter into wl-folder-mode.
-
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(add-hook 'wl-folder-mode-hook (lambda () (evil-normal-state)))
-#+end_src
-
-Now we need to finish the ~(use-package! wl~:
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-)
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(map! :map wl-folder-mode-map
-  :desc "next folder"     :n "j"   #'wl-folder-next-entity
-  :desc "previous folder" :n "k"   #'wl-folder-prev-entity
-  :desc "open folder"     :n "RET" #'wl-folder-jump-to-current-entity
-  :desc "goto folder"     :n "/"   #'wl-folder-goto-folder
-  :desc "quit"            :n "q"   #'wl-exit)
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(defun emacslibss/mark-mail ()
-  (interactive)
-  (wl-summary-target-mark)
-  (evil-next-line))
-#+END_SRC
-
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(map! :map wl-summary-mode-map
-  :desc "compose"             :n "c"     #'wl-summary-write
-  :desc "trash email"         :n "d"     #'wl-summary-dispose
-  :desc "trash marked"        :n "D"     #'wl-summary-target-mark-dispose
-  :desc "forward"             :n "f"     #'wl-summary-forward
-  :desc "mark current"        :n "m"     #'emacslibss/mark-mail
-  :desc "mark current"        :n "M"     #'wl-summary-target-mark-thread
-  :desc "auto refile"         :n "o"     #'wl-summary-auto-refile
-  :desc "print mail"          :n "p"     #'wl-summary-print-message
-  :desc "exit"                :n "q"     #'wl-summary-exit
-  :desc "reply"               :n "r"     #'wl-summary-reply
-  :desc "reply with citation" :n "R"     #'wl-summary-reply-with-citation
-  ;; not working, evil-snipe is taking priority
-  ;; :desc "sort"                :n "s"     #'wl-summary-sort
-  :desc "mark all"            :n "t"     #'wl-summary-target-mark-all
-  :desc "unmark current"      :n "u"     #'wl-summary-unmark
-  :desc "unmark all"          :n "U"     #'wl-summary-unmark-all
-  :desc "execute"             :n "x"     #'wl-summary-exec
-  :desc "save marked"         :n "y"     #'wl-summary-target-mark-save
-  :desc "open mail"           :n "RET"   #'wl-summary-enter-handler
-  :desc "refresh"             :n "gr"    #'wl-summary-sync-update
-  :desc "store org mode link"  "C-c l"   #'org-store-link
-  :desc "toggle folding"      :n "<tab>" #'wl-thread-open-close)
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-;; not working, ace-link is taking priority
-(map! :map mime-view-mode-default-map
-  :desc "open link externally" :n "gl"     #'w3m-lnum-external-view-this-url
-  :desc "open link"            :n "gL"     #'w3m-lnum-goto)
-#+end_src
-** mark
-#+begin_example
-m a - mark all
-m u - remove all mark
-m d - dispose all marked mails
-m D - delete all marked mails (not go through trash)
-m y - save all marked mails
-#+end_example
-** rss
-#+begin_example
-|rss:http://www.reddit.com/r/emacs/.rss|+rss
-#+end_example
-** capture with org-mode
-I discovered [[https://github.com/chep/org-wl][org-wl]] but it's a bit outdated, so I created a fork and made some
-modification to it.
-
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
-(package! org-wl :recipe (:host github :repo "emacsbliss/org-wl"))
-#+end_src
-
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(use-package! org-wl
-  :after org)
-#+end_src
-
-With this below we can use org capture workflow to capture an email message from WanderLust.
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
-(after! org
-  (add-to-list 'org-capture-templates
-               '("e" "Email Todo" entry
-        (file+headline "~/org/Inbox.org" "Task")
-        "* TODO %^{Brief Description}\nEmail: %a\nFrom: %:from \nTo: %:to \n%?Added: %U\n" :prepend t)))
-#+end_src
-
-But when follow the link in org mode, we will need to run ~M-x wl~ beforehand
-otherwise there will be error.
+Update on <2021-04-01 Thu>:
+Now I have changed my mind to try mu4e since Wanderlust somehow stopped working
+and it also feels not very nice to use..
 * json
 ** packages
 #+begin_src emacs-lisp :tangle modules/lang/json/packages.el
@@ -6450,6 +6112,335 @@ https://oer.gitlab.io/emacs-reveal-howto/howto.html#/sec-title-slide
 (use-package! oer-reveal)
 #+end_src
 
+** email - wanderlust
+Update on <2021-04-01 Thu>:
+Now I have changed my mind to try mu4e since Wanderlust somehow stopped working
+and it also feels not very nice to use..
+*** packages
+There is issue when I tried to get wanderLust uses w3m to display html email, so
+I did a patch to ~semi~ and use my patched version.
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
+;; HACK These are wanderlust's dependencies (wanderlust depends on semi, semi
+;;      depends on flim, flim on apel), but they all have non-standard default
+;;      branches which straight cannot detect without our help.
+(package! apel :recipe (:branch "apel-wl") :pin "d146ddbf88")
+(package! flim :recipe (:branch "flim-1_14-wl") :pin "e4bd54fd7d")
+;; (package! semi :recipe (:branch "semi-1_14-wl") :pin "16228dc2d1")
+(package! semi :recipe (:host github :repo "emacsbliss/semi" :branch "semi-1_14-wl"))
+
+(package! wanderlust :pin "7a919e422a")
+#+end_src
+
+*** basic config
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(use-package! wl
+  :defer t
+  :config
+  (setq mail-user-agent 'wl-user-agent
+        pgg-scheme 'gpg
+        mime-edit-split-message nil)
+
+  (when (fboundp 'define-mail-user-agent)
+    (define-mail-user-agent
+      'wl-user-agent
+      'wl-user-agent-compose
+      'wl-draft-send
+      'wl-draft-kill
+      'mail-send-hook))
+
+  (setq wl-demo nil
+        ;; to avoid annoying confirmation when open a message
+        ;; it's in byte. let's make it 10M
+        elmo-message-fetch-threshold 10000000
+        wl-stay-folder-window t
+        ;; wl-init-file (expand-file-name "wl.el" doom-private-dir)
+        wl-folders-file "~/.folders")
+        ;; wl-folders-file (expand-file-name "folders.wl" doom-private-dir)
+
+  (setq wl-message-truncate-lines t
+        wl-summary-width 120)
+  (setq wl-message-id-domain wl-local-domain)
+  (add-hook 'mime-edit-mode-hook #'auto-fill-mode)
+#+end_src
+*** gmail support
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(when (featurep! +gmail)
+    (setq elmo-imap4-default-server "imap.gmail.com"
+          elmo-imap4-default-port 993
+          elmo-imap4-default-authenticate-type 'clear ; CRAM-MD5
+          elmo-imap4-default-user user-mail-address
+          elmo-imap4-default-stream-type 'ssl
+          elmo-imap4-set-seen-flag-explicitly t)
+
+    (setq wl-smtp-connection-type 'starttls
+          wl-smtp-posting-port 587
+          wl-smtp-authenticate-type "plain"
+          wl-smtp-posting-user user-mail-address
+          wl-smtp-posting-server "smtp.gmail.com"
+          wl-local-domain "gmail.com")
+
+    (setq wl-default-folder "%inbox"
+          wl-draft-folder "%[Gmail]/Drafts"
+          wl-trash-folder "%[Gmail]/Trash"
+          wl-fcc-force-as-read t
+          wl-default-spec "%"))
+#+end_src
+*** summary buffer
+in summary buffer:
+#+begin_example
+- d to mark an message to be deleted (go to trash), then x to perform it
+- D to mark an message to be deleted (NOT go through trash), then x to perform it
+- RET to read a message
+- w - compose a message
+- m - wl-summary-target-mark-thread
+#+end_example
+*** save password
+Find the clue from this [[http://walfield.org/blog/2008/04/24/saving-passwords-with-wanderlust.html][link]].
+
+Run ~elmo-passwd-alist-save~ will save all of your Wanderlust passwords to
+~~/.elmo/passwd~. When Wanderlust first needs a password, it calls
+~elmo-passwd-alist-load~ which loads this file.
+
+In my case password was generated to file ~~/passwd~ and it doesn't work. I have
+to manually move the file to ~~/.elmo/passwd~ then it starts to work.
+
+After password is saved, file looks like this:
+#+begin_example
+(("IMAP:<your gmail account>/clear@imap.gmail.com:993" . "top secret")
+ ("SMTP:<your gmail account>/PLAIN@smtp.gmail.com" . "top secret"))
+#+end_example
+
+It turned out there is entry for receiving (IMAP) and outgoing (SMTP). However
+it's a bit different between these two. For SMTP, we can't put port number also
+we need to use ~PLAIN~ instead of ~clear~.
+
+*** folders setup
+#+begin_src emacs-lisp :tangle no
+(setq wl-folders-file "~/.folders")
+#+end_src
+
+To work with gmail, we need to generate a app-specific password first.
+
+this is not working for me for sent emails:
+#+begin_example
+%[Gmail]/Sent:"<my gmail account>"/clear@imap.gmail.com:993!  "Sent"
+#+end_example
+
+Instead I have to use this:
+#+begin_example
+%[Gmail]/Sent Mail:"<my gmail account>"/clear@imap.gmail.com:993!  "Sent mail"
+#+end_example
+
+A example setup for gmail looks like this:
+#+begin_example
+GMAIL{
+   %INBOX:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!         "In"
+   %[Gmail]/Drafts:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993! "Draft"
+   %[Gmail]/Trash:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993! "Trash"
+   %[Gmail]/Spam:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Spam"
+   %[Gmail]/Starred:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Starred"
+   %[Gmail]/Important:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Important"
+   %[Gmail]/All Mail:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "All"
+   %[Gmail]/Sent Mail:"<your gmail username>@gmail.com"/clear@imap.gmail.com:993!  "Sent mail"
+}
+#+end_example
+
+update on <2020-01-30 Thu>:
+Having ~Drafts~ defined in ~.folders~ file seems causing frequent lagging when
+writing email due to Wanderlust keeps syncing the draft to server, remove that
+seems improving the situation.
+
+*** better display
+Taken from [[https://github.com/LdBeth/Emacs-for-Noobs/blob/master/WanderLust.org][Here]].
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(setq wl-message-ignored-field-list
+      '(".")
+      wl-message-visible-field-list
+      '("^\\(To\\|Cc\\):"
+        "^Subject:"
+        "^\\(From\\|Reply-To\\):"
+        "^\\(Posted\\|Date\\):"
+        "^Organization:"
+        "^X-\\(Face\\(-[0-9]+\\)?\\|Weather\\|Fortune\\|Now-Playing\\):")
+      wl-message-sort-field-list
+      (append wl-message-sort-field-list
+              '("^Reply-To" "^Posted" "^Date" "^Organization")))
+#+end_src
+
+*** How can I stop wl from autosaving my draft every second I make a change
+https://www.emacswiki.org/emacs/WlFaq
+
+Wanderlust automatically saves the draft every second there’s a change. If your
+draft folder is an IMAP, this gets tiresome fast.
+
+Doing this below will only save draft when I tell it to (C-x C-s or C-c C-s):
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(setq wl-auto-save-drafts-interval nil)
+#+end_src
+
+Alternatively, you can use a local folder for draft by saying something like
+#+begin_src emacs-lisp :tangle no
+(setq wl-draft-folder "+drafts")
+#+end_src
+
+*** save attachments from email
+use ~M-x wl-summary-extract-attachments~, note cursor needs to be on the email
+in summary buffer, not in message buffer
+*** add attachment to email
+In ~wl-draft-mode~ press ~C-c C-x TAB mime-edit-insert-file~
+*** send html email with org-mode
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(setq org-mime-library 'semi)
+#+end_src
+
+In org-mode after writing email then run ~M-x org-mime-org-buffer-htmlize~
+*** only list the unread email
+In folder view, type ~g~, then enter ~/flag:unread/%inbox~,
+then a virtual folder will be created which lists all unread emails.
+
+Following flags can be used:
+
+#+begin_example
+unread    -> unread
+important -> important
+answered  -> replied
+forwarded -> forwarded
+digest    -> unread or important
+any       -> unread or replied or forwarded or global-flag.
+#+end_example
+*** display html email
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(after! wl
+    (setq mime-view-text/html-previewer 'mime-w3m))
+#+end_src
+
+However I got errors like this:
+#+begin_example
+(void-function w3-region)
+mime-display-text/html: Symbol’s value as variable is void: w3-mode-map
+#+end_example
+
+Turned out it's using:
+~/.emacs.d/.local/straight/repos/semi/mime-w3.el
+
+and I have to manually change ~w3-mode-map~ to ~w3m-mode-map~, also ~w3-region~
+to ~w3m-region~.
+
+Not sure why this file is not used instead:
+~/.emacs.d/.local/straight/repos/emacs-w3m/mime-w3m.el
+
+By default inline images in the email are not shown automatically, we need to
+set this, however this seems not working..
+#+begin_src emacs-lisp :tangle no
+(after! w3m
+    (setq w3m-default-display-inline-images t))
+#+end_src
+*** save message content
+wl-message-extract-content
+*** save message as eml file
+Need to do it from ~summary buffer~ with command ~wl-summary-save~.
+*** filter email
+#+begin_example
+/from:xyz/%inbox
+/body:foo/%inbox
+#+end_example
+*** key binding
+We need to activate evil normal state when enter into wl-folder-mode.
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(add-hook 'wl-folder-mode-hook (lambda () (evil-normal-state)))
+#+end_src
+
+Now we need to finish the ~(use-package! wl~:
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(map! :map wl-folder-mode-map
+  :desc "next folder"     :n "j"   #'wl-folder-next-entity
+  :desc "previous folder" :n "k"   #'wl-folder-prev-entity
+  :desc "open folder"     :n "RET" #'wl-folder-jump-to-current-entity
+  :desc "goto folder"     :n "/"   #'wl-folder-goto-folder
+  :desc "quit"            :n "q"   #'wl-exit)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(defun emacslibss/mark-mail ()
+  (interactive)
+  (wl-summary-target-mark)
+  (evil-next-line))
+#+END_SRC
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(map! :map wl-summary-mode-map
+  :desc "compose"             :n "c"     #'wl-summary-write
+  :desc "trash email"         :n "d"     #'wl-summary-dispose
+  :desc "trash marked"        :n "D"     #'wl-summary-target-mark-dispose
+  :desc "forward"             :n "f"     #'wl-summary-forward
+  :desc "mark current"        :n "m"     #'emacslibss/mark-mail
+  :desc "mark current"        :n "M"     #'wl-summary-target-mark-thread
+  :desc "auto refile"         :n "o"     #'wl-summary-auto-refile
+  :desc "print mail"          :n "p"     #'wl-summary-print-message
+  :desc "exit"                :n "q"     #'wl-summary-exit
+  :desc "reply"               :n "r"     #'wl-summary-reply
+  :desc "reply with citation" :n "R"     #'wl-summary-reply-with-citation
+  ;; not working, evil-snipe is taking priority
+  ;; :desc "sort"                :n "s"     #'wl-summary-sort
+  :desc "mark all"            :n "t"     #'wl-summary-target-mark-all
+  :desc "unmark current"      :n "u"     #'wl-summary-unmark
+  :desc "unmark all"          :n "U"     #'wl-summary-unmark-all
+  :desc "execute"             :n "x"     #'wl-summary-exec
+  :desc "save marked"         :n "y"     #'wl-summary-target-mark-save
+  :desc "open mail"           :n "RET"   #'wl-summary-enter-handler
+  :desc "refresh"             :n "gr"    #'wl-summary-sync-update
+  :desc "store org mode link"  "C-c l"   #'org-store-link
+  :desc "toggle folding"      :n "<tab>" #'wl-thread-open-close)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+;; not working, ace-link is taking priority
+(map! :map mime-view-mode-default-map
+  :desc "open link externally" :n "gl"     #'w3m-lnum-external-view-this-url
+  :desc "open link"            :n "gL"     #'w3m-lnum-goto)
+#+end_src
+*** mark
+#+begin_example
+m a - mark all
+m u - remove all mark
+m d - dispose all marked mails
+m D - delete all marked mails (not go through trash)
+m y - save all marked mails
+#+end_example
+*** rss
+#+begin_example
+|rss:http://www.reddit.com/r/emacs/.rss|+rss
+#+end_example
+*** capture with org-mode
+I discovered [[https://github.com/chep/org-wl][org-wl]] but it's a bit outdated, so I created a fork and made some
+modification to it.
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
+(package! org-wl :recipe (:host github :repo "emacsbliss/org-wl"))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(use-package! org-wl
+  :after org)
+#+end_src
+
+With this below we can use org capture workflow to capture an email message from WanderLust.
+#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+(after! org
+  (add-to-list 'org-capture-templates
+               '("e" "Email Todo" entry
+        (file+headline "~/org/Inbox.org" "Task")
+        "* TODO %^{Brief Description}\nEmail: %a\nFrom: %:from \nTo: %:to \n%?Added: %U\n" :prepend t)))
+#+end_src
+
+But when follow the link in org mode, we will need to run ~M-x wl~ beforehand
+otherwise there will be error.
 * Do NOT use
 ** auto revert tail mode
 disable it since it seems caused some undesired side effect
