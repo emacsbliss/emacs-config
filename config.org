@@ -6120,7 +6120,7 @@ and it also feels not very nice to use..
 There is issue when I tried to get wanderLust uses w3m to display html email, so
 I did a patch to ~semi~ and use my patched version.
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
+#+begin_src emacs-lisp :tangle no
 ;; HACK These are wanderlust's dependencies (wanderlust depends on semi, semi
 ;;      depends on flim, flim on apel), but they all have non-standard default
 ;;      branches which straight cannot detect without our help.
@@ -6133,7 +6133,7 @@ I did a patch to ~semi~ and use my patched version.
 #+end_src
 
 *** basic config
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (use-package! wl
   :defer t
   :config
@@ -6164,7 +6164,7 @@ I did a patch to ~semi~ and use my patched version.
   (add-hook 'mime-edit-mode-hook #'auto-fill-mode)
 #+end_src
 *** gmail support
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (when (featurep! +gmail)
     (setq elmo-imap4-default-server "imap.gmail.com"
           elmo-imap4-default-port 993
@@ -6253,7 +6253,7 @@ seems improving the situation.
 
 *** better display
 Taken from [[https://github.com/LdBeth/Emacs-for-Noobs/blob/master/WanderLust.org][Here]].
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (setq wl-message-ignored-field-list
       '(".")
       wl-message-visible-field-list
@@ -6290,7 +6290,7 @@ in summary buffer, not in message buffer
 *** add attachment to email
 In ~wl-draft-mode~ press ~C-c C-x TAB mime-edit-insert-file~
 *** send html email with org-mode
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (setq org-mime-library 'semi)
 #+end_src
 
@@ -6310,7 +6310,7 @@ digest    -> unread or important
 any       -> unread or replied or forwarded or global-flag.
 #+end_example
 *** display html email
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (after! wl
     (setq mime-view-text/html-previewer 'mime-w3m))
 #+end_src
@@ -6421,7 +6421,7 @@ m y - save all marked mails
 I discovered [[https://github.com/chep/org-wl][org-wl]] but it's a bit outdated, so I created a fork and made some
 modification to it.
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/packages.el
+#+begin_src emacs-lisp :tangle no
 (package! org-wl :recipe (:host github :repo "emacsbliss/org-wl"))
 #+end_src
 
