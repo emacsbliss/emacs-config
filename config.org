@@ -925,6 +925,7 @@ them to most frequently used things in Emacs.
     :desc "Open notdeft"                 "d" #'notdeft
     :desc "toggle narrow"                "r" #'me/toggle-narrow
     :desc "Search org agenda headlines"  "h" #'+default/org-notes-headlines
+    :desc "open GTD inbox"               "i" #'me/open-gtd-inbox
     :desc "Org store link"               "l" #'org-store-link
     :desc "Tags search"                  "m" #'org-tags-view
     :desc "Find file in notes"           "n" #'me/find-in-notes
@@ -2142,7 +2143,7 @@ Find definition or references not give me any result..
 ** basic setup
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (setq +org-dir (expand-file-name "~/org"))
-(setq +notes-dir (expand-file-name "~/org/roam"))
+(setq +notes-dir (expand-file-name "~/org/gtd"))
 (setq org-default-notes-file (expand-file-name "~/org/gtd/notes.org"))
 #+end_src
 
@@ -3460,6 +3461,11 @@ the link for this two apps:
   (interactive)
   (find-file (format "%s/config.el" doom-private-dir))
 )
+
+;;;###autoload
+(defun me/open-gtd-inbox ()
+  (interactive)
+  (find-file (format "%s/inbox.org" +notes-dir)))
 
 ;;;###autoload
 (defun me/browse-notes ()
