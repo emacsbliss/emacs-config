@@ -2799,7 +2799,7 @@ Borrowed lots of ideas from [fn:12].
 (after! org
 (add-to-list 'org-capture-templates
     `("t" "Todo [Inbox]" entry
-        (file "~/org/gtd/Inbox.org")
+        (file "~/org/gtd/inbox.org")
         "* TODO %i%?"))
 
 (add-to-list 'org-capture-templates
@@ -2835,7 +2835,7 @@ your note with the agenda entry. [fn:12]
 #+end_src
 ** workflow
 - directory is =~/org/gtd=
-- inbox is ~Inbox.org~
+- inbox is ~inbox.org~
 - if it's someday, goes into ~someday.org~
 - tickler file is ~tickler.org~
 - appointment/meeting goes into ~agenda.org~
@@ -6443,7 +6443,7 @@ With this below we can use org capture workflow to capture an email message from
 (after! org
   (add-to-list 'org-capture-templates
                '("e" "Email Todo" entry
-        (file+headline "~/org/Inbox.org" "Task")
+        (file+headline "~/org/inbox.org" "Task")
         "* TODO %^{Brief Description}\nEmail: %a\nFrom: %:from \nTo: %:to \n%?Added: %U\n" :prepend t)))
 #+end_src
 
