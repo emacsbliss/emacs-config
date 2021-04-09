@@ -2140,7 +2140,7 @@ Find definition or references not give me any result..
 #+END_SRC
 * org mode
 ** basic setup
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (setq +org-dir (expand-file-name "~/org"))
 (setq +notes-dir (expand-file-name "~/org/roam"))
 (setq org-default-notes-file (expand-file-name "~/org/gtd/notes.org"))
@@ -2593,10 +2593,10 @@ However I have to change the ~org-eww~ to ~ol-eww~ and also ~org-w3m~ to
                    (clock)
                    "%c" :immediate-finish t :empty-lines 1))
 
-    (add-to-list 'org-capture-templates
-                 '("n" "Thought or Note (from kill-ring)"  entry
-                   (file org-default-notes-file)
-                   "* %?\n\n  %c\n\n  See: %a" :empty-lines 1))
+    ;; (add-to-list 'org-capture-templates
+    ;;              '("n" "Thought or Note (from kill-ring)"  entry
+    ;;                (file org-default-notes-file)
+    ;;                "* %?\n\n  %c\n\n  See: %a" :empty-lines 1))
 
     (add-to-list 'org-capture-templates
                  '("N" "Thought or Note (from active region)"  entry
@@ -2686,15 +2686,21 @@ Borrowed lots of ideas from [fn:12].
 (add-to-list 'org-capture-templates
    `("m" "Meeting" entry
      (file+headline "~/org/gtd/agenda.org" "Future")
-        (concat "* %? :meeting:\n"
-           "<%<%Y-%m-%d %a %H:00>>")))
-)
+        "* %? :meeting:\n<%<%Y-%m-%d %a %H:00>>")))
 #+end_src
-
+*** capture (meeting) notes
 #+begin_quote
-However, if you capture a note while your cursor is on the same line of an agenda entry, the content will be filled with this entry. This is super convenient to link your note with the agenda entry. [fn:12]
+if you capture a note while your cursor is on the same line of an agenda entry,
+the content will be filled with this entry. This is super convenient to link
+your note with the agenda entry. [fn:12]
 #+end_quote
 
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+  (add-to-list 'org-capture-templates
+     `("n" "Note" entry  (file "~/org/gtd/notes.org")
+        "* Note (%a)\n/Entered on/ %U\n %?")))
+#+end_src
 ** refile
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
 (after! org
