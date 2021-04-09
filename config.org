@@ -2094,31 +2094,6 @@ TODO: this need review:
 (setq lsp-ui-doc-max-width 150)
 #+end_src
 
-** Nox
-A lightweight alternative to lsp-mode.
-https://github.com/manateelazycat/nox
-#+begin_src emacs-lisp :tangle packages.el :tangle no
-(package! nox :recipe (:host github :repo "manateelazycat/nox"))
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(require 'nox)
-
-(dolist (hook (list
-               'python-mode-hook
-               'c-mode-common-hook
-               'c-mode-hook
-               'c++-mode-hook
-               ))
-(add-hook hook '(lambda () (nox-ensure))))
-#+END_SRC
-
-#+BEGIN_SRC emacs-lisp :tangle no
-(setq nox-python-path "/usr/local/Cellar/python@3.8/3.8.2/bin/python3")
-#+END_SRC
-
-Tried so far but somehow doesn't seem to work for me at all, not sure why..
-Find definition or references not give me any result..
 ** clangd
 #+BEGIN_SRC emacs-lisp
 (setq lsp-clients-clangd-args '("-j=3"
@@ -2129,7 +2104,8 @@ Find definition or references not give me any result..
                                 "--clang-tidy"
                                 "--completion-style=detailed"
                                 "--header-insertion=never"))
-(after! lsp-clangd (set-lsp-priority! 'clangd 2))
+;; make ccls default by lowering the priority of clangd
+(after! lsp-clangd (set-lsp-priority! 'clangd 1))
 #+END_SRC
 ** lsp-treemacs
 #+begin_src emacs-lisp :tangle packages.el
@@ -6455,6 +6431,31 @@ With this below we can use org capture workflow to capture an email message from
 
 But when follow the link in org mode, we will need to run ~M-x wl~ beforehand
 otherwise there will be error.
+** Nox
+A lightweight alternative to lsp-mode.
+https://github.com/manateelazycat/nox
+#+begin_src emacs-lisp :tangle packages.el :tangle no
+(package! nox :recipe (:host github :repo "manateelazycat/nox"))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(require 'nox)
+
+(dolist (hook (list
+               'python-mode-hook
+               'c-mode-common-hook
+               'c-mode-hook
+               'c++-mode-hook
+               ))
+(add-hook hook '(lambda () (nox-ensure))))
+#+END_SRC
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq nox-python-path "/usr/local/Cellar/python@3.8/3.8.2/bin/python3")
+#+END_SRC
+
+Tried so far but somehow doesn't seem to work for me at all, not sure why..
+Find definition or references not give me any result..
 * Do NOT use
 ** auto revert tail mode
 disable it since it seems caused some undesired side effect
