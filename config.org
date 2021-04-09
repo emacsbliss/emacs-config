@@ -529,11 +529,9 @@ them to most frequently used things in Emacs.
   ;; :desc  "toggle between h/cpp" :nv "ga" #'projectile-find-other-file
   :desc  "org roam find file" :nv "ga" #'org-roam-find-file
   :desc  "org roam" :nv "gA" #'org-roam
-  ;; :desc  "toggle between h/cpp" :nv "gA" #'projectile-find-other-file-other-window
   ;; what is differences between persp-switch-to-buffer and +ivy/switch-workspace-buffer ?
   :desc  "switch workspace buffer" :nv "gb" #'+ivy/switch-workspace-buffer
   :desc  "switch all buffer" :nv "gB" #'ivy-switch-buffer
-  :desc  "hyperbole" :niv "M-RET" #'hkey-either
 
   :nv "gc" #'evilnc-comment-or-uncomment-lines
   :nv "gC" #'evilnc-copy-and-comment-lines
@@ -560,15 +558,13 @@ them to most frequently used things in Emacs.
   :nv "go" #'save-buffer
   ;; gp - +evil/reselect-paste
   ;; gq - evil-fill-and-move
-  ;; :nv "gr" #'org-roam-find-file
   :nv "gr" #'evil-replace-with-register
-  ;; :nv "gR" #'org-roam
-  :desc "switch org-roam" :nv "gT" #'me/switch-org-roam
 
   :desc "split vertically" :nv "gs" #'evil-window-vsplit
   :desc "split horizontally" :nv "gS" #'evil-window-split
 
   :desc "toggle workspace" :nv "gt" #'doom/jump-to-last-workspace
+  :desc "switch org-roam" :nv "gT" #'me/switch-org-roam
 
   ;; gu - evil-downcase
   ;; gU - evil-upcase
@@ -579,7 +575,8 @@ them to most frequently used things in Emacs.
   :desc "transpose two windows" :nv "gW" #'window-split-toggle
 
   :nv "gx" #'+workspace/switch-to
-  :nv "gy" #'tldr
+  ;:nv "gy" #'tldr
+  :nv "gy" #'org-agenda
   ;; gz - evil multi-cursor
 
   ;; evil-exchange is used no so frequently
@@ -2480,7 +2477,9 @@ We also need to set this otherwise bib entry won't appear in pdf file:
   :desc "open attach in Emacs"         :n ",o" #'org-attach-open-in-emacs
   :desc "org open attach"              :n ",O" #'org-attach-open
   :desc "org refile"                   :n ",r" #'org-refile
-  :desc "org schedule"                 :n ",s" #'org-schedule)
+  :desc "org schedule"                 :n ",s" #'org-schedule
+  :desc "org promote subtree"          :n ",<" #'org-promote-subtree
+  :desc "org demote subtree"           :n ",>" #'org-demote-subtree)
 #+END_SRC
 * org capture
 This [[http://howardism.org/Technical/Emacs/capturing-content.html][blog post]] is an excellent resource for capturing content in Emacs, I
