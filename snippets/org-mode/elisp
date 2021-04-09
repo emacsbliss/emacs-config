@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: elisp code block
+# key: el
+# condition: t
+# --
+
+#+begin_src emacs-lisp
+`(substring-no-properties (car kill-ring))`
+$0
+#+end_src

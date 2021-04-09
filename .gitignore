@@ -1,2 +1,12 @@
 .DS_Store
 /resource/.DS_Store
+/modules/app/anki/
+/modules/app/git/
+/modules/tools/diff/
+/modules/tools/lookup/
+/modules/term/
+/modules/app/calendar/packages.el
+/modules/app/calendar/config.el
+/modules/email/wanderlust/
+/modules/lang/json/
+/modules/lang/xml/
