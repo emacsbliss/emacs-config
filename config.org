@@ -2381,6 +2381,130 @@ We also need to set this otherwise bib entry won't appear in pdf file:
   (setq org-latex-pdf-process (list "latexmk -shell-escape -bibtex -f -pdf %f")))
 #+END_SRC
 
+** spreadsheet
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun me/org-sum-rows (begin-row)
+  "insert a org-table formula for sum all the rows for current column
+    at the cell under cursor"
+  (interactive "p")
+  (cond ((or (<= begin-row 0)
+             (>= begin-row (org-table-current-dline)) )
+         (error "invalid row!"))
+        (t
+         (let ((cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column))))
+           (if (= begin-row 1)
+               (me/org-append-formula cell
+                                      (format "vsum(@2..@%d)" (- (org-table-current-dline) 1)))
+             (me/org-append-formula cell
+                                    (format "vsum(@%d..@%d)" begin-row (- (org-table-current-dline) 1)))
+             )
+           )
+         )
+        ))
+
+;;;###autoload
+(defun me/org-sum-cols (begin-column)
+  "insert a org-table formula for sum columns begin-column -- current-column -1
+   for current row at the cell under cursor"
+  (interactive "p")
+  (cond ((or (<= begin-column 0)
+             (>= begin-column (org-table-current-column)) )
+         (error "invalid column!"))
+        (t
+         (let (
+               (cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column)) )
+               (sum-formula (format "vsum($%d..$%d)" begin-column (- (org-table-current-column) 1) )))
+           (me/org-append-formula cell sum-formula)
+           )
+         )
+        )
+  )
+
+;;;###autoload
+(defun me/org-append-formula (cell formula)
+  "build a alist (cell . formula) and append to existing formulas of the table
+   also recalculate the whole table."
+   (setq exist-formulas (org-table-get-stored-formulas))
+   (setq new-formulas (add-to-list 'exist-formulas (cons cell formula)))
+   (org-table-store-formulas new-formulas)
+   ;; need to pass 'all so all rows are recalculated, not just current row
+   (org-table-recalculate 'all)
+)
+
+;;;###autoload
+(defun me/org-add-index-column ()
+  "insert a index column to the table under cursor.
+   index starting from 1. Also a hline is expected
+   to exist for table for index to work properly."
+  (interactive)
+  (org-table-goto-column 0)
+  (org-table-insert-column)
+  (org-table-move-column-left)
+  (me/org-append-formula "$1" "@#-1")
+)
+
+;;;###autoload
+(defun me/create-org-table-from-clipboard ()
+  "create a table in org mode with content from clipboard"
+  (interactive)
+  (let* ((buf (current-buffer)))
+    (with-temp-buffer
+      (switch-to-buffer (current-buffer) nil t)
+      (insert (get-kill-ring))
+      (mark-whole-buffer)
+      (org-table-create-or-convert-from-region nil)
+      (org-table-insert-hline)
+      (goto-char (point-min))
+      (open-line 1)
+      (insert "#+tblname:")
+      (append-to-buffer buf (point-min) (point-max))
+      )))
+#+end_src
+** jira
+#+begin_src emacs-lisp :tangle no
+(package! org-jira)
+#+end_src
+** utility function
+#+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/autoload.el
+;;;###autoload
+(defun extract-from-org-heading (pattern)
+  (interactive)
+  "go to top level heading from current position and try to extract
+   using pattern"
+  (let ((result nil))
+    (save-excursion
+      (while (org-up-heading-safe))
+      (setq result (search-current-line pattern))
+      (kill-new result))
+      (if result
+        (message "saved to kill-ring: %s" result)
+        (message "no match found!"))
+))
+
+;;;###autoload
+(defun search-current-line(pattern)
+  "search current line using pattern, return captured group, should
+   be only 1."
+  (interactive)
+  (re-search-forward pattern (line-end-position))
+  (match-string 1)
+)
+#+END_SRC
+** keybinding
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map org-mode-map
+  :desc "org agenda"                   :n ",a" #'org-agenda
+  :desc "org attach by cp"             :n ",c" #'org-attach-attach-cp
+  :desc "set effort"                   :n ",e" #'org-set-effort
+  :desc "org gtd finalize"             :n ",f" #'org-gtd-clarify-finalize
+  :desc "attach json from killring"    :n ",j" #'me/attach-json-from-kill-ring
+  :desc "org attach by mv"             :n ",m" #'org-attach-attach-mv
+  :desc "open attach in Emacs"         :n ",o" #'org-attach-open-in-emacs
+  :desc "org open attach"              :n ",O" #'org-attach-open
+  :desc "org refile"                   :n ",r" #'org-refile
+  :desc "org schedule"                 :n ",s" #'org-schedule)
+#+END_SRC
 * org capture
 This [[http://howardism.org/Technical/Emacs/capturing-content.html][blog post]] is an excellent resource for capturing content in Emacs, I
 borrowed a lot of capture templates and related functions from it.
@@ -2397,7 +2521,7 @@ Specifically, I begin work on a task, and designate it the focus of my attention
     (setq org-capture-templates '()))
 #+end_src
 
-** global capture
+** capture from outside Emacs
 #+begin_src emacs-lisp  :tangle modules/emacs/org/packages.el
 (package! yequake :recipe (:host github :repo "alphapapa/yequake"))
 #+END_SRC
@@ -2430,7 +2554,7 @@ Basically workflow would be:
 - select some text
 - press ~Alt-Cmd-t~ to trigger this macro
 
-** capture the code
+** capture code
 I found this capture template quite helpful when I read code when working on
 some stories, so I just use ~C-c c F~ which will put the code I selected into a
 org mode src block under current clocked task and add add a link point back to
@@ -3307,128 +3431,6 @@ the link for this two apps:
                     (concat  "x-devonthink-item:" path))))))
 )
 #+end_src
-** spreadsheet
-#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
-;;;###autoload
-(defun me/org-sum-rows (begin-row)
-  "insert a org-table formula for sum all the rows for current column
-    at the cell under cursor"
-  (interactive "p")
-  (cond ((or (<= begin-row 0)
-             (>= begin-row (org-table-current-dline)) )
-         (error "invalid row!"))
-        (t
-         (let ((cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column))))
-           (if (= begin-row 1)
-               (me/org-append-formula cell
-                                      (format "vsum(@2..@%d)" (- (org-table-current-dline) 1)))
-             (me/org-append-formula cell
-                                    (format "vsum(@%d..@%d)" begin-row (- (org-table-current-dline) 1)))
-             )
-           )
-         )
-        ))
-
-;;;###autoload
-(defun me/org-sum-cols (begin-column)
-  "insert a org-table formula for sum columns begin-column -- current-column -1
-   for current row at the cell under cursor"
-  (interactive "p")
-  (cond ((or (<= begin-column 0)
-             (>= begin-column (org-table-current-column)) )
-         (error "invalid column!"))
-        (t
-         (let (
-               (cell (format "@%d$%d" (org-table-current-dline) (org-table-current-column)) )
-               (sum-formula (format "vsum($%d..$%d)" begin-column (- (org-table-current-column) 1) )))
-           (me/org-append-formula cell sum-formula)
-           )
-         )
-        )
-  )
-
-;;;###autoload
-(defun me/org-append-formula (cell formula)
-  "build a alist (cell . formula) and append to existing formulas of the table
-   also recalculate the whole table."
-   (setq exist-formulas (org-table-get-stored-formulas))
-   (setq new-formulas (add-to-list 'exist-formulas (cons cell formula)))
-   (org-table-store-formulas new-formulas)
-   ;; need to pass 'all so all rows are recalculated, not just current row
-   (org-table-recalculate 'all)
-)
-
-;;;###autoload
-(defun me/org-add-index-column ()
-  "insert a index column to the table under cursor.
-   index starting from 1. Also a hline is expected
-   to exist for table for index to work properly."
-  (interactive)
-  (org-table-goto-column 0)
-  (org-table-insert-column)
-  (org-table-move-column-left)
-  (me/org-append-formula "$1" "@#-1")
-)
-
-;;;###autoload
-(defun me/create-org-table-from-clipboard ()
-  "create a table in org mode with content from clipboard"
-  (interactive)
-  (let* ((buf (current-buffer)))
-    (with-temp-buffer
-      (switch-to-buffer (current-buffer) nil t)
-      (insert (get-kill-ring))
-      (mark-whole-buffer)
-      (org-table-create-or-convert-from-region nil)
-      (org-table-insert-hline)
-      (goto-char (point-min))
-      (open-line 1)
-      (insert "#+tblname:")
-      (append-to-buffer buf (point-min) (point-max))
-      )))
-#+end_src
-** jira
-#+begin_src emacs-lisp :tangle no
-(package! org-jira)
-#+end_src
-** utility function
-#+BEGIN_SRC emacs-lisp :tangle modules/emacs/org/autoload.el
-;;;###autoload
-(defun extract-from-org-heading (pattern)
-  (interactive)
-  "go to top level heading from current position and try to extract
-   using pattern"
-  (let ((result nil))
-    (save-excursion
-      (while (org-up-heading-safe))
-      (setq result (search-current-line pattern))
-      (kill-new result))
-      (if result
-        (message "saved to kill-ring: %s" result)
-        (message "no match found!"))
-))
-
-;;;###autoload
-(defun search-current-line(pattern)
-  "search current line using pattern, return captured group, should
-   be only 1."
-  (interactive)
-  (re-search-forward pattern (line-end-position))
-  (match-string 1)
-)
-#+END_SRC
-** keybinding
-#+begin_src emacs-lisp :tangle keybinds.el
-(map! :map org-mode-map
-  :desc "org agenda"                   :n ",a" #'org-agenda
-  :desc "org gtd finalize"             :n ",f" #'org-gtd-clarify-finalize
-  :desc "org schedule"                 :n ",s" #'org-schedule
-  :desc "org attach by mv"             :n ",m" #'org-attach-attach-mv
-  :desc "org attach by cp"             :n ",c" #'org-attach-attach-cp
-  :desc "attach json from killring"    :n ",j" #'me/attach-json-from-kill-ring
-  :desc "open attach in Emacs"         :n ",o" #'org-attach-open-in-emacs
-  :desc "org open attach"              :n ",O" #'org-attach-open)
-#+END_SRC
 * regex
 #+begin_src emacs-lisp :tangle no
 (package! visual-regexp)

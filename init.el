@@ -186,7 +186,7 @@
        csv
 
        :email
-       ;;(mu4e +gmail)
+       (mu4e +gmail)
        ;;notmuch
        ;;(wanderlust +gmail) ;; my wanderlust config
 
