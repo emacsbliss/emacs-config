@@ -8,7 +8,6 @@
 
 ;; for some reason, my mu4e can not be found by doom emacs
 ;; so setup the path manually
-;;
 (add-to-list 'load-path "/usr/local/Cellar/mu/1.4.15/share/emacs/site-lisp/mu/mu4e")
 
 (use-package! mu4e
@@ -28,6 +27,11 @@
            mu4e-change-filenames-when-moving t))
     (`offlineimap
      (setq mu4e-get-mail-command "offlineimap -o -q")))
+
+  ;; set reply quote string the better way
+  ;; (setq message-citation-line-format "> On %a,  %b %d, %Y at %R, %f wrote:\n")
+  ;; choose to use the formatted string
+  ;; (setq message-citation-line-function 'message-insert-formatted-citation-line)
 
   (setq mu4e-update-interval nil
         mu4e-compose-format-flowed t ; visual-line-mode + auto-fill upon sending
@@ -108,13 +112,14 @@
         :desc "attach"        "a" #'mail-add-attachment))
 
 
-(use-package! org-msg
-  :hook (mu4e-compose-pre . org-msg-mode)
-  :config
-  (setq org-msg-startup "inlineimages"
-        org-msg-greeting-name-limit 3
-        org-msg-default-alternatives '(html text)))
-
+;; disable org-msg
+;; it doesn't really do what I want..
+;; (use-package! org-msg
+;;   :hook (mu4e-compose-pre . org-msg-mode)
+;;   :config
+;;   (setq org-msg-startup "inlineimages"
+;;         org-msg-greeting-name-limit 3
+;;         org-msg-default-alternatives '(html text)))
 
 ;;
 ;;; Gmail integration
@@ -131,11 +136,6 @@
           ;; messages don't really "move"
           mu4e-index-lazy-check t)
 
-    ;; need these for sending emails
-    (setq user-mail-address "showgood21@gmail.com"
-      smtpmail-default-smtp-server "smtp.gmail.com"
-      smtpmail-smtp-server "smtp.gmail.com"
-      smtpmail-smtp-service 587)
 
     ;; In my workflow, emails won't be moved at all. Only their flags/labels are
     ;; changed. Se we redefine the trash and refile marks not to do any moving.
@@ -170,11 +170,30 @@
           (`flag   (mu4e-action-retag-message msg "+\\Starred"))
           (`unflag (mu4e-action-retag-message msg "-\\Starred")))))))
 
-(set-email-account! "showgood21"
-  '((mu4e-sent-folder       . "/showgood21@gmail.com/[Gmail].Sent Mail")
-    (mu4e-drafts-folder     . "/showgood21@gmail.com/[Gmail].Drafts")
-    (mu4e-trash-folder      . "/showgood21@gmail.com/[Gmail].Trash")
-    (mu4e-refile-folder     . "/showgood21@gmail.com/[Gmail].All Mail")
-    (smtpmail-smtp-user     . "showgood21@gmail.com")
-    (mu4e-compose-signature . ""))
-  t)
+(use-package! mu4e-views
+  :after mu4e
+  :defer nil
+  :bind (:map mu4e-headers-mode-map
+            ;; select viewing method
+            ("v" . mu4e-views-mu4e-select-view-msg-method)
+            ;; from headers window scroll the email view
+            ("M-n" . mu4e-views-cursor-msg-view-window-down)
+            ("M-p" . mu4e-views-cursor-msg-view-window-up)
+            ;; toggle opening messages automatically when moving in the headers view
+            ("f" . mu4e-views-toggle-auto-view-selected-message)
+	    )
+  :config
+  (setq mu4e-views-completion-method 'ivy) ;; use ivy for completion
+  ;; make text default, use html if want to use xwidgets ad default
+  (setq mu4e-views-default-view-method "text")
+  ;; select the default
+  (mu4e-views-mu4e-use-view-msg-method "text")
+  ;; when pressing n and p stay in the current window
+  (setq mu4e-views-next-previous-message-behaviour 'stick-to-current-window)
+  ;; automatically open messages when moving in the headers view
+  (setq mu4e-views-auto-view-selected-message t))
+
+(use-package! mu4e-dashboard
+  :defer t)
+
+(load! "emails.el")
