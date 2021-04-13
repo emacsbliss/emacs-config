@@ -6264,7 +6264,7 @@ Wanderlust automatically saves the draft every second there’s a change. If you
 draft folder is an IMAP, this gets tiresome fast.
 
 Doing this below will only save draft when I tell it to (C-x C-s or C-c C-s):
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (setq wl-auto-save-drafts-interval nil)
 #+end_src
 
@@ -6337,16 +6337,16 @@ Need to do it from ~summary buffer~ with command ~wl-summary-save~.
 *** key binding
 We need to activate evil normal state when enter into wl-folder-mode.
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (add-hook 'wl-folder-mode-hook (lambda () (evil-normal-state)))
 #+end_src
 
 Now we need to finish the ~(use-package! wl~:
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 )
 #+end_src
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (map! :map wl-folder-mode-map
   :desc "next folder"     :n "j"   #'wl-folder-next-entity
   :desc "previous folder" :n "k"   #'wl-folder-prev-entity
@@ -6355,14 +6355,14 @@ Now we need to finish the ~(use-package! wl~:
   :desc "quit"            :n "q"   #'wl-exit)
 #+end_src
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (defun emacslibss/mark-mail ()
   (interactive)
   (wl-summary-target-mark)
   (evil-next-line))
 #+END_SRC
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (map! :map wl-summary-mode-map
   :desc "compose"             :n "c"     #'wl-summary-write
   :desc "trash email"         :n "d"     #'wl-summary-dispose
@@ -6388,7 +6388,7 @@ Now we need to finish the ~(use-package! wl~:
   :desc "toggle folding"      :n "<tab>" #'wl-thread-open-close)
 #+end_src
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 ;; not working, ace-link is taking priority
 (map! :map mime-view-mode-default-map
   :desc "open link externally" :n "gl"     #'w3m-lnum-external-view-this-url
@@ -6414,13 +6414,13 @@ modification to it.
 (package! org-wl :recipe (:host github :repo "emacsbliss/org-wl"))
 #+end_src
 
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (use-package! org-wl
   :after org)
 #+end_src
 
 With this below we can use org capture workflow to capture an email message from WanderLust.
-#+begin_src emacs-lisp :tangle modules/email/wanderlust/config.el
+#+begin_src emacs-lisp :tangle no
 (after! org
   (add-to-list 'org-capture-templates
                '("e" "Email Todo" entry
