@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: shell script block
+# key: sh
+# condition: t
+# --
+
+#+begin_src sh
+`(substring-no-properties (car kill-ring))`
+$0
+#+end_src

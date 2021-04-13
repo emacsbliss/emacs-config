@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: clojure source block
+# key: cl
+# condition: t
+# --
+
+#+begin_src clojure
+`(substring-no-properties (car kill-ring))`
+$0
+#+end_src
