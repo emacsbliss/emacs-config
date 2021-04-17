@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: json source block
+# key: json
+# condition: t
+# --
+
+#+begin_src json
+`(substring-no-properties (car kill-ring))`
+$0
+#+end_src

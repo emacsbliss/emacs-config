@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: xml source block
+# key: xml
+# condition: t
+# --
+
+#+begin_src xml
+`(substring-no-properties (car kill-ring))`
+$0
+#+end_src
