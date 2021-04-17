@@ -196,4 +196,16 @@
 (use-package! mu4e-dashboard
   :defer t)
 
+;;;###autoload
+(defun org-capture-mail ()
+  (interactive)
+  (call-interactively 'org-store-link)
+  (org-capture nil "e"))
+
+(map! :map mu4e-headers-mode-map
+  :desc "org capture"       :n ",c" #'org-capture-mail)
+
+(map! :map mu4e-view-mode-map
+  :desc "org capture"       :n ",c" #'org-capture-mail)
+
 (load! "emails.el")

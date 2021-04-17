@@ -2679,6 +2679,15 @@ However I have to change the ~org-eww~ to ~ol-eww~ and also ~org-w3m~ to
   (forward-line -1)
 )
 #+end_src
+** capture email
+- %:fromname --> sender
+- %:subject  --> subject
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+  (add-to-list 'org-capture-templates
+    `("e" "email(mu4e)" entry  (file "~/org/gtd/inbox.org")
+       "* TODO Follow up%? (%:subject)  :email: \n%U\n%a\n")))
+#+end_src
 ** capture other things
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (after! org
