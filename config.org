@@ -4034,6 +4034,29 @@ it in different location:
 (define-key elfeed-search-mode-map (kbd "t") 'elfeed-w3m-open)
 (define-key elfeed-search-mode-map (kbd "w") 'elfeed-eww-open)
 #+END_SRC
+** org capture rss entry
+First need this function to help [fn:13]
+#+begin_src emacs-lisp
+;;;###autoload
+(defun me/org-elfeed-entry-store-link ()
+  (when elfeed-show-entry
+    (let* ((link (elfeed-entry-link elfeed-show-entry))
+           (title (elfeed-entry-title elfeed-show-entry)))
+      (org-store-link-props
+       :link link
+       :description title))))
+
+(add-hook 'org-store-link-functions
+          'me/org-elfeed-entry-store-link)
+#+end_src
+
+Now we can define the org capture template:
+#+begin_src emacs-lisp
+(after! org
+    (add-to-list 'org-capture-templates
+      `("l" "elfeed" entry (file "~/org/gtd/inbox.org")
+         "* TODO %a  :read_later: \n%U\n%?")))
+#+end_src
 * email
 I have read through few options for email in Emacs, they are:
 - Gnus
@@ -6490,3 +6513,4 @@ Have to disable it because it causes issue for magit
 [fn:10] https://github.com/sunnyhasija/Academic-Doom-Emacs-Config
 [fn:11] https://emacs-lsp.github.io/lsp-mode/tutorials/clojure-guide/
 [fn:12] https://github.com/rougier/emacs-gtd/blob/master/GTD.org
+[fn:13] https://yiming.dev/blog/2016/01/28/add-org-store-link-entry-for-elfeed

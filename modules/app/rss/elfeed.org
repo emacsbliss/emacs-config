@@ -18,6 +18,7 @@
     :PROPERTIES:
     :ID:       6DAC16E7-B570-4EF2-B033-A290887DF3D8
     :END:
+*** [[https://www.reddit.com/r/emacs/.rss][r/emacs]]
 *** [[https://nullprogram.com/feed/][nullprogram]]
 *** [[https://yiufung.net/index.xml][yiufung]]
 *** [[http://cachestocaches.com/feed/][cachestocaches]]
@@ -25,8 +26,11 @@
 ** Tech Blog :blog:
 *** [[https://paulmck.livejournal.com/data/rss][Paul E. McKenney's Journal]]
 *** [[https://eli.thegreenplace.net/feeds/all.atom.xml][Eli Bendersky's website]]
+*** [[https://www.philnewton.net/blog/feed/][phil newton]]
 *** [[http://feeds.feedburner.com/zhihua-xblog][doctor-lai]] :chinese:
 *** [[http://feeds.feedburner.com/ruanyifeng][ruanyifeng]] :chinese:
+*** [[https://beepb00p.xyz/atom.xml][karlicoss]]
+*** [[https://arp242.net/feed.xml][arp242]]
 *** [[https://news.ycombinator.com/rss][ycombinator]]
 *** [[https://rsshub.app/blogs/paulgraham][Paul Graham]]
 *** [[http://blog.acolyer.org/feed/][the morning paper]]
@@ -36,10 +40,11 @@
 *** [[https://www.reddit.com/r/Clojure/.rss][r/Clojure]]
 *** [[https://www.youtube.com/feeds/videos.xml?channel_id=UCaLlzGqiPE2QRj6sSOawJRg][ClojureTV]] :youtube:
 *** [[https://insideclojure.org/feed.xml][Inside Clojure]]
+** programming
+*** [[https://www.reddit.com/r/dailyprogrammer/.rss][r/dailyprogrammer]]
 ** life
 *** [[https://xkcd.com/rss.xml][xkcd]] :comic:
 *** [[http://feed.dilbert.com/dilbert/daily_strip][dilbert]] :comic:
-*** [[https://www.reddit.com/r/synology/.rss][r/synology]]
 *** [[http://feeds.appinn.com/appinns/][appinns]] :chinese:
 ** Apple :Apple:
 *** [[http://www.mac52ipod.cn/feed.php][apple fans]] :chinese:
