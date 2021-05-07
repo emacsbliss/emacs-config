@@ -2917,6 +2917,7 @@ also 25 minutes pomodoro is a bit shorter for me, extend it a bit:
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
 (after! org-pomodoro
     (setq org-pomodoro-length 30)
+    (setq org-pomodoro-play-sounds nil)
     (setq org-pomodoro-long-break-length 15))
 #+end_src
 
