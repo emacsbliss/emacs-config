@@ -60,58 +60,77 @@
 ))
 
 ;;;###autoload
+(defun my-jira/heading-to-item (heading project-id type &rest args)
+  "Create an item from HEADING of TYPE into PROJECT-ID with parameters ARGS."
+  (let* ((summary (ejira--strip-properties (org-get-heading t t t t)))
+         (description (ejira-parser-org-to-jira (ejira--get-heading-body heading)))
+         (item (ejira--parse-item
+                (apply #'jiralib2-create-issue project-id
+                       type summary description args))))
+
+    (message "item key: %s" (ejira-task-key item))
+    (ejira-task-key item))
+)
+
+;;;###autoload
+(defun my-jira/heading-to-story ()
+  "create a jira story for the current heading"
+  (interactive)
+  (let* ((level (car (org-heading-components)))
+         (heading (save-excursion
+                    (if (outline-on-heading-p t)
+                        (beginning-of-line)
+                      (outline-back-to-heading))
+                    (point-marker)))
+
+         (summary (nth 4 (org-heading-components)))
+         (created (or (org-entry-get (point) "CREATED") "N"))
+         (points (org-entry-get (point) "POINTS"))
+         ;; always prefer file level property over the heading level property
+         (epic (or (jk-org-kwd "EPIC") (org-entry-get (point) "EPIC")))
+         (assignee (or (jk-org-kwd "ASSIGNEE") (org-entry-get (point) "ASSIGNEE")))
+         (sprint (or (jk-org-kwd "SPRINT") (org-entry-get (point) "SPRINT")))
+
+         (args (list heading my-jira/project-id "Story" `(components ((id . ,my-jira/component-id))))))
+
+      ;; only take first level heading
+      (when (eq level 1)
+          (if (not (string-equal created "N"))
+              (message "story: %s already created before, skip." summary)
+              (message "process: %s" summary)
+
+              (when epic
+                (setq args (-snoc args `(customfield_10005 . ,epic))))
+
+              (when sprint
+                  (setq sprint (string-to-number sprint))
+                  (setq args (-snoc args `(customfield_10004 . ,sprint))))
+
+              (when points
+                  (setq points (string-to-number points))
+                  (setq args (-snoc args `(customfield_10002 . ,points))))
+                ;; translate priority from string to number in jira
+                ;; (setq priority (car (rassoc priority (jiralib-get-priorities))))
+
+                (message "args: %s" args)
+              (setq response
+                   (apply #'my-jira/heading-to-item args))
+
+              (when response
+                   (org-set-property "CREATED" "Y")
+                   ;; need this so that ejira-browse-issue-under-point will work
+                   (org-set-property "TYPE" "ejira-story")
+                   (org-set-property "ID" response)
+                   (save-buffer))
+
+                (message "response for create story: %s" response)))
+))
+
+;;;###autoload
 (defun my-jira/stories-from-buffer ()
   "create jira stories for current buffer"
   (interactive)
-  (let* ( (epic (jk-org-kwd "EPIC"))
-          (qa-board (jk-org-kwd "QA"))
-          (priority (jk-org-kwd "JIRA-PRIORITY"))
-          (labels (jk-org-kwd "LABELS"))
-          (assignee (jk-org-kwd "ASSIGNEE"))
-          (issue-updates nil))
-
-      (org-map-entries
-        (lambda ()
-          (let* ((summary (nth 4 (org-heading-components)))
-                 (tags (nth 5 (org-heading-components)))
-                 (description)
-                 ;; prefer heading epic property over file level one
-                 (epic (or (org-entry-get (point) "EPIC") epic))
-                 (assignee (or (org-entry-get (point) "ASSIGNEE") assignee))
-                 (priority (or (org-entry-get (point) "JIRA-PRIORITY") priority))
-                 (qa-board (or (org-entry-get (point) "QA") qa-board))
-                 (created (or (org-entry-get (point) "CREATED") "N"))
-                 (struct)
-                 (level (car (org-heading-components)))
-                 (response nil)
-                 (story-id nil))
-            (when (eq level 1)
-              (if (not (string-equal created "N"))
-                  (message "story: %s already created before, skip." summary)
-
-                (message "process: %s" summary)
-                ;; translate priority from string to number in jira
-                (setq priority (car (rassoc priority (jiralib-get-priorities))))
-                (org-gfm-export-as-markdown nil t)
-                (setq description (buffer-string*  "*Org GFM Export*"))
-                (kill-buffer "*Org GFM Export*")
-
-                (setq response
-                      (my-jira/create-story
-                       my-jira/project-id "Story" summary
-                       description epic labels priority assignee))
-                (when response
-                   (setq story-id (cdr (assoc 'key response)))
-                   (message "story-id: %s" story-id)
-                   (message "summary: %s" (assoc 'summary (assoc 'fields response)))
-                   (org-set-property "CREATED" "Y")
-                   (org-set-property "STORY-ID" story-id)
-                   (save-buffer))
-
-                (message "response for create story: %s" response)
-            ))
-    )))
-))
+  (org-map-entries #'my-jira/heading-to-story))
 
 ;;;###autoload
 (defun my-jira/stories-from-file (file)
