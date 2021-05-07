@@ -49,3 +49,5 @@
 ** Apple :Apple:
 *** [[http://www.mac52ipod.cn/feed.php][apple fans]] :chinese:
 *** [[http://www.waerfa.com/feed][Mac]] :chinese:
+** wallabag
+*** [[https://pocket.emacsbliss.com/feed/wallabag/NJH3ftboMltCfhl/all][wallabag]] :wallabag:

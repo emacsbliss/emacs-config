@@ -576,7 +576,8 @@ them to most frequently used things in Emacs.
 
   :nv "gx" #'+workspace/switch-to
   ;:nv "gy" #'tldr
-  :nv "gy" #'org-agenda
+  :nv "gy" #'org-agenda-super-view-today
+  :nv "gY" #'org-agenda-super-view-today
   ;; gz - evil multi-cursor
 
   ;; evil-exchange is used no so frequently
@@ -2771,6 +2772,67 @@ Borrowed lots of ideas from [fn:12].
 #+end_src
 
 ** agenda
+#+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
+(package! org-super-agenda)
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(use-package! org-super-agenda
+  :after org-agenda
+  :init
+  (setq
+      ;; org-agenda-skip-scheduled-if-done t
+      ;; org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-block-separator nil
+      org-agenda-compact-blocks t
+      org-agenda-start-day nil ;; i.e. today
+      org-agenda-span 1
+      org-agenda-start-on-weekday nil))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(setq org-agenda-custom-commands
+      '(("u" "Super view"
+         agenda (org-super-agenda-mode)
+                ((org-super-agenda-groups
+                       '((:name "Today"
+                          :time-grid t
+                          :date today
+                          :order 1)
+                         (:name "Jira"
+                          :time-grid t
+                          :tag "ejira_assigned"
+                          :order 2)))))
+
+        ("c" "Mega Agenda"
+        todo
+        (org-super-agenda-mode)
+        ((org-super-agenda-groups
+        '((:name "Important"
+           :priority "A")
+          (:name "Scheduled Soon"
+           :scheduled future
+           :order 1)
+          (:name "Next Items"
+           :todo "NEXT"
+           :order 2)
+          (:name "Quick Picks"
+            :effort< "0:30")
+          (:priority<= "B"
+           :scheduled future
+           :order 3)))))
+
+))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el :mkdir yes
+;;;###autoload
+(defun org-agenda-super-view-today (&optional arg)
+  (interactive "P")
+  (org-agenda arg "c"))
+#+end_src
+
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
 (after! org
     ;; these fancy characters caused problem with org-gtd package
