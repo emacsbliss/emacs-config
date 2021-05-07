@@ -29,9 +29,9 @@
      (setq mu4e-get-mail-command "offlineimap -o -q")))
 
   ;; set reply quote string the better way
-  ;; (setq message-citation-line-format "> On %a,  %b %d, %Y at %R, %f wrote:\n")
+  (setq message-citation-line-format "> On %a,  %b %d, %Y at %R, %f wrote:\n")
   ;; choose to use the formatted string
-  ;; (setq message-citation-line-function 'message-insert-formatted-citation-line)
+  (setq message-citation-line-function 'message-insert-formatted-citation-line)
 
   (setq mu4e-update-interval nil
         mu4e-compose-format-flowed t ; visual-line-mode + auto-fill upon sending

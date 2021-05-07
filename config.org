@@ -2791,6 +2791,7 @@ Borrowed lots of ideas from [fn:12].
       org-agenda-start-on-weekday nil))
 #+end_src
 
+Some ideas come from [[https://github.com/bascht/dotfiles-public/blob/master/dot_doom.d/org.el][here]]:
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
 (setq org-agenda-custom-commands
       '(("u" "Super view"
