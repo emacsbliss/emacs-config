@@ -577,7 +577,7 @@ them to most frequently used things in Emacs.
   :nv "gx" #'+workspace/switch-to
   ;:nv "gy" #'tldr
   :nv "gy" #'org-agenda-super-view-today
-  :nv "gY" #'org-agenda-super-view-today
+  :nv "gY" #'org-agenda-mega-view
   ;; gz - evil multi-cursor
 
   ;; evil-exchange is used no so frequently
@@ -2804,7 +2804,11 @@ Some ideas come from [[https://github.com/bascht/dotfiles-public/blob/master/dot
                          (:name "Jira"
                           :time-grid t
                           :tag "ejira_assigned"
-                          :order 2)))))
+                          :order 2)
+                         (:name "Waiting"
+                          :time-grid t
+                          :todo "WAIT"
+                          :order 3)))))
 
         ("c" "Mega Agenda"
         todo
@@ -2830,6 +2834,12 @@ Some ideas come from [[https://github.com/bascht/dotfiles-public/blob/master/dot
 #+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el :mkdir yes
 ;;;###autoload
 (defun org-agenda-super-view-today (&optional arg)
+  (interactive "P")
+  (org-agenda arg "u"))
+
+
+;;;###autoload
+(defun org-agenda-mega-view (&optional arg)
   (interactive "P")
   (org-agenda arg "c"))
 #+end_src
@@ -5279,7 +5289,8 @@ brew install xapian
     (holiday-chinese 5 5   "端午节 (五月初五)")
     (holiday-chinese 9 9   "重阳节 (九月初九)")
     (holiday-chinese 8 15  "中秋节 (八月十五)")
-    ))
+    ;; second Sunday of May
+    (holiday-float 5 0 2 "Mother's day")))
 
   (setq calendar-date-style 'american
   calendar-mark-holidays-flag t
