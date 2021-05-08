@@ -111,15 +111,16 @@
         :desc "save draft"    "S" #'message-dont-send
         :desc "attach"        "a" #'mail-add-attachment))
 
-
-;; disable org-msg
-;; it doesn't really do what I want..
-;; (use-package! org-msg
-;;   :hook (mu4e-compose-pre . org-msg-mode)
-;;   :config
-;;   (setq org-msg-startup "inlineimages"
-;;         org-msg-greeting-name-limit 3
-;;         org-msg-default-alternatives '(html text)))
+(use-package! org-msg
+  :hook (mu4e-compose-pre . org-msg-mode)
+  :config
+  (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+	org-msg-startup "hidestars indent inlineimages"
+        org-msg-greeting-name-limit 3
+        org-msg-default-alternatives '((new             . (text))
+                                       (reply-to-html   . (html))
+                                       (reply-to-text   . (text)))
+        org-msg-convert-citation t))
 
 ;;
 ;;; Gmail integration
