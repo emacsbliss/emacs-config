@@ -5258,7 +5258,7 @@ brew install xapian
 #+BEGIN_SRC emacs-lisp
 (use-package! calendar
   :config
-  (setq holiday-other-holidays
+  (setq calendar-holidays
   '((holiday-fixed 1 1   "New Year")
     (holiday-float 1 1 3 "Martin Luther King Day")
     (holiday-fixed 2 2 "Groundhog Day")
@@ -5267,31 +5267,29 @@ brew install xapian
     (holiday-fixed 3 17 "St. Patrick's Day")
     (holiday-fixed 4 1 "April Fools' Day")
     ;; Easter always occurs on the first Sunday after the Paschal Full Moon
-    (holiday-float 5 0 2 "Mother's Day")
     ;; last Monday of May
     (holiday-float 5 1 -1 "Memorial Day")
     ;; second Sunday of May
     (holiday-float 5 0 2 "Mother's day")
-    (holiday-float 6 0 3 "Father's Day")
+    ;; third Sunday of June (for US)
+    (holiday-float 6 0 3 "Father's Day (US)")
     (holiday-fixed 7 4 "Independence Day")
     (holiday-float 9 1 1 "Labor Day")
     (holiday-float 10 1 2 "Columbus Day")
     (holiday-fixed 10 31 "Halloween")
     (holiday-fixed 11 11 "Veteran's Day")
     ;; fourth Thursday of November
-    (holiday-float 11 4 4 "Thanksgiving")
+    (holiday-float 11 4 4 "Thanksgiving (US)")
     ;; day after Thanksgiving
     (holiday-float 11 4 5 "Black Friday")
     (holiday-fixed 12 25 "Christmas")
+    (holiday-chinese 1 15  "元宵节 (正月十五)")
+    (holiday-chinese 9 9   "重阳节 (九月初九)")
 ))
 
-  (setq holiday-local-holidays
-  '((holiday-chinese 1 15  "元宵节 (正月十五)")
-    (holiday-chinese 5 5   "端午节 (五月初五)")
-    (holiday-chinese 9 9   "重阳节 (九月初九)")
-    (holiday-chinese 8 15  "中秋节 (八月十五)")
-    ;; second Sunday of May
-    (holiday-float 5 0 2 "Mother's day")))
+    (setq calendar-holidays
+          (append cal-china-x-chinese-holidays
+                    calendar-holidays))
 
   (setq calendar-date-style 'american
   calendar-mark-holidays-flag t
