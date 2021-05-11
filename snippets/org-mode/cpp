@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: c++ source block
+# key: cpp
+# condition: t
+# --
+
+#+begin_src cpp
+`(substring-no-properties (car kill-ring))`$0
+#+end_src
