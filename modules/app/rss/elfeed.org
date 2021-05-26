@@ -26,6 +26,7 @@
 ** Tech Blog :blog:
 *** [[https://paulmck.livejournal.com/data/rss][Paul E. McKenney's Journal]]
 *** [[https://eli.thegreenplace.net/feeds/all.atom.xml][Eli Bendersky's website]]
+*** [[https://blog.cleancoder.com/atom.xml][uncle bob]]
 *** [[https://www.philnewton.net/blog/feed/][phil newton]]
 *** [[http://feeds.feedburner.com/zhihua-xblog][doctor-lai]] :chinese:
 *** [[http://feeds.feedburner.com/ruanyifeng][ruanyifeng]] :chinese:

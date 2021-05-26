@@ -4,6 +4,7 @@
     ("bg" "background" nil :count 2)
     ("fg" "foreground" nil :count 2)
     ("intro" "Introduction" nil :count 2)
+    ("zinfo" "information" nil :count 2)
     ("zalt" "alternative" nil :count 2)
     ("zch" "character" nil :count 2)
     ("zenv" "environment" nil :count 2)
@@ -15,5 +16,5 @@
     ("zcmp" "comparison" nil :count 2)
     ("zcomp" "compilation" nil :count 2)
     ("sth" "something" nil :count 2)
-
+    ("zsn" "snippets" nil :count 2)
    ))
