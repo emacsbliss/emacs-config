@@ -2543,12 +2543,12 @@ the code in the source file.
                  `("C" "Code Reference with Comments to Current Task"
                    plain (clock)
                    "%(ha/org-capture-code-snippet \"%F\")\n\n   %?"
-                   :empty-lines 1))
+                   :empty-lines 0))
     (add-to-list 'org-capture-templates
                  `("c" "Code Reference to Current Task"
                    plain (clock)
                    "%(ha/org-capture-code-snippet \"%F\")"
-                   :empty-lines 1 :immediate-finish t)))
+                   :empty-lines 0 :immediate-finish t)))
 #+end_src
 
 In order to support these two capture templates, we need following functions:
@@ -2562,7 +2562,34 @@ and a backlink to the function and the file."
     (let ((org-src-mode (replace-regexp-in-string "-mode" "" (format "%s" major-mode)))
           (func-name (which-function)))
       (ha/org-capture-fileref-snippet f "SRC" org-src-mode func-name))))
+#+end_src
 
+For some weird reason, with org-mode 9.5, I'm getting error:
+#+begin_example
+condition-case: Capture abort: Args out of range: 0, 0
+#+end_example
+
+it turned out it works if I do this:
+#+begin_src emacs-lisp :tangle no
+    (format "%s
+
+#+BEGIN_%s %s
+%s
+#+END_%s" initial-txt type headers code-snippet type)
+#+end_src
+
+but not this:
+#+begin_src emacs-lisp :tangle no
+    (format "
+   %s
+
+#+BEGIN_%s %s
+%s
+#+END_%s" initial-txt type headers code-snippet type)
+#+end_src
+
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/autoload.el
 ;;;###autoload
 (defun ha/org-capture-fileref-snippet (f type headers func-name)
   (let* ((code-snippet
@@ -2576,9 +2603,7 @@ and a backlink to the function and the file."
                         (format "From ~%s~ (in [[file:%s::%s][%s]]):"
                                 func-name file-name line-number
                                 file-base))))
-    (format "
-   %s
-
+    (format "%s
 #+BEGIN_%s %s
 %s
 #+END_%s" initial-txt type headers code-snippet type)))
