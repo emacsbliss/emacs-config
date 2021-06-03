@@ -952,6 +952,7 @@ them to most frequently used things in Emacs.
       :desc "View search"    "v"  #'org-search-view)
     :desc "Default browser"    "b"  #'browse-url-of-file
     :desc "calendar"           "c"  #'=calendar
+    :desc "world clock"        "C"  #'world-clock
     :desc "Start debugger"     "d"  #'+debugger/start
     :desc "New frame"          "f"  #'make-frame
     :desc "REPL"               "r"  #'+eval/open-repl-other-window
