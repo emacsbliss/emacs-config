@@ -1684,6 +1684,59 @@ this setting will put directories first:
   :desc "kill lines" :v ",k" #'dired-do-kill-lines
   :desc "toggle details mode" :nv ",d" #'dired-hide-details-mode)
 #+END_SRC
+** working with remote
+Whenever we delete a remote file via tramp, it fails with error like:
+#+begin_example
+File is missing: Searching for program No such file or directory trash
+error: "Failed to trash \"/ssh:me@nas:/volume1/tmp/test.xml\": \"/Users/emacsbliss/.emacs.d/.local/straight/build-28.0.50/osx-trash/trashfile.AppleScript:88:114: execution error: Finder got an error: Handler can’t handle objects of this class. (-10010) \""
+if: Failed to delete "/ssh:me@nas:/volume1/tmp/test.xml"
+#+end_example
+
+the delete file functionality is bound to function ~doom/delete-this-file~, particularly this line:
+#+begin_src emacs-lisp
+(progn (delete-file path t) t)
+#+end_src
+
+Based on the documentation, we are calling it by saying TRASH to t,
+because the variable ~delete-by-moving-to-trash~ is set to t in my config.
+#+begin_quote
+Signature
+(delete-file FILENAME &optional TRASH)
+
+Delete file named FILENAME.  If it is a symlink, remove the symlink.
+If file has multiple names, it continues to exist with the other names.
+TRASH non-nil means to trash the file instead of deleting, provided
+delete-by-moving-to-trash is non-nil.
+#+end_quote
+
+The reason why delete fails is because there is no trash can support in remote system
+when we delete file via tramp, so we need to temporarily disable that trash behavior in this case.
+
+Turned out we can use advice to fix this instead of changing this function.
+One thing to be careful is we need two advice, one before and one after so that
+later if we delete a local file, it will still go to trash instead of deleted,
+we only want that behavior when it's remote file which we can use function
+~file-remote-p~ to find out.
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+;;;###autoload
+(defun me/tramp-delete-file-advice-before (file &optional _trash)
+  (when (file-remote-p file)
+    (setq delete-by-moving-to-trash nil)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+;;;###autoload
+(defun me/tramp-delete-file-advice-after (file &optional _trash)
+  (when (file-remote-p file)
+    (setq delete-by-moving-to-trash t)))
+#+end_src
+
+Now we can add those advise to the ~delete-file~ function:
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+(advice-add 'delete-file :before #'me/tramp-delete-file-advice-before)
+(advice-add 'delete-file :after #'me/tramp-delete-file-advice-after)
+#+end_src
+
 * evil
 https://emacsbliss.com/annoyance-with-paste-in-evil-visual-mode/
 #+BEGIN_SRC emacs-lisp
