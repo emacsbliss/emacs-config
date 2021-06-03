@@ -5478,6 +5478,25 @@ https://github.com/dengste/org-caldav
   :defer t)
 #+END_SRC
 
+* world clock
+Emacs has a built-in functionality to show a world clock by using ~M-x world-clock~
+
+It will list a preset cities but I'd like to add more to that list..
+
+The process is simple, already described in [fn:14]
+
+Basically figure out the timezone name using link below:
+http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+
+Then modify the variable ~display-time-world-list~ by adding more city to it.
+
+~display-time-world-list~ is a list of list, each inner list has the format of
+~(time-zone label-for-clock)~:
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+(push '("Asia/Shanghai" "Shanghai") display-time-world-list)
+(push '("Australia/Sydney" "Sydney") display-time-world-list)
+#+end_src
+
 * Utils
 ** kill ring to json file
 #+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
@@ -6665,3 +6684,4 @@ Have to disable it because it causes issue for magit
 [fn:11] https://emacs-lsp.github.io/lsp-mode/tutorials/clojure-guide/
 [fn:12] https://github.com/rougier/emacs-gtd/blob/master/GTD.org
 [fn:13] https://yiming.dev/blog/2016/01/28/add-org-store-link-entry-for-elfeed
+[fn:14] http://wenshanren.org/?p=658
