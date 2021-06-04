@@ -1681,6 +1681,7 @@ this setting will put directories first:
   :desc "open"  :n "z" #'me/mac-open
   :desc "up directory" :n "h" #'dired-up-directory
   :desc "directory" :n "l" #'dired-find-file
+  :desc "copy full path" :n "f" #'diredp-copy-abs-filenames-as-kill
   :desc "kill line" :n ",k" #'dired-kill-line
   :desc "kill lines" :v ",k" #'dired-do-kill-lines
   :desc "toggle details mode" :nv ",d" #'dired-hide-details-mode)
@@ -1694,7 +1695,7 @@ if: Failed to delete "/ssh:me@nas:/volume1/tmp/test.xml"
 #+end_example
 
 the delete file functionality is bound to function ~doom/delete-this-file~, particularly this line:
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (progn (delete-file path t) t)
 #+end_src
 
@@ -5493,7 +5494,7 @@ Then modify the variable ~display-time-world-list~ by adding more city to it.
 
 ~display-time-world-list~ is a list of list, each inner list has the format of
 ~(time-zone label-for-clock)~:
-#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+#+begin_src emacs-lisp :tangle no
 (push '("Asia/Shanghai" "Shanghai") display-time-world-list)
 (push '("Australia/Sydney" "Sydney") display-time-world-list)
 #+end_src
