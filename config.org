@@ -70,6 +70,21 @@ Quickest way to increase font size for frame is to make use of
 ~doom-big-font-mode~ which is bound to ~SPC t b~.
 
 ** theme
+*** nano theme - disabled
+Now try out the nano-theme:
+#+begin_src emacs-lisp :tangle packages.el
+(package! nano-theme :recipe (:host github :repo "rougier/nano-theme"))
+#+end_src
+
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq doom-theme 'nano)
+#+END_SRC
+
+The issue with nano-theme is it doesn't look very nice with source code like c++
+or python, there are just pretty much one color for different symbols which
+makes it looks less appealing than spacemacs-theme
+
+*** spacemacs-theme
 Now trying out spacemacs light theme:
 #+begin_src emacs-lisp :tangle packages.el
 (package! spacemacs-theme)
@@ -79,6 +94,7 @@ Now trying out spacemacs light theme:
 (setq doom-theme 'spacemacs-light)
 #+END_SRC
 
+*** alternatives
 Other than default theme ~doom-one~, I also found ~doom-acario-light~ nice as a
 light theme.
 #+begin_src emacs-lisp :tangle no
