@@ -72,7 +72,7 @@ Quickest way to increase font size for frame is to make use of
 ** theme
 *** nano theme - disabled
 Now try out the nano-theme:
-#+begin_src emacs-lisp :tangle packages.el
+#+begin_src emacs-lisp :tangle no
 (package! nano-theme :recipe (:host github :repo "rougier/nano-theme"))
 #+end_src
 
