@@ -5808,6 +5808,20 @@ Org ref lets you manage your cite: links
 #+begin_src emacs-lisp
 (use-package! literate-calc-mode :defer t)
 #+end_src
+
+Sometimes it's convenient to just create a scratch buffer in order
+to do some literate calculation:
+#+begin_src emacs-lisp :tangle autoload/funcs.el :mkdirp yes
+;;;###autoload
+(defun me/literate-calc-scratch ()
+  "create a scratch buffer and put in literate-calc mode"
+  (interactive)
+  (let ((buf (get-buffer-create (generate-new-buffer-name "*calc*"))))
+    (switch-to-buffer buf)
+    (org-mode)
+    (literate-calc-minor-mode)))
+#+end_src
+
 * shrface
 #+begin_src emacs-lisp :tangle packages.el
 (package! shrface)
