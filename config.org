@@ -2358,7 +2358,7 @@ disable this for now.. DOOM Emacs has support ~org-reveal~
 (use-package! org-re-reveal
   :after ox
   :config
-  (setq org-re-reveal-root (format "file://%s/reveal.js" (substitute-in-file-name "$HOME"))
+  (setq org-re-reveal-root (substitute-in-file-name "file://$HOME/reveal.js")
         org-re-reveal-title-slide nil))
 #+end_src
 
@@ -5000,6 +5000,23 @@ brew install clojure-lsp
 #+begin_src emacs-lisp
 (after! lsp
   (setq lsp-lens-enable t))
+#+end_src
+* Java
+#+begin_src emacs-lisp
+(after! lsp-java
+    (setq lombok-path (substitute-in-file-name "$HOME/.m2/repository/org/projectlombok/lombok/1.18.6/lombok-1.18.6.jar"))
+    (setq lsp-java-java-path "/usr/local/Cellar/openjdk@11/11.0.10/bin/java")
+
+    (setq lsp-java-vmargs
+        `("-noverify"
+            "-Xmx1G"
+            "-XX:+UseParallelGC"
+            "-XX:GCTimeRatio=4"
+            "-XX:AdaptiveSizePolicyWeight=90"
+            "-Dsun.zip.disableMemoryMapping=true"
+            "-XX:+UseStringDeduplication"
+            ,(concat "-javaagent:" lombok-path)
+            ,(concat "-Xbootclasspath/a:" lombok-path))))
 #+end_src
 * scratch buffer
 I prefer that scratch buffer use ~org-mode~ as default:
