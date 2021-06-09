@@ -377,6 +377,16 @@ By default I use three consecutive ~$~ as separator in the files used by
       "C-l"      #'ivy-done
       [C-return] #'+ivy/git-grep-other-window-action)))
 #+END_SRC
+** ivy occur
+When I get into the ivy occur buffer via ~C-c C-o~ after an ivy search,
+one of the important keybinding are missing which is to switch to other buffers.
+
+So we need to add it and I bind it to the same keybinding as before:
+#+begin_src emacs-lisp :tangle keybinds.el
+(map! :map ivy-occur-grep-mode-map
+      :desc "ace window" :nv "gw" #'ace-window)
+#+end_src
+
 * auto complete
 ** company
 ~company~ is perfect for this.
