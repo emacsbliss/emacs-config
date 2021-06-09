@@ -2174,7 +2174,7 @@ TODO: this need review:
 #+end_src
 
 ** clangd
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (setq lsp-clients-clangd-args '("-j=3"
                                 "--background-index"
                                 "--cross-file-rename"
