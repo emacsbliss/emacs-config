@@ -3059,6 +3059,28 @@ everytime on startup
 (after! org
   (setq org-babel-python-command "python3"))
 #+end_src
+** TODO company-org-block
+#+BEGIN_SRC emacs-lisp :tangle packages.el
+(package! company-org-block)
+#+END_SRC
+
+This hook is not quite working with DOOM Emacs yet, the ~company-backends~
+doesn't have ~company-org-block~.
+
+Also due to the lazy loading of org babel language, initially only elisp is
+shown up..
+
+Another thing is it's somewhat conflicting with company-tabine
+#+begin_src emacs-lisp
+(use-package! company-org-block
+  :ensure t
+  :custom
+  (company-org-block-edit-style 'auto) ;; 'auto, 'prompt, or 'inline
+  :hook ((org-mode . (lambda ()
+                       (setq-local company-backends '(company-org-block))
+                       (company-mode +1)))))
+#+END_SRC
+
 * org roam
 ** basic setup
 https://github.com/jethrokuan/org-roam
