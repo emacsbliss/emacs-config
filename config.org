@@ -649,6 +649,7 @@ them to most frequently used things in Emacs.
       :desc "M-x"                   ":"    #'execute-extended-command
       ;; :desc "Pop up scratch buffer" "x"    #'doom/open-scratch-buffer
       :desc "Pop up scratch buffer" "x"    #'me/open-scratch-buffer
+      :desc "org projectile" "X"           #'org-projectile-project-todo-completing-read
 
       :desc "Org Capture"           ","    #'org-capture
       :desc "magit status"          "."    #'magit-status
@@ -2875,6 +2876,23 @@ Borrowed lots of ideas from [fn:12].
   ;; Set tags in headline, or update according to changed information at point.
   (bind-key "C-c c" 'org-gtd-clarify-finalize)
 ) ;; the keybinding to hit when you're done editing an item in the processing phase
+#+end_src
+
+#+BEGIN_SRC emacs-lisp :tangle packages.el
+(package! org-projectile)
+#+END_SRC
+
+#+begin_src emacs-lisp
+(use-package! org-projectile
+  :config
+  (setq org-projectile-projects-file
+      "~/org/gtd/projects.org"))
+  (push (org-projectile-project-todo-entry) org-capture-templates)
+#+END_SRC
+
+We don't need this since ~projects.org~ is already in the list of ~org-agenda-files~:
+#+begin_src emacs-lisp :tangle no
+(setq org-agenda-files (append org-agenda-files (org-projectile-todo-files))))
 #+end_src
 
 ** agenda
