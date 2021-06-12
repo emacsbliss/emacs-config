@@ -2906,6 +2906,7 @@ We don't need this since ~projects.org~ is already in the list of ~org-agenda-fi
 #+end_src
 
 ** agenda
+*** packages
 #+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
 (package! org-super-agenda)
 #+end_src
@@ -2924,25 +2925,54 @@ We don't need this since ~projects.org~ is already in the list of ~org-agenda-fi
       org-agenda-span 1
       org-agenda-start-on-weekday nil))
 #+end_src
-
-Some ideas come from [[https://github.com/bascht/dotfiles-public/blob/master/dot_doom.d/org.el][here]]:
-#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+*** layout
+Sometimes it could be really hard if you don't have clear idea what and how you want
+the things to be shown on your agenda. Once that is figured out, then rest will be
+easy to make use of the org-super-agenda. Also some ideas come from [[https://github.com/bascht/dotfiles-public/blob/master/dot_doom.d/org.el][here]]:
+#+begin_src emacs-lisp
 (setq org-agenda-custom-commands
       '(("u" "Super view"
          agenda (org-super-agenda-mode)
-                ((org-super-agenda-groups
-                       '((:name "Today"
-                          :time-grid t
-                          :date today
-                          :order 1)
-                         (:name "Jira"
-                          :time-grid t
-                          :tag "ejira_assigned"
-                          :order 2)
-                         (:name "Waiting"
-                          :time-grid t
-                          :todo "WAIT"
-                          :order 3)))))
+         ((org-super-agenda-groups
+           '(
+             (:name "\n⚡ Holiday/Birthday/Anniversary:\n⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺"
+              :category ("Holidays" "Birthdays" "Anniversary")
+              :order 1)
+
+              (:name "\n⚡ Schedule:\n⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺"
+              :time-grid t
+              :order 2)
+
+              (:name "\n⚡ Do Today:\n⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺"
+              ;; can't have this, otherwise overdue won't show
+              ;; :todo ("TODO" "NEXT")
+              :date today
+              :order 3)
+
+              (:name "\n⚡ Upcoming:\n⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺"
+               :scheduled future
+               :deadline future
+               :order 4)
+
+              (:name "\n⚡ Overdue:\n⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺"
+               :deadline past
+               :order 5)
+
+              (:name "\n⚡ Rollover:\n⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺⎺"
+               :scheduled past
+               :order 5)))))
+
+        ("b" "Birthday View"
+            ((agenda "" (
+             (org-agenda-show-all-dates nil)
+             (org-agenda-span 90)
+             (org-agenda-start-day "+0d")
+             (org-super-agenda-mode)
+                        (org-super-agenda-groups
+                       '((:name "birthday"
+                          :category ("Birthdays" "Anniversary")
+                          :discard (:anything t)
+                                  :order 1)))))))
 
         ("c" "Mega Agenda"
         todo
@@ -2971,7 +3001,6 @@ Some ideas come from [[https://github.com/bascht/dotfiles-public/blob/master/dot
   (interactive "P")
   (org-agenda arg "u"))
 
-
 ;;;###autoload
 (defun org-agenda-mega-view (&optional arg)
   (interactive "P")
@@ -2986,6 +3015,42 @@ Some ideas come from [[https://github.com/bascht/dotfiles-public/blob/master/dot
     ;;                             (sequence "|" "✘ CANCELED(c)")))
     (setq org-agenda-files '("~/org/gtd")))
 #+end_src
+*** prettify
+Now we need to tweak some settings to make it looks nicer, heavy inspired by [fn:15]:
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(after! org
+(setq org-agenda-remove-tags t)
+(setq org-agenda-current-time-string "ᐊ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ Now")
+(setq org-agenda-time-grid (quote ((today require-timed remove-match) (0900 2100) "      " "┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈")))
+(setq org-deadline-warning-days 7)
+(setq org-agenda-breadcrumbs-separator " ❱ ")
+(setq org-agenda-todo-keyword-format "")
+(setq org-agenda-show-all-dates nil)
+(setq org-agenda-prefix-format
+      '((agenda . " %i   %?-12t% s    ")
+        (todo . " %i    ")
+        (tags . " %i    ")
+        (search . " %i    ")))
+)
+#+end_src
+
+Also adding icons for the category makes it look awesome:
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
+(setq agenda-icons-dir (concat doom-private-dir "resource/icons/"))
+(after! org
+(setq org-agenda-category-icon-alist
+ '(
+   ("agenda" "~/.doom.d/resource/icons/calendar.svg" nil nil :ascent center :mask heuristic)
+   ("Birthdays" "~/.doom.d/resource/icons/cake.svg" nil nil :ascent center :mask heuristic)
+   ("Holidays" "~/.doom.d/resource/icons/summer-holidays.svg" nil nil :ascent center :mask heuristic)
+   ("Anniversary" "~/.doom.d/resource/icons/summer-holidays.svg" nil nil :ascent center :mask heuristic)
+   ("finance" "~/.doom.d/resource/icons/money-bag.svg" nil nil :ascent center :mask heuristic)
+   ("Naomi" "~/.doom.d/resource/icons/girl.svg" nil nil :ascent center :mask heuristic)
+   ("inbox" "~/.doom.d/resource/icons/checklist.svg" nil nil :ascent center :mask heuristic)
+   ("scheduled" "~/.doom.d/resource/icons/stopwatch.svg" nil nil :ascent center :mask heuristic)
+)))
+#+end_src
+
 ** capture
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el :mkdir yes
 (after! org
@@ -6794,3 +6859,4 @@ Have to disable it because it causes issue for magit
 [fn:12] https://github.com/rougier/emacs-gtd/blob/master/GTD.org
 [fn:13] https://yiming.dev/blog/2016/01/28/add-org-store-link-entry-for-elfeed
 [fn:14] http://wenshanren.org/?p=658
+[fn:15] https://www.reddit.com/r/emacs/comments/hnf3cw/my_orgmode_agenda_much_better_now_with_category/
