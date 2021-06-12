@@ -2228,6 +2228,16 @@ buffer, so change the setting a bit:
     (setq org-src-window-setup 'split-window-below))
 #+END_SRC
 
+The default value of ~org-link-file-path-type~ is adaptive, which means make
+relative links if the link is to the current directory below, otherwise fully
+qualify the link.
+
+#+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(after! org
+  (setq org-link-file-path-type 'relative))
+#+end_src
+
+If we don't use relative, then working copy on iOS will fail to render the image.
 ** convert to org file
 [[https://github.com/tecosaur/org-pandoc-import][org-pandoc-import]] could help with this, it depends on pandoc.
 
