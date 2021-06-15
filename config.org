@@ -3025,7 +3025,9 @@ Now we need to tweak some settings to make it looks nicer, heavy inspired by [fn
 (setq org-deadline-warning-days 7)
 (setq org-agenda-breadcrumbs-separator " ❱ ")
 (setq org-agenda-todo-keyword-format "")
-(setq org-agenda-show-all-dates nil)
+;; do not turn on this otherwise daily view forward/backword
+;; will have issue due to some days are missing
+;; (setq org-agenda-show-all-dates nil)
 (setq org-agenda-prefix-format
       '((agenda . " %i   %?-12t% s    ")
         (todo . " %i    ")
