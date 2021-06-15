@@ -5541,7 +5541,6 @@ brew install xapian
     ;; first Monday of October
     (holiday-float 10 1 1 "Labor Day (AU)")
 
-    On the second Monday in June,
     (holiday-chinese 1 15  "元宵节 (正月十五)")
     (holiday-chinese 9 9   "重阳节 (九月初九)")
 ))
