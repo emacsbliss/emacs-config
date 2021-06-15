@@ -5495,6 +5495,16 @@ brew install xapian
 #+end_src
 * Calendar
 ** built-in
+#+begin_src emacs-lisp :tangle no
+(holiday-float 5 1 -1 "Memorial Day")
+#+end_src
+
+- first argument is month, January is 1
+- second argument is day, Sunday is 0
+- third argument is N:
+- If N>0, use the Nth DAYNAME after MONTH DAY.
+- If N<0, use the Nth DAYNAME before MONTH DAY.
+
 #+BEGIN_SRC emacs-lisp
 (use-package! calendar
   :config
@@ -5523,6 +5533,15 @@ brew install xapian
     ;; day after Thanksgiving
     (holiday-float 11 4 5 "Black Friday")
     (holiday-fixed 12 25 "Christmas")
+
+    (holiday-fixed 1 26 "Australia Day")
+    (holiday-fixed 4 25 "Anzac Day")
+    ;; second Monday of June
+    (holiday-float 6 1 2 "Queen's birthday (AU)")
+    ;; first Monday of October
+    (holiday-float 10 1 1 "Labor Day (AU)")
+
+    On the second Monday in June,
     (holiday-chinese 1 15  "元宵节 (正月十五)")
     (holiday-chinese 9 9   "重阳节 (九月初九)")
 ))
