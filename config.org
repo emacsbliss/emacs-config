@@ -1766,6 +1766,25 @@ Now we can add those advise to the ~delete-file~ function:
 (advice-add 'delete-file :after #'me/tramp-delete-file-advice-after)
 #+end_src
 
+Turned out we need to do the same thing for directory:
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+;;;###autoload
+(defun me/tramp-delete-dir-advice-before (dir &optional recursive _trash)
+  (when (file-remote-p dir)
+    (setq delete-by-moving-to-trash nil)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+;;;###autoload
+(defun me/tramp-delete-dir-advice-after (dir &optional recursive _trash)
+  (when (file-remote-p dir)
+    (setq delete-by-moving-to-trash t)))
+#+end_src
+
+#+begin_src emacs-lisp :tangle modules/my/dired/config.el :mkdir yes
+(advice-add 'delete-directory :before #'me/tramp-delete-dir-advice-before)
+(advice-add 'delete-directory :after #'me/tramp-delete-dir-advice-after)
+#+end_src
 * evil
 https://emacsbliss.com/annoyance-with-paste-in-evil-visual-mode/
 #+BEGIN_SRC emacs-lisp
