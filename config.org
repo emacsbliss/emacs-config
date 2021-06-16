@@ -6128,6 +6128,11 @@ https://github.com/bcbcarl/emacs-wttrin
 #+begin_src emacs-lisp
 (use-package! browse-at-remote :defer t)
 #+end_src
+* Diary
+#+begin_src emacs-lisp
+(setq diary-file "~/org/gtd/diary")
+#+end_src
+
 * Disabled
 ** org-journal
 updated on <2021-02-21 Sun>:
