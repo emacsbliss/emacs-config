@@ -6134,6 +6134,50 @@ https://github.com/bcbcarl/emacs-wttrin
 #+end_src
 
 * Disabled
+** EAF - disabled
+EAF is very unstable on macOS at the moment, also there is issue that
+I can't enter text in web browser.
+#+begin_src emacs-lisp :tangle no
+(package! eaf :recipe (:host github
+                       :repo "manateelazycat/emacs-application-framework"
+                       :files ("*")
+                       :build (:not compile)))
+                       ;; :no-byte-compile t))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(package! epc)
+(package! ctable)
+(package! deferred)
+(use-package! epc :defer t)
+(use-package! ctable :defer t)
+(use-package! deferred :defer t)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+(use-package! eaf
+  ;; :init
+  ;; (use-package! epc :defer t :ensure t)
+  ;; (use-package! ctable :defer t :ensure t)
+  ;; (use-package! deferred :defer t :ensure t)
+  ;; (use-package s :defer t :ensure t)
+  :custom
+  (eaf-browser-continue-where-left-off t)
+  (eaf-find-alternate-file-in-dired t)
+  :config
+  (eaf-setq eaf-browser-enable-adblocker "true")
+  (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
+  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
+  (eaf-bind-key nil "M-q" eaf-browser-keybinding)
+
+  (defun eaf-open-google ()
+    "Open Google using EAF."
+    (interactive)
+    (eaf-open-browser "https://www.google.com"))
+)
+#+end_src
+
 ** org-journal
 updated on <2021-02-21 Sun>:
 I have switched to use org-roam for journal as well, so disable org-journal.
