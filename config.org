@@ -70,6 +70,18 @@ Quickest way to increase font size for frame is to make use of
 ~doom-big-font-mode~ which is bound to ~SPC t b~.
 
 ** theme
+*** modus [fn:16]
+#+BEGIN_SRC emacs-lisp
+(setq
+   modus-themes-diffs 'desaturated
+   modus-themes-headings '((t . section))
+   modus-themes-bold-constructs t
+   modus-themes-syntax 'faint
+   modus-themes-prompts 'subtle
+   modus-themes-completions 'opionated)
+(setq doom-theme 'modus-operandi)
+#+END_SRC
+
 *** nano theme - disabled
 Now try out the nano-theme:
 #+begin_src emacs-lisp :tangle no
@@ -90,7 +102,7 @@ Now trying out spacemacs light theme:
 (package! spacemacs-theme)
 #+end_src
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 (setq doom-theme 'spacemacs-light)
 #+END_SRC
 
@@ -6948,3 +6960,4 @@ Have to disable it because it causes issue for magit
 [fn:13] https://yiming.dev/blog/2016/01/28/add-org-store-link-entry-for-elfeed
 [fn:14] http://wenshanren.org/?p=658
 [fn:15] https://www.reddit.com/r/emacs/comments/hnf3cw/my_orgmode_agenda_much_better_now_with_category/
+[fn:16] https://github.com/d12frosted/environment
