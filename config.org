@@ -566,7 +566,9 @@ them to most frequently used things in Emacs.
   ;; seems I like to use :a<RET> more, so give this away to org-roam
   ;; :desc  "toggle between h/cpp" :nv "ga" #'projectile-find-other-file
   :desc  "org roam node find" :nv "ga" #'org-roam-node-find
-  :desc  "org roam" :nv "gA" #'org-roam-buffer-toggle
+  ;; org-roam-buffer-toggle is not working for me for some reason
+  ;; :desc  "org roam" :nv "gA" #'org-roam-buffer-toggle
+  :desc  "org roam" :nv "gA" #'org-roam-buffer
   ;; what is differences between persp-switch-to-buffer and +ivy/switch-workspace-buffer ?
   :desc  "switch workspace buffer" :nv "gb" #'+ivy/switch-workspace-buffer
   :desc  "switch all buffer" :nv "gB" #'ivy-switch-buffer
@@ -3207,70 +3209,32 @@ I like it better than org-brain, feels more natural to me..
    org-roam-setup
    org-roam-capture
    org-roam-node-find)
-      :custom
+   :custom
       (org-roam-directory "~/org/roam")
-      (org-roam-capture--file-name-default "")
-      (org-roam-rename-file-on-title-change nil)
+      (org-roam-dailies-directory "journals/")
       (org-roam-dailies-capture-templates
-         '(("d" "daily" plain (function org-roam-capture--get-point) ""
-         :if-new (file+head "journals/%<%Y_%m_%d>.org"
+         '(("d" "daily" entry  "* %?"
+         :if-new (file+head "%<%Y_%m_%d>.org"
                         "#+TITLE: %<%a, %Y/%m/%d>\n")
          :immediate-finish t
+         :unnarrowed t
          )))
       (org-roam-capture-templates
-        '(("d" "default" plain (function org-roam-capture--get-point)
-            "%?"
+        '(("d" "default" plain "%?"
+           :if-new (file+head "pages/${slug}.org" "#+title: ${title}\n#+DATE: %<%Y-%m-%d>\n")
             :immediate-finish t
-            :file-name "pages/${slug}"
-            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n"
             :unnarrowed t)
-
-          ("j" "jira" plain (function org-roam-capture--get-point)
-            "%?"
-            :immediate-finish t
-            :file-name "pages/${slug}"
-            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n#+KEYWORDS: \n#+TYPE: \n#+STATUS: Q\n#+JIRA: \n#+SPRINT: \n#+EPIC: \n#+POINTS: \n"
-            :unnarrowed t)))
+          ))
   :config
   ;;(setq org-roam-mode-sections
   ;;      (list #'org-roam-backlinks-insert-section
   ;;            #'org-roam-reflinks-insert-section
   ;;            #'org-roam-unlinked-references-insert-section))
-  (org-roam-setup))
+  (org-roam-setup)
+  :bind (:map org-mode-map
+    (("C-c r" . org-roam-node-insert))))
 #+end_src
 
-Given the frequency I use org-roam, I think it makes sense to always load it
-upfront, not using defer:
-#+begin_src emacs-lisp :tangle no
-(use-package! org-roam
-      :hook
-      (after-init . org-roam-mode)
-      :custom
-      (org-roam-directory "~/org/roam")
-      (org-roam-capture--file-name-default "")
-      (org-roam-rename-file-on-title-change nil)
-      (org-roam-dailies-capture-templates
-         '(("d" "daily" plain (function org-roam-capture--get-point) ""
-         :immediate-finish t
-         :file-name "journals/%<%Y_%m_%d>"
-         :head "#+TITLE: %<%a, %Y/%m/%d>")))
-      (org-roam-capture-templates
-        '(("d" "default" plain (function org-roam-capture--get-point)
-            "%?"
-            :immediate-finish t
-            :file-name "pages/${slug}"
-            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n"
-            :unnarrowed t)
-
-          ("j" "jira" plain (function org-roam-capture--get-point)
-            "%?"
-            :immediate-finish t
-            :file-name "pages/${slug}"
-            :head "#+TITLE: ${title}\n#+DATE: %<%Y-%m-%d>\n#+KEYWORDS: \n#+TYPE: \n#+STATUS: Q\n#+JIRA: \n#+SPRINT: \n#+EPIC: \n#+POINTS: \n"
-            :unnarrowed t)))
-      :bind (:map org-mode-map
-        (("C-c r" . org-roam-insert))))
-#+end_src
 ** backlink support during export for org roam
 #+begin_src emacs-lisp :tangle no
 ;;;###autoload
