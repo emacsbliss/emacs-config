@@ -6150,6 +6150,12 @@ https://github.com/bcbcarl/emacs-wttrin
 (setq diary-file "~/org/gtd/diary")
 #+end_src
 
+* org-contacts
+#+begin_src emacs-lisp
+(use-package! org-contacts
+  :after org
+  :custom (org-contacts-files '("~/org/roam/pages/contacts.org")))
+#+end_src
 * Disabled
 ** EAF - disabled
 EAF is very unstable on macOS at the moment, also there is issue that
