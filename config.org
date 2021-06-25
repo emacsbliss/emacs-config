@@ -3214,7 +3214,7 @@ I like it better than org-brain, feels more natural to me..
       (org-roam-dailies-directory "journals/")
       (org-roam-dailies-capture-templates
          '(("d" "daily" entry  "* %?"
-         :if-new (file+head "%<%Y_%m_%d>.org"
+         :if-new (file+head "%<%Y-%m-%d>.org"
                         "#+TITLE: %<%a, %Y/%m/%d>\n")
          :immediate-finish t
          :unnarrowed t
