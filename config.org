@@ -5917,10 +5917,26 @@ Org ref lets you manage your cite: links
 #+end_src
 ** Org Roam Bibtex (ORB)
 #+begin_src emacs-lisp :tangle modules/emacs/org/packages.el
-(package! org-roam-bibtex :recipe (:host github :branch "abbreviate-file" :repo "emacsbliss/org-roam-bibtex"))
+(package! org-roam-bibtex :recipe (:host github :branch "org-roam-v2" :repo "org-roam/org-roam-bibtex"))
 #+end_src
 
 #+begin_src emacs-lisp :tangle modules/emacs/org/config.el
+(use-package! org-roam-bibtex
+  :after (org-roam)
+  :config
+  (setq orb-preformat-keywords
+   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+  (setq orb-file-field-extensions '("pdf" "epub" "html" "mp4" "mp3"))
+  (add-to-list 'org-roam-capture-templates
+        '("r" "ref" plain "%?"
+           :if-new
+           (file+head "pages/${slug}.org"
+           "#+TITLE: ${title}\n#+ROAM_KEY: ${ref}
+\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: ${file}\n  :NOTER_PAGE: \n  :END:\n\n"
+           :unnarrowed t))))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
 (use-package! org-roam-bibtex
   :after (org-roam)
   :hook (org-roam-mode . org-roam-bibtex-mode)
